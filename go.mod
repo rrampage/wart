@@ -1,4 +1,4 @@
-module github.com/rrampage/wag
+module github.com/rrampage/wart
 
 go 1.20
 
