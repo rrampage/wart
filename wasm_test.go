@@ -10,7 +10,7 @@ func TestNoop(t *testing.T) {
 	// Do nothing
 	ins := []Instruction{}
 	m := NewMachine(nil, 0)
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	assrt.Equal(0, m.stackPtr)
 }
 
@@ -21,7 +21,7 @@ func TestConst(t *testing.T) {
 		{"const", []int{1}},
 	}
 	m := NewMachine(nil, 0)
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	assrt.Equal(1, m.stackPtr)
 }
 
@@ -34,7 +34,7 @@ func TestAdd(t *testing.T) {
 		{"add", nil},
 	}
 	m := NewMachine(nil, 0)
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	assrt.Equal(1, m.stackPtr)
 	assrt.Equal(112, m.stack[0])
 }
@@ -59,7 +59,7 @@ func TestLoadStore(t *testing.T) {
 		{"sub", nil},
 	}
 	m := NewMachine(nil, 65536)
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	assrt.Equal(1, m.stackPtr)
 	assrt.Equal(111, m.stack[0])
 }
@@ -83,7 +83,7 @@ func TestUpdatePositionLoadStore(t *testing.T) {
 		{"add", nil},
 		{"store", nil},
 	}
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	assrt.Equal(0, m.stackPtr)
 	assrt.Equal(203, BytesToInt(m.memory[xAddr:xAddr+4]))
 }
@@ -115,7 +115,7 @@ func TestUpdatePositionFunc(t *testing.T) {
 		{"call", []int{0}}, // call updatePosition
 		{"store", nil},     // Set xAddr to function's return value
 	}
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	assrt.Equal(0, m.stackPtr)
 	assrt.Equal(203, BytesToInt(m.memory[xAddr:xAddr+4]))
 }

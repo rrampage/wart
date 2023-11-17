@@ -87,7 +87,7 @@ func (m *Machine) Store(addr int, data []byte) {
 }
 
 func (m *Machine) Call(fun *Function, args []int) int {
-	m.Execute(fun.Code, args)
+	m.Execute(fun.Code, args, 0)
 	if fun.Returns {
 		retVal := m.Pop()
 		return retVal
@@ -95,7 +95,7 @@ func (m *Machine) Call(fun *Function, args []int) int {
 	return 0
 }
 
-func (m *Machine) exec(ins Instruction, locals []int) {
+func (m *Machine) exec(ins Instruction, locals []int, level int) int {
 	switch ins.Op {
 	case "const":
 		// TODO: length check
@@ -130,20 +130,16 @@ func (m *Machine) exec(ins Instruction, locals []int) {
 		val := m.Pop()
 		addr := m.Pop()
 		m.Store(addr, IntToBytes(val))
-		return
 	case "load":
 		addr := m.Pop()
 		loadedBytes := m.Load(addr, 4)
 		val := BytesToInt(loadedBytes)
 		m.Push(val)
-		return
 	case "local.get":
 		m.Push(locals[ins.Args[0]])
-		return
 	case "local.set":
 		val := m.Pop()
 		locals[ins.Args[0]] = val
-		return
 	case "call":
 		fun := m.functions[ins.Args[0]]
 		fargs := make([]int, fun.NParams)
@@ -156,16 +152,36 @@ func (m *Machine) exec(ins Instruction, locals []int) {
 		if fun.Returns {
 			m.Push(res)
 		}
+	case "br":
+		lvl := ins.Args[0]
+		return lvl
+	case "br_if":
+		if m.Pop() == 1 {
+			lvl := ins.Args[0]
+			return lvl
+		}
+	case "block":
+		// TODO
+		lvl := m.Execute([]Instruction{ins}, locals, level)
+		if lvl > 0 {
+			lvl -= 1
+			return lvl
+		}
+	case "loop":
+		// TODO
+		return -1
 	default:
 		panic(fmt.Sprintf("Invalid instruction: %s args: %v", ins.Op, ins.Args))
 	}
+	return level
 }
 
-func (m *Machine) Execute(instructions []Instruction, locals []int) {
+func (m *Machine) Execute(instructions []Instruction, locals []int, level int) int {
 	for _, ins := range instructions {
 		fmt.Printf("Ins: %s, Args: %v, Stack: %v\n", ins.Op, ins.Args, m.stack[:m.stackPtr])
-		m.exec(ins, locals)
+		level = m.exec(ins, locals, level)
 	}
+	return level
 }
 
 func main() {
@@ -188,6 +204,6 @@ func main() {
 	}
 
 	m := NewMachine(nil, 65536)
-	m.Execute(ins, nil)
+	m.Execute(ins, nil, 0)
 	fmt.Printf("%v\n", m.stack[:m.stackPtr])
 }
