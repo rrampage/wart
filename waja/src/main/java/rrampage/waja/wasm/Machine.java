@@ -111,14 +111,21 @@ public class Machine {
                         case I64_SUB -> push(l-r);
                         case I64_MUL -> push(l*r);
                         case I64_DIV_S -> push(l/r);
+                        case I64_REM_S -> push(l % r);
+                        case I64_DIV_U -> push(Long.divideUnsigned(l,r));
+                        case I64_REM_U -> push(Long.remainderUnsigned(l,r));
                         case I64_MAX -> push(Long.max(l,r));
                         case I64_MIN -> push(Long.min(l,r));
                         case I64_EQ -> pushInt(wrapBoolean(l == r));
                         case I64_NE -> pushInt(wrapBoolean(l != r));
-                        case I64_GE -> pushInt(wrapBoolean(l >= r));
-                        case I64_GT -> pushInt(wrapBoolean(l > r));
-                        case I64_LE -> pushInt(wrapBoolean(l <= r));
-                        case I64_LT -> pushInt(wrapBoolean(l < r));
+                        case I64_GE_S -> pushInt(wrapBoolean(l >= r));
+                        case I64_GT_S -> pushInt(wrapBoolean(l > r));
+                        case I64_LE_S -> pushInt(wrapBoolean(l <= r));
+                        case I64_LT_S -> pushInt(wrapBoolean(l < r));
+                        case I64_GE_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) >= 0));
+                        case I64_GT_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) > 0));
+                        case I64_LE_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) <= 0));
+                        case I64_LT_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) < 0));
                     }
                 }
                 case IntBinaryInstruction b -> {
@@ -129,6 +136,9 @@ public class Machine {
                         case I32_SUB -> pushInt(l-r);
                         case I32_MUL -> pushInt(l*r);
                         case I32_DIV_S -> pushInt(l/r);
+                        case I32_REM_S -> pushInt(l%r);
+                        case I32_DIV_U -> pushInt(Integer.divideUnsigned(l,r));
+                        case I32_REM_U -> pushInt(Integer.remainderUnsigned(l,r));
                         case I32_MAX -> pushInt(Integer.max(l,r));
                         case I32_MIN -> pushInt(Integer.min(l,r));
                         case I32_EQ -> pushInt(wrapBoolean(l == r));
@@ -137,6 +147,10 @@ public class Machine {
                         case I32_GT_S -> pushInt(wrapBoolean(l > r));
                         case I32_LE_S -> pushInt(wrapBoolean(l <= r));
                         case I32_LT_S -> pushInt(wrapBoolean(l < r));
+                        case I32_GE_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) >= 0));
+                        case I32_GT_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) > 0));
+                        case I32_LE_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) <= 0));
+                        case I32_LT_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) < 0));
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
