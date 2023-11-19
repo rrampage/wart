@@ -1,4 +1,9 @@
-# A simple WASM interpreter
+# A simple WASM interpreter in multiple languages
+
+Inspired by [David Beazley's mindblowing talk](https://www.youtube.com/watch?v=r-A78RgMhZU) on live-coding [a WASM interpreter](https://gist.github.com/dabeaz/7d8838b54dba5006c58a40fc28da9d5a)
+WASM opcode references:
+- [Opcode table](https://pengowray.github.io/wasm-ops/)
+- [MDN WASM Instruction reference](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference)
 
 ## wag - Golang WASM interpreter
 ```bash
@@ -22,9 +27,15 @@ go test -v
 
 ## waja - Java WASM interpreter
 
+### Currently implemented
+- Stack push/pop works for i32, i64, f32 and f64
+- Uses Java 21 pattern matching and records to implement instructions
+- Works with f64 for arithmetic and comparison
+
 ### TODO
-- Write code!
-- Use Java 21 pattern matching and records to implement instructions
+- Load/store with alignment and offset support
+- Functions
+- Blocks, loops and conditionals
 
 ## walrus - Rust WASM interpreter
 
