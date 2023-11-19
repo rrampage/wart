@@ -75,12 +75,32 @@ public class Machine {
                         case F64_SUB -> pushDouble(l-r);
                         case F64_MUL -> pushDouble(l*r);
                         case F64_DIV -> pushDouble(l/r);
+                        case F64_MAX -> pushDouble(Double.max(l,r));
+                        case F64_MIN -> pushDouble(Double.min(l,r));
                         case F64_EQ -> pushInt(wrapBoolean(l == r));
                         case F64_NE -> pushInt(wrapBoolean(l != r));
                         case F64_GE -> pushInt(wrapBoolean(l >= r));
                         case F64_GT -> pushInt(wrapBoolean(l > r));
                         case F64_LE -> pushInt(wrapBoolean(l <= r));
                         case F64_LT -> pushInt(wrapBoolean(l < r));
+                    }
+                }
+                case FloatBinaryInstruction b -> {
+                    float l = popFloat();
+                    float r = popFloat();
+                    switch (b) {
+                        case F32_ADD -> pushFloat(l+r);
+                        case F32_SUB -> pushFloat(l-r);
+                        case F32_MUL -> pushFloat(l*r);
+                        case F32_DIV -> pushFloat(l/r);
+                        case F32_MAX -> pushFloat(Float.max(l,r));
+                        case F32_MIN -> pushFloat(Float.min(l,r));
+                        case F32_EQ -> pushInt(wrapBoolean(l == r));
+                        case F32_NE -> pushInt(wrapBoolean(l != r));
+                        case F32_GE -> pushInt(wrapBoolean(l >= r));
+                        case F32_GT -> pushInt(wrapBoolean(l > r));
+                        case F32_LE -> pushInt(wrapBoolean(l <= r));
+                        case F32_LT -> pushInt(wrapBoolean(l < r));
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
