@@ -54,3 +54,44 @@ enum FloatBinaryInstruction implements Instruction {
     public String opCode() { return opCode;}
 }
 
+enum IntBinaryInstruction implements Instruction {
+    I32_ADD    ("i32.add"),
+    I32_SUB    ("i32.sub"),
+    I32_MUL    ("i32.mul"),
+    I32_DIV_S    ("i32.div_s"),
+    I32_EQ("i32.eq"),
+    I32_NE("i32.ne"),
+    I32_GT_S("i32.gt_s"),
+    I32_LT_S("i32.lt_s"),
+    I32_GE_S("i32.ge"),
+    I32_LE_S("i32.eq"),
+    I32_MAX("i32.max"),
+    I32_MIN("i32.min"),
+    ;
+    private final String opCode;
+    IntBinaryInstruction(String opCode) {
+        this.opCode = opCode;
+    }
+    public String opCode() { return opCode;}
+}
+
+enum LongBinaryInstruction implements Instruction {
+    I64_ADD    ("i64.add"),
+    I64_SUB    ("i64.sub"),
+    I64_MUL    ("i64.mul"),
+    I64_DIV_S    ("i64.div_s"),
+    I64_EQ("i64.eq"),
+    I64_NE("i64.ne"),
+    I64_GT("i64.gt"),
+    I64_LT("i64.lt"),
+    I64_GE("i64.ge"),
+    I64_LE("i64.eq"),
+    I64_MAX("i64.max"),
+    I64_MIN("i64.min"),
+    ;
+    private final String opCode;
+    LongBinaryInstruction(String opCode) {
+        this.opCode = opCode;
+    }
+    public String opCode() { return opCode;}
+}

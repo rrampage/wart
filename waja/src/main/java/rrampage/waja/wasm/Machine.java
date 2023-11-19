@@ -103,6 +103,42 @@ public class Machine {
                         case F32_LT -> pushInt(wrapBoolean(l < r));
                     }
                 }
+                case LongBinaryInstruction b -> {
+                    long l = pop();
+                    long r = pop();
+                    switch (b) {
+                        case I64_ADD -> push(l+r);
+                        case I64_SUB -> push(l-r);
+                        case I64_MUL -> push(l*r);
+                        case I64_DIV_S -> push(l/r);
+                        case I64_MAX -> push(Long.max(l,r));
+                        case I64_MIN -> push(Long.min(l,r));
+                        case I64_EQ -> pushInt(wrapBoolean(l == r));
+                        case I64_NE -> pushInt(wrapBoolean(l != r));
+                        case I64_GE -> pushInt(wrapBoolean(l >= r));
+                        case I64_GT -> pushInt(wrapBoolean(l > r));
+                        case I64_LE -> pushInt(wrapBoolean(l <= r));
+                        case I64_LT -> pushInt(wrapBoolean(l < r));
+                    }
+                }
+                case IntBinaryInstruction b -> {
+                    int l = popInt();
+                    int r = popInt();
+                    switch (b) {
+                        case I32_ADD -> pushInt(l+r);
+                        case I32_SUB -> pushInt(l-r);
+                        case I32_MUL -> pushInt(l*r);
+                        case I32_DIV_S -> pushInt(l/r);
+                        case I32_MAX -> pushInt(Integer.max(l,r));
+                        case I32_MIN -> pushInt(Integer.min(l,r));
+                        case I32_EQ -> pushInt(wrapBoolean(l == r));
+                        case I32_NE -> pushInt(wrapBoolean(l != r));
+                        case I32_GE_S -> pushInt(wrapBoolean(l >= r));
+                        case I32_GT_S -> pushInt(wrapBoolean(l > r));
+                        case I32_LE_S -> pushInt(wrapBoolean(l <= r));
+                        case I32_LT_S -> pushInt(wrapBoolean(l < r));
+                    }
+                }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
         }
