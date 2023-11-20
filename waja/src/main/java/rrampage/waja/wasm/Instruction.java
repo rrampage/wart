@@ -137,3 +137,30 @@ enum UnaryInstruction implements Instruction {
     }
     public String opCode() { return opCode;}
 }
+
+enum StoreInstruction implements Instruction {
+    I32_STORE("i32.store"),
+    I64_STORE("i64.store"),
+    F32_STORE("f32.store"),
+    F64_STORE("f64.store"),
+    ;
+    private final String opCode;
+    StoreInstruction(String opCode) {
+        this.opCode = opCode;
+    }
+    public String opCode() { return opCode;}
+}
+
+enum LoadInstruction implements Instruction {
+    // TODO: Implement alignment and offset later (memarg)
+    I32_LOAD("i32.load"),
+    I64_LOAD("i64.load"),
+    F32_LOAD("f32.load"),
+    F64_LOAD("f64.load"),
+    ;
+    private final String opCode;
+    LoadInstruction(String opCode) {
+        this.opCode = opCode;
+    }
+    public String opCode() { return opCode;}
+}

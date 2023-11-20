@@ -3,7 +3,7 @@ package rrampage.waja.wasm;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 
-import static rrampage.waja.utils.ConversionUtils.wrapBoolean;
+import static rrampage.waja.utils.ConversionUtils.*;
 
 
 public class Machine {
@@ -185,6 +185,26 @@ public class Machine {
                             pushDouble((f < 0.0) ? Math.ceil(f) : Math.floor(f));
                         }
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                    }
+                }
+                case StoreInstruction s -> {
+                    byte[] data = switch (s) {
+                        case I32_STORE -> intToBytes(popInt());
+                        case I64_STORE -> longToBytes(pop());
+                        case F32_STORE -> floatToBytes(popFloat());
+                        case F64_STORE -> doubleToBytes(popDouble());
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                    };
+                    int addr = popInt();
+                    store(addr, data);
+                }
+                case LoadInstruction l -> {
+                    int addr = popInt();
+                    switch (l) {
+                        case I32_LOAD -> pushInt(bytesToInt(load(addr, Integer.BYTES)));
+                        case I64_LOAD -> push(bytesToLong(load(addr, Long.BYTES)));
+                        case F32_LOAD -> pushFloat(bytesToFloat(load(addr, Float.BYTES)));
+                        case F64_LOAD -> pushDouble(bytesToDouble(load(addr, Double.BYTES)));
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());

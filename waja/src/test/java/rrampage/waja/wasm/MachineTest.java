@@ -106,4 +106,43 @@ public class MachineTest {
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
     }
+
+    @Test
+    public void shouldStoreAndLoad() {
+        int iAddr = 8;
+        int fAddr = iAddr+4;
+        int lAddr = fAddr+8;
+        int dAddr = lAddr+8;
+        int i = 1111;
+        long l = -1111111111L;
+        float f = 111111.0f;
+        double d = 1111.0;
+        Instruction[] ins = new Instruction[]{
+                new IntConst(dAddr),
+                new DoubleConst(d),
+                new IntConst(lAddr),
+                new LongConst(l),
+                new IntConst(fAddr),
+                new FloatConst(f),
+                new IntConst(iAddr),
+                new IntConst(i),
+                StoreInstruction.I32_STORE,
+                StoreInstruction.F32_STORE,
+                StoreInstruction.I64_STORE,
+                StoreInstruction.F64_STORE,
+                new IntConst(dAddr),
+                LoadInstruction.F64_LOAD,
+                new IntConst(lAddr),
+                LoadInstruction.I64_LOAD,
+                new IntConst(fAddr),
+                LoadInstruction.F32_LOAD,
+                new IntConst(iAddr),
+                LoadInstruction.I32_LOAD,
+        };
+        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        assertEquals(m.popInt(), i);
+        assertEquals(m.popFloat(), f, 0.0f);
+        assertEquals(m.pop(), l);
+        assertEquals(m.popDouble(), d, 0.0);
+    }
 }
