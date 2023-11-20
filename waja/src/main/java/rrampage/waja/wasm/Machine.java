@@ -83,6 +83,7 @@ public class Machine {
                         case F64_GT -> pushInt(wrapBoolean(l > r));
                         case F64_LE -> pushInt(wrapBoolean(l <= r));
                         case F64_LT -> pushInt(wrapBoolean(l < r));
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
                 case FloatBinaryInstruction b -> {
@@ -101,6 +102,7 @@ public class Machine {
                         case F32_GT -> pushInt(wrapBoolean(l > r));
                         case F32_LE -> pushInt(wrapBoolean(l <= r));
                         case F32_LT -> pushInt(wrapBoolean(l < r));
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
                 case LongBinaryInstruction b -> {
@@ -126,6 +128,7 @@ public class Machine {
                         case I64_GT_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) > 0));
                         case I64_LE_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) <= 0));
                         case I64_LT_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) < 0));
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
                 case IntBinaryInstruction b -> {
@@ -151,11 +154,48 @@ public class Machine {
                         case I32_GT_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) > 0));
                         case I32_LE_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) <= 0));
                         case I32_LT_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) < 0));
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                    }
+                }
+                case UnaryInstruction u -> {
+                    switch (u) {
+                        case DROP -> pop();
+                        case I32_EQZ -> pushInt(wrapBoolean(popInt() == 0));
+                        case I64_EQZ -> pushInt(wrapBoolean(pop() == 0));
+                        case I32_POPCNT -> pushInt(Integer.bitCount(popInt()));
+                        case I64_POPCNT -> push(Long.bitCount(pop()));
+                        case I32_CLZ -> pushInt(Integer.numberOfLeadingZeros(popInt()));
+                        case I64_CLZ -> push(Long.numberOfLeadingZeros(pop()));
+                        case I32_CTZ -> pushInt(Integer.numberOfTrailingZeros(popInt()));
+                        case I64_CTZ -> push(Long.numberOfTrailingZeros(pop()));
+                        case F32_NEG -> pushFloat(-popFloat());
+                        case F64_NEG -> pushDouble(-popDouble());
+                        case F32_ABS -> pushFloat(Math.abs(popFloat()));
+                        case F64_ABS -> pushDouble(Math.abs(popDouble()));
+                        case F32_CEIL -> pushFloat((float) Math.ceil(popFloat()));
+                        case F64_CEIL -> pushDouble(Math.ceil(popDouble()));
+                        case F32_FLOOR -> pushFloat((float) Math.floor(popFloat()));
+                        case F64_FLOOR -> pushDouble(Math.floor(popDouble()));
+                        case F32_TRUNC -> {
+                            float f = popFloat();
+                            pushFloat((float) ((f < 0.0) ? Math.ceil(f) : Math.floor(f)));
+                        }
+                        case F64_TRUNC -> {
+                            double f = popDouble();
+                            pushDouble((f < 0.0) ? Math.ceil(f) : Math.floor(f));
+                        }
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
         }
+    }
+
+    public static Machine createAndExecute(int memSize, Instruction[] instructions) {
+        Machine m = new Machine(memSize);
+        m.execute(instructions);
+        return m;
     }
 
     public static void main(String[] args) {

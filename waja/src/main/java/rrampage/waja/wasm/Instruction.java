@@ -109,3 +109,31 @@ enum LongBinaryInstruction implements Instruction {
     }
     public String opCode() { return opCode;}
 }
+
+enum UnaryInstruction implements Instruction {
+    DROP("drop"),
+    I32_EQZ("i32.eqz"),
+    I32_POPCNT("i32.popcnt"),
+    I64_EQZ("i64.eqz"),
+    I64_POPCNT("i64.popcnt"),
+    I32_CTZ("i32.ctz"),
+    I32_CLZ("i32.clz"),
+    I64_CTZ("i64.ctz"),
+    I64_CLZ("i64.clz"),
+    F32_NEG("f32.neg"),
+    F64_NEG("f64.neg"),
+    F32_ABS("f32.abs"),
+    F64_ABS("f64.abs"),
+    F32_CEIL("f32.ceil"),
+    F32_FLOOR("f32.floor"),
+    F32_TRUNC("f32.trunc"),
+    F64_CEIL("f64.ceil"),
+    F64_FLOOR("f64.floor"),
+    F64_TRUNC("f64.trunc"),
+    ;
+    private final String opCode;
+    UnaryInstruction(String opCode) {
+        this.opCode = opCode;
+    }
+    public String opCode() { return opCode;}
+}

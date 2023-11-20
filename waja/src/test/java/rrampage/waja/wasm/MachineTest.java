@@ -3,24 +3,19 @@ package rrampage.waja.wasm;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class MachineTest {
-    @Test
-    public void shouldAnswerWithTrue() {
-        assertTrue( true );
-    }
+    private static final int MEM_SIZE = 65536;
 
     @Test
     public void shouldPushConst() {
-        Machine m = new Machine(65536);
         Instruction[] ins = new Instruction[]{
                 new FloatConst(2.0f),
                 new DoubleConst(1.0),
                 new IntConst(4),
                 new LongConst(1112345345667L),
         };
-        m.execute(ins);
+        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
         assertEquals(1112345345667L, m.pop());
         assertEquals(4, m.popInt());
         assertEquals(1.0, m.popDouble(), 0.0);
@@ -28,8 +23,18 @@ public class MachineTest {
     }
 
     @Test
+    public void shouldDrop() {
+        Instruction[] ins = new Instruction[]{
+                new IntConst(4),
+                new LongConst(1112345345667L),
+                UnaryInstruction.DROP,
+        };
+        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        assertEquals(4, m.popInt());
+    }
+
+    @Test
     public void shouldAdd() {
-        Machine m = new Machine(65536);
         double l = 123.0;
         double r = 345.0;
         float fl = 223.5f;
@@ -52,7 +57,7 @@ public class MachineTest {
                 new LongConst(lr),
                 LongBinaryInstruction.I64_ADD,
         };
-        m.execute(ins);
+        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
         assertEquals(ll+lr, m.pop());
         assertEquals(il+ir, m.popInt());
         assertEquals(0.0f, m.popFloat(), 0.0f);
@@ -61,7 +66,6 @@ public class MachineTest {
 
     @Test
     public void shouldAddAndCompare() {
-        Machine m = new Machine(65536);
         double l = 123.0;
         double r = 345.0;
         double a = l+r;
@@ -96,7 +100,7 @@ public class MachineTest {
                 new LongConst(la),
                 LongBinaryInstruction.I64_EQ,
         };
-        m.execute(ins);
+        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
