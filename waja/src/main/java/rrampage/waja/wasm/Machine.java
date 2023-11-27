@@ -142,6 +142,9 @@ public class Machine {
                         case I64_REM_U -> push(Long.remainderUnsigned(l,r));
                         case I64_MAX -> push(Long.max(l,r));
                         case I64_MIN -> push(Long.min(l,r));
+                        case I64_AND -> push(l&r);
+                        case I64_OR -> push(l|r);
+                        case I64_XOR -> push(l^r);
                         case I64_EQ -> pushInt(wrapBoolean(l == r));
                         case I64_NE -> pushInt(wrapBoolean(l != r));
                         case I64_GE_S -> pushInt(wrapBoolean(l >= r));
@@ -168,6 +171,9 @@ public class Machine {
                         case I32_REM_U -> pushInt(Integer.remainderUnsigned(l,r));
                         case I32_MAX -> pushInt(Integer.max(l,r));
                         case I32_MIN -> pushInt(Integer.min(l,r));
+                        case I32_AND -> pushInt(l&r);
+                        case I32_OR -> pushInt(l|r);
+                        case I32_XOR -> pushInt(l^r);
                         case I32_EQ -> pushInt(wrapBoolean(l == r));
                         case I32_NE -> pushInt(wrapBoolean(l != r));
                         case I32_GE_S -> pushInt(wrapBoolean(l >= r));

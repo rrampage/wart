@@ -76,6 +76,9 @@ enum IntBinaryInstruction implements Instruction {
     I32_LE_U("i32.le_u"),
     I32_MAX("i32.max"),
     I32_MIN("i32.min"),
+    I32_AND("i32.and"),
+    I32_OR("i32.or"),
+    I32_XOR("i32.xor"),
     ;
     private final String opCode;
     IntBinaryInstruction(String opCode) {
@@ -104,6 +107,9 @@ enum LongBinaryInstruction implements Instruction {
     I64_LE_U("i64.le_u"),
     I64_MAX("i64.max"),
     I64_MIN("i64.min"),
+    I64_AND("i64.and"),
+    I64_OR("i64.or"),
+    I64_XOR("i64.xor"),
     ;
     private final String opCode;
     LongBinaryInstruction(String opCode) {
