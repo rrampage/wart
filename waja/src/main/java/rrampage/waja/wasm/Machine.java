@@ -99,6 +99,7 @@ public class Machine {
                         case F64_DIV -> pushDouble(l/r);
                         case F64_MAX -> pushDouble(Double.max(l,r));
                         case F64_MIN -> pushDouble(Double.min(l,r));
+                        case F64_COPY_SIGN -> pushDouble((l*r >= 0.0) ? l : -l);
                         case F64_EQ -> pushInt(wrapBoolean(l == r));
                         case F64_NE -> pushInt(wrapBoolean(l != r));
                         case F64_GE -> pushInt(wrapBoolean(l >= r));
@@ -118,6 +119,7 @@ public class Machine {
                         case F32_DIV -> pushFloat(l/r);
                         case F32_MAX -> pushFloat(Float.max(l,r));
                         case F32_MIN -> pushFloat(Float.min(l,r));
+                        case F32_COPY_SIGN -> pushFloat((l*r >= 0.0f) ? l : -l);
                         case F32_EQ -> pushInt(wrapBoolean(l == r));
                         case F32_NE -> pushInt(wrapBoolean(l != r));
                         case F32_GE -> pushInt(wrapBoolean(l >= r));
@@ -206,6 +208,15 @@ public class Machine {
                             double f = popDouble();
                             pushDouble((f < 0.0) ? Math.ceil(f) : Math.floor(f));
                         }
+                        case F32_DEMOTE_F64 -> pushFloat((float) popDouble());
+                        case F64_PROMOTE_F32 -> pushDouble(popFloat());
+                        case F32_NEAREST -> pushFloat(Math.round(popFloat()));
+                        case F64_NEAREST -> pushDouble(Math.round(popDouble()));
+                        case F32_SQRT -> pushFloat((float) Math.sqrt(popFloat()));
+                        case F64_SQRT -> pushDouble(Math.sqrt(popDouble()));
+                        case I32_WRAP_I64 -> pushInt(longToInt(pop()%(Integer.MAX_VALUE+1L)));
+                        case I64_EXTEND_I32_S -> push(intToLong(popInt()));
+                        case I64_EXTEND_I32_U -> push(Integer.toUnsignedLong(popInt()));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }

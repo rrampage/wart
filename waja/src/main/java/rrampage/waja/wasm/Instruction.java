@@ -25,6 +25,7 @@ enum DoubleBinaryInstruction implements Instruction {
     F64_LE("f64.eq"),
     F64_MAX("f64.max"),
     F64_MIN("f64.min"),
+    F64_COPY_SIGN("f64.copysign"),
     ;
     private final String opCode;
     DoubleBinaryInstruction(String opCode) {
@@ -46,6 +47,7 @@ enum FloatBinaryInstruction implements Instruction {
     F32_LE("f32.eq"),
     F32_MAX("f32.max"),
     F32_MIN("f32.min"),
+    F32_COPY_SIGN("f32.copysign"),
     ;
     private final String opCode;
     FloatBinaryInstruction(String opCode) {
@@ -114,8 +116,11 @@ enum UnaryInstruction implements Instruction {
     DROP("drop"),
     I32_EQZ("i32.eqz"),
     I32_POPCNT("i32.popcnt"),
+    I32_WRAP_I64("i32.wrap_i64"),
     I64_EQZ("i64.eqz"),
     I64_POPCNT("i64.popcnt"),
+    I64_EXTEND_I32_S("i64.extend_i32_s"),
+    I64_EXTEND_I32_U("i64.extend_i32_u"),
     I32_CTZ("i32.ctz"),
     I32_CLZ("i32.clz"),
     I64_CTZ("i64.ctz"),
@@ -127,9 +132,15 @@ enum UnaryInstruction implements Instruction {
     F32_CEIL("f32.ceil"),
     F32_FLOOR("f32.floor"),
     F32_TRUNC("f32.trunc"),
+    F32_DEMOTE_F64("f32.demote_f64"),
+    F32_NEAREST("f32.nearest"),
+    F32_SQRT("f32.sqrt"),
     F64_CEIL("f64.ceil"),
     F64_FLOOR("f64.floor"),
     F64_TRUNC("f64.trunc"),
+    F64_PROMOTE_F32("f64.promote_f32"),
+    F64_NEAREST("f64.nearest"),
+    F64_SQRT("f64.sqrt"),
     ;
     private final String opCode;
     UnaryInstruction(String opCode) {

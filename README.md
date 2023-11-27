@@ -35,10 +35,10 @@ go test -v
 - Arithmetic and comparison ops implemented
 - Basic load/store working
 - Unary ops like popcnt, ceil, floor, trunc implemented
+- Functions
 
 ### TODO
 - Load/store with alignment and offset support
-- Functions
 - Blocks, loops and conditionals
 - Boolean ops
 
