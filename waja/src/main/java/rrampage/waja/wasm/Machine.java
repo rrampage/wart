@@ -11,7 +11,7 @@ public class Machine {
     private byte[] memory;
 
     public Machine(int memSize) {
-       this.stack = new ArrayDeque<>(4096);
+       this.stack = new ArrayDeque<>(8192);
        this.memory = new byte[memSize];
     }
 
@@ -20,15 +20,15 @@ public class Machine {
     }
 
     public int popInt() {
-        return stack.pop().intValue();
+        return longToInt(stack.pop());
     }
 
     public float popFloat() {
-        return Float.intBitsToFloat(stack.pop().intValue());
+        return longToFloat(stack.pop());
     }
 
     public double popDouble() {
-        return Double.longBitsToDouble(stack.pop().longValue());
+        return longToDouble(stack.pop());
     }
 
     public void push(long val) {
@@ -36,15 +36,15 @@ public class Machine {
     }
 
     public void pushInt(int val) {
-        stack.push((long) val);
+        stack.push(intToLong(val));
     }
 
     public void pushFloat(float val) {
-        stack.push((long) Float.floatToIntBits(val));
+        stack.push(floatToLong(val));
     }
 
     public void pushDouble(double val) {
-        stack.push(Double.doubleToLongBits(val));
+        stack.push(doubleToLong(val));
     }
 
     public void store(int addr, byte[] data) {
@@ -59,7 +59,6 @@ public class Machine {
     }
 
     public void execute(Instruction[] instructions) {
-        // TODO
         for (Instruction ins : instructions) {
             System.out.println("Instruction: " + ins.opCode());
             switch (ins) {

@@ -9,13 +9,13 @@
   <version>0.0.1</version>
 
   <name>waja</name>
-  <!-- FIXME change it to the project's website -->
   <url>http://github.com/rrampage/wart</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <!-- To run main class with mvn compile exec:java -->
     <exec.mainClass>rrampage.waja.wasm.Machine</exec.mainClass>
   </properties>
 

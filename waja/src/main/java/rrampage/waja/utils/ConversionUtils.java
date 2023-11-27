@@ -42,4 +42,28 @@ public class ConversionUtils {
     public static int wrapBoolean(boolean val) {
         return (val) ? 1 : 0;
     }
+
+    public static long intToLong(int val) {
+        return val; // no-op
+    }
+
+    public static int longToInt(long val) {
+        return (int) val; // cast down
+    }
+
+    public static long floatToLong(float val) {
+        return Float.floatToIntBits(val);
+    }
+
+    public static float longToFloat(long val) {
+        return Float.intBitsToFloat((int) val);
+    }
+
+    public static long doubleToLong(double val) {
+        return Double.doubleToLongBits(val);
+    }
+
+    public static double longToDouble(long val) {
+        return Double.longBitsToDouble(val);
+    }
 }
