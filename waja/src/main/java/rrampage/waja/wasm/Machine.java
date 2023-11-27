@@ -63,7 +63,8 @@ public class Machine {
     public Variable[] call(Function fun) {
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
-        for (int i = 0; i < fun.numParams(); i++) {
+        // LIFO for function params as params are pushed to stack and must be popped in reverse order
+        for (int i = fun.numParams()-1; i >= 0; i-- ) {
             locals[i] = Variable.newVariable(fun.paramTypes()[i], pop());
         }
         for (int i = fun.numParams(); i < locals.length; i++) {
@@ -230,6 +231,15 @@ public class Machine {
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
+        }
+    }
+
+    private void pushVariable(Variable var) {
+        switch (var) {
+            case F32Variable v -> pushFloat(v.val());
+            case F64Variable v -> pushDouble(v.val());
+            case I32Variable v -> pushInt(v.val());
+            case I64Variable v -> push(v.val());
         }
     }
 

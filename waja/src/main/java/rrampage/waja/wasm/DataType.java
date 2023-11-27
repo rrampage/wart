@@ -1,6 +1,6 @@
 package rrampage.waja.wasm;
 
-enum DataType {
+public enum DataType {
     I32,
     I64,
     F32,

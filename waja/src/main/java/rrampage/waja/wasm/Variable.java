@@ -4,7 +4,7 @@ import static rrampage.waja.utils.ConversionUtils.*;
 
 public sealed interface Variable {
     DataType getType();
-    public static Variable newVariable(DataType dataType, long val) {
+    static Variable newVariable(DataType dataType, long val) {
         return switch (dataType) {
             case I32 -> new I32Variable(longToInt(val));
             case I64 -> new I64Variable(val);
