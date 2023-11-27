@@ -147,6 +147,10 @@ enum UnaryInstruction implements Instruction {
     F64_PROMOTE_F32("f64.promote_f32"),
     F64_NEAREST("f64.nearest"),
     F64_SQRT("f64.sqrt"),
+    I32_REINTERPRET_F32("i32.reinterpret_f32"),
+    F32_REINTERPRET_I32("f32.reinterpret_i32"),
+    I64_REINTERPRET_F64("i64.reinterpret_f64"),
+    F64_REINTERPRET_I64("f64.reinterpret_i64"),
     ;
     private final String opCode;
     UnaryInstruction(String opCode) {

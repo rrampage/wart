@@ -223,6 +223,10 @@ public class Machine {
                         case I32_WRAP_I64 -> pushInt(longToInt(pop()%(Integer.MAX_VALUE+1L)));
                         case I64_EXTEND_I32_S -> push(intToLong(popInt()));
                         case I64_EXTEND_I32_U -> push(Integer.toUnsignedLong(popInt()));
+                        case I32_REINTERPRET_F32 -> pushInt(Float.floatToIntBits(popFloat()));
+                        case F32_REINTERPRET_I32 -> pushFloat(Float.intBitsToFloat(popInt()));
+                        case I64_REINTERPRET_F64 -> push(Double.doubleToLongBits(popDouble()));
+                        case F64_REINTERPRET_I64 -> pushDouble(Double.longBitsToDouble(pop()));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
