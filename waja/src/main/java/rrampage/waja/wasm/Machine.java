@@ -244,7 +244,7 @@ public class Machine {
                         case I32_TRUNC_F64_S -> pushInt((int) popDouble());
                         case I64_TRUNC_F32_S -> push((long) popFloat());
                         case I64_TRUNC_F64_S -> push((long) popDouble());
-                        // TODO convert f32/f64 to unsigned i32/i64
+                        // convert f32/f64 to unsigned i32/i64
                         case I32_TRUNC_F32_U -> {
                             float f = popFloat();
                             if (f < 0.0f || f > Integer.MAX_VALUE) {
