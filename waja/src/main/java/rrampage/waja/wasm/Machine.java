@@ -227,6 +227,37 @@ public class Machine {
                         case I64_LOAD -> push(bytesToLong(load(addr, Long.BYTES)));
                         case F32_LOAD -> pushFloat(bytesToFloat(load(addr, Float.BYTES)));
                         case F64_LOAD -> pushDouble(bytesToDouble(load(addr, Double.BYTES)));
+                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                    }
+                }
+                case FunctionInstruction f -> {
+                    switch (f) {
+                        case Call l -> {
+                            Function fun = functions[l.val()];
+                            Variable[] res = call(fun);
+                            if (!fun.isVoidReturn()) {
+                                // Push in reverse order
+                                for (int i = res.length -1; i >= 0; i--) {
+                                    pushVariable(res[i]);
+                                }
+                            }
+                        }
+                        case LocalGet l -> {
+                            Variable var = locals[l.val()];
+                            pushVariable(var);
+                        }
+                        case LocalSet l -> {
+                            // What if we are setting new variable?
+                            Variable var = locals[l.val()];
+                            locals[l.val()] = Variable.newVariable(var.getType(), pop());
+                        }
+                        case LocalTee l -> {
+                            long val = pop();
+                            Variable var = locals[l.val()];
+                            var = Variable.newVariable(var.getType(), val);
+                            locals[l.val()] = var;
+                            pushVariable(var);
+                        }
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());

@@ -145,4 +145,37 @@ public class MachineTest {
         assertEquals(m.pop(), l);
         assertEquals(m.popDouble(), d, 0.0);
     }
+
+    @Test
+    public void shouldCallIntConstFunction() {
+        int i = 42;
+        Function fun = new Function(null, null, new DataType[]{DataType.I32}, new Instruction[]{new IntConst(i)});
+        Instruction[] ins = new Instruction[] {
+          new Call(0)
+        };
+        Machine m = Machine.createAndExecute(new Function[]{fun}, MEM_SIZE, ins);
+        assertEquals(m.popInt(), i);
+    }
+
+    @Test
+    public void shouldCallAddIntFunction() {
+        int a = 123, b = -123;
+        Instruction[] funIns = new Instruction[] {
+                new LocalGet(0),
+                new LocalGet(1),
+                IntBinaryInstruction.I32_ADD
+        };
+        Function fun = new Function(new DataType[]{DataType.I32, DataType.I32}, null, new DataType[]{DataType.I32}, funIns);
+        Instruction[] ins = new Instruction[] {
+                new IntConst(b),
+                new IntConst(a),
+                new Call(0),
+                new IntConst(b),
+                new IntConst(a),
+                IntBinaryInstruction.I32_ADD,
+                IntBinaryInstruction.I32_EQ
+        };
+        Machine m = Machine.createAndExecute(new Function[]{fun}, MEM_SIZE, ins);
+        assertEquals(m.popInt(), 1);
+    }
 }

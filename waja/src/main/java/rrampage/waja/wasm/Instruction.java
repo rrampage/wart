@@ -164,3 +164,10 @@ enum LoadInstruction implements Instruction {
     }
     public String opCode() { return opCode;}
 }
+
+sealed interface FunctionInstruction extends Instruction {}
+
+record Call(int val) implements FunctionInstruction { public String opCode() {return "call";}}
+record LocalGet(int val) implements FunctionInstruction { public String opCode() {return "local.get";}}
+record LocalSet(int val) implements FunctionInstruction { public String opCode() {return "local.set";}}
+record LocalTee(int val) implements FunctionInstruction { public String opCode() {return "local.tee";}}
