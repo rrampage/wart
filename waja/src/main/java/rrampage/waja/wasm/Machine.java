@@ -7,12 +7,14 @@ import static rrampage.waja.utils.ConversionUtils.*;
 
 
 public class Machine {
-    private ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
+    private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
     private byte[] memory;
+    private final Function[] functions;
 
-    public Machine(int memSize) {
+    public Machine(Function[] functions, int memSize) {
        this.stack = new ArrayDeque<>(8192);
        this.memory = new byte[memSize];
+       this.functions = functions;
     }
 
     public long pop() {
@@ -58,7 +60,27 @@ public class Machine {
         return Arrays.copyOfRange(memory, addr, addr + offset);
     }
 
-    public void execute(Instruction[] instructions) {
+    public Variable[] call(Function fun) {
+        // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
+        Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
+        for (int i = 0; i < fun.numParams(); i++) {
+            locals[i] = Variable.newVariable(fun.paramTypes()[i], pop());
+        }
+        for (int i = fun.numParams(); i < locals.length; i++) {
+            locals[i] = Variable.newVariable(fun.locals()[i - fun.numParams()], 0);
+        }
+        execute(fun.code(), locals);
+        if (fun.isVoidReturn()) {
+            return null;
+        }
+        int n = fun.returnTypes().length;
+        Variable[] returns = new Variable[n];
+        for (int i = 0; i < n; i++) {
+            returns[i] = Variable.newVariable(fun.returnTypes()[i], pop());
+        }
+        return returns;
+    }
+    public void execute(Instruction[] instructions, Variable[] locals) {
         for (Instruction ins : instructions) {
             System.out.println("Instruction: " + ins.opCode());
             switch (ins) {
@@ -211,18 +233,18 @@ public class Machine {
         }
     }
 
-    public static Machine createAndExecute(int memSize, Instruction[] instructions) {
-        Machine m = new Machine(memSize);
-        m.execute(instructions);
+    public static Machine createAndExecute(Function[] functions, int memSize, Instruction[] instructions) {
+        Machine m = new Machine(functions, memSize);
+        m.execute(instructions, null);
         return m;
     }
 
     public static void main(String[] args) {
-        Machine m = new Machine(65536);
+        Machine m = new Machine(null, 65536);
         Instruction[] ins = new Instruction[]{
                 new DoubleConst(1.0)
         };
-        m.execute(ins);
+        m.execute(ins, null);
         System.out.println(m.popDouble());
     }
 }

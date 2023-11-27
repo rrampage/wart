@@ -15,7 +15,7 @@ public class MachineTest {
                 new IntConst(4),
                 new LongConst(1112345345667L),
         };
-        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        Machine m = Machine.createAndExecute(null, MEM_SIZE, ins);
         assertEquals(1112345345667L, m.pop());
         assertEquals(4, m.popInt());
         assertEquals(1.0, m.popDouble(), 0.0);
@@ -29,7 +29,7 @@ public class MachineTest {
                 new LongConst(1112345345667L),
                 UnaryInstruction.DROP,
         };
-        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        Machine m = Machine.createAndExecute(null, MEM_SIZE, ins);
         assertEquals(4, m.popInt());
     }
 
@@ -57,7 +57,7 @@ public class MachineTest {
                 new LongConst(lr),
                 LongBinaryInstruction.I64_ADD,
         };
-        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        Machine m = Machine.createAndExecute(null, MEM_SIZE, ins);
         assertEquals(ll+lr, m.pop());
         assertEquals(il+ir, m.popInt());
         assertEquals(0.0f, m.popFloat(), 0.0f);
@@ -100,7 +100,7 @@ public class MachineTest {
                 new LongConst(la),
                 LongBinaryInstruction.I64_EQ,
         };
-        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        Machine m = Machine.createAndExecute(null, MEM_SIZE, ins);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
@@ -139,7 +139,7 @@ public class MachineTest {
                 new IntConst(iAddr),
                 LoadInstruction.I32_LOAD,
         };
-        Machine m = Machine.createAndExecute(MEM_SIZE, ins);
+        Machine m = Machine.createAndExecute(null, MEM_SIZE, ins);
         assertEquals(m.popInt(), i);
         assertEquals(m.popFloat(), f, 0.0f);
         assertEquals(m.pop(), l);
