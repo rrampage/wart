@@ -1,5 +1,6 @@
 package rrampage.waja.wasm;
 
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 
@@ -220,13 +221,59 @@ public class Machine {
                         case F64_NEAREST -> pushDouble(Math.round(popDouble()));
                         case F32_SQRT -> pushFloat((float) Math.sqrt(popFloat()));
                         case F64_SQRT -> pushDouble(Math.sqrt(popDouble()));
+                        // wrap and extend ops
                         case I32_WRAP_I64 -> pushInt(longToInt(pop()%(Integer.MAX_VALUE+1L)));
                         case I64_EXTEND_I32_S -> push(intToLong(popInt()));
                         case I64_EXTEND_I32_U -> push(Integer.toUnsignedLong(popInt()));
+                        // Reinterpret ops
                         case I32_REINTERPRET_F32 -> pushInt(Float.floatToIntBits(popFloat()));
                         case F32_REINTERPRET_I32 -> pushFloat(Float.intBitsToFloat(popInt()));
                         case I64_REINTERPRET_F64 -> push(Double.doubleToLongBits(popDouble()));
                         case F64_REINTERPRET_I64 -> pushDouble(Double.longBitsToDouble(pop()));
+                        // convert i32/i64 signed/unsigned to f32/f64
+                        case F32_CONVERT_I32_S -> pushFloat(popInt());
+                        case F32_CONVERT_I32_U -> pushFloat(Integer.toUnsignedLong(popInt()));
+                        case F32_CONVERT_I64_S -> pushFloat(pop());
+                        case F32_CONVERT_I64_U -> pushFloat(Float.parseFloat(Long.toUnsignedString(pop())));
+                        case F64_CONVERT_I32_S -> pushDouble(popInt());
+                        case F64_CONVERT_I32_U -> pushDouble(Integer.toUnsignedLong(popInt()));
+                        case F64_CONVERT_I64_S -> pushDouble(pop());
+                        case F64_CONVERT_I64_U -> pushDouble(Double.parseDouble(Long.toUnsignedString(pop())));
+                        // convert f32/f64 to signed i32/i64
+                        case I32_TRUNC_F32_S -> pushInt((int) popFloat());
+                        case I32_TRUNC_F64_S -> pushInt((int) popDouble());
+                        case I64_TRUNC_F32_S -> push((long) popFloat());
+                        case I64_TRUNC_F64_S -> push((long) popDouble());
+                        // TODO convert f32/f64 to unsigned i32/i64
+                        case I32_TRUNC_F32_U -> {
+                            float f = popFloat();
+                            if (f < 0.0f || f > Integer.MAX_VALUE) {
+                                throw new RuntimeException("Integer overflow");
+                            }
+                            pushInt((int) f);
+                        }
+                        case I32_TRUNC_F64_U -> {
+                            double d = popDouble();
+                            long maxUnsignedInt = Integer.MAX_VALUE *2L+1;
+                            if (d < 0.0 || d > maxUnsignedInt) {
+                                throw new RuntimeException("Integer overflow");
+                            }
+                            pushInt( (int)((long) d));
+                        }
+                        case I64_TRUNC_F32_U -> {
+                            float f = popFloat();
+                            if (f < 0.0f || f > Long.MAX_VALUE) {
+                                throw new RuntimeException("Integer overflow");
+                            }
+                            push(BigDecimal.valueOf(f).toBigInteger().longValue());
+                        }
+                        case I64_TRUNC_F64_U -> {
+                            double d = popDouble();
+                            if (d < 0.0 || d > Long.MAX_VALUE*2.0+1) {
+                                throw new RuntimeException("Integer overflow");
+                            }
+                            push(BigDecimal.valueOf(d).toBigInteger().longValue());
+                        }
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
