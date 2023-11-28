@@ -40,7 +40,7 @@ go test -v
 ### TODO
 - Load/store with alignment and offset support
 - Blocks, loops and conditionals
-- Boolean ops
+- Bitshift ops
 
 ## walrus - Rust WASM interpreter
 

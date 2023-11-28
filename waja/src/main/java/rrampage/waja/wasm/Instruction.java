@@ -177,6 +177,7 @@ enum UnaryInstruction implements Instruction {
 }
 
 enum NullaryInstruction implements Instruction {
+    UNREACHABLE("unreachable"),
     NOP("nop"),
     MEMORY_SIZE("memory.size"),
     ;
@@ -187,32 +188,17 @@ enum NullaryInstruction implements Instruction {
     public String opCode() { return opCode;}
 }
 
-enum StoreInstruction implements Instruction {
-    I32_STORE("i32.store"),
-    I64_STORE("i64.store"),
-    F32_STORE("f32.store"),
-    F64_STORE("f64.store"),
-    ;
-    private final String opCode;
-    StoreInstruction(String opCode) {
-        this.opCode = opCode;
-    }
-    public String opCode() { return opCode;}
-}
+sealed interface StoreInstruction extends Instruction {}
+record I32Store(int align, int offset) implements StoreInstruction {public String opCode() {return "i32.store";}}
+record I64Store(int align, int offset) implements StoreInstruction {public String opCode() {return "i64.store";}}
+record F32Store(int align, int offset) implements StoreInstruction {public String opCode() {return "f32.store";}}
+record F64Store(int align, int offset) implements StoreInstruction {public String opCode() {return "f64.store";}}
 
-enum LoadInstruction implements Instruction {
-    // TODO: Implement alignment and offset later (memarg)
-    I32_LOAD("i32.load"),
-    I64_LOAD("i64.load"),
-    F32_LOAD("f32.load"),
-    F64_LOAD("f64.load"),
-    ;
-    private final String opCode;
-    LoadInstruction(String opCode) {
-        this.opCode = opCode;
-    }
-    public String opCode() { return opCode;}
-}
+sealed interface LoadInstruction extends Instruction {}
+record I32Load(int align, int offset) implements LoadInstruction {public String opCode() {return "i32.load";}}
+record I64Load(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load";}}
+record F32Load(int align, int offset) implements LoadInstruction {public String opCode() {return "f32.load";}}
+record F64Load(int align, int offset) implements LoadInstruction {public String opCode() {return "f64.load";}}
 
 sealed interface FunctionInstruction extends Instruction {}
 
