@@ -23,6 +23,14 @@ public class ConversionUtils {
         return bytesToBuffer(data).getInt();
     }
 
+    public static byte[] shortToBytes(short val) {
+        return bytesToBuffer(new byte[Short.BYTES]).putShort(val).array();
+    }
+
+    public static short bytesToShort(byte[] data) {
+        return bytesToBuffer(data).getShort();
+    }
+
     public static byte[] floatToBytes(float val) {
         return bytesToBuffer(new byte[Float.BYTES]).putFloat(val).array();
     }
