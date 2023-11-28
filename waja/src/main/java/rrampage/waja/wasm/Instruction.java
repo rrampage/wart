@@ -128,7 +128,6 @@ enum UnaryInstruction implements Instruction {
     I32_TRUNC_F32_U("i32.trunc_f32_u"),
     I32_TRUNC_F64_S("i32.trunc_f64_s"),
     I32_TRUNC_F64_U("i32.trunc_f64_u"),
-
     I64_EQZ("i64.eqz"),
     I64_POPCNT("i64.popcnt"),
     I64_EXTEND_I32_S("i64.extend_i32_s"),
