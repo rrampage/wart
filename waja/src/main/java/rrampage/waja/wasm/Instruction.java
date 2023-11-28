@@ -120,6 +120,7 @@ enum LongBinaryInstruction implements Instruction {
 
 enum UnaryInstruction implements Instruction {
     DROP("drop"),
+    MEMORY_GROW("memory.grow"),
     I32_EQZ("i32.eqz"),
     I32_POPCNT("i32.popcnt"),
     I32_WRAP_I64("i32.wrap_i64"),
@@ -171,6 +172,17 @@ enum UnaryInstruction implements Instruction {
     ;
     private final String opCode;
     UnaryInstruction(String opCode) {
+        this.opCode = opCode;
+    }
+    public String opCode() { return opCode;}
+}
+
+enum NullaryInstruction implements Instruction {
+    NOP("nop"),
+    MEMORY_SIZE("memory.size"),
+    ;
+    private final String opCode;
+    NullaryInstruction(String opCode) {
         this.opCode = opCode;
     }
     public String opCode() { return opCode;}

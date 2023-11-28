@@ -9,6 +9,7 @@ import static rrampage.waja.utils.ConversionUtils.*;
 
 public class Machine {
     private static final int MEM_PAGE_SIZE = 65536;
+    private static final int MAX_PAGES = 256;
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
     private byte[] memory;
     private final Function[] functions;
@@ -56,6 +57,24 @@ public class Machine {
             throw new RuntimeException("Invalid address passed to memory: " + addr);
         }
         System.arraycopy(data, 0, memory, addr, data.length);
+    }
+
+    private int getMemorySize() {
+        return memory.length/MEM_PAGE_SIZE;
+    }
+
+    private int growMemory(int numPages) {
+        int currPages = getMemorySize();
+        if (numPages < 0 || currPages + numPages > MAX_PAGES) {
+            return -1;
+        }
+        if (numPages == 0) {
+            return currPages;
+        }
+        byte[] newMemory = new byte[(currPages+numPages)*MEM_PAGE_SIZE];
+        System.arraycopy(memory, 0, newMemory, 0, memory.length);
+        memory = newMemory;
+        return -1;
     }
 
     public byte[] load(int addr, int offset) {
@@ -192,6 +211,7 @@ public class Machine {
                 case UnaryInstruction u -> {
                     switch (u) {
                         case DROP -> pop();
+                        case MEMORY_GROW -> pushInt(growMemory(popInt()));
                         case I32_EQZ -> pushInt(wrapBoolean(popInt() == 0));
                         case I64_EQZ -> pushInt(wrapBoolean(pop() == 0));
                         case I32_POPCNT -> pushInt(Integer.bitCount(popInt()));
@@ -276,6 +296,12 @@ public class Machine {
                             push(BigDecimal.valueOf(d).toBigInteger().longValue());
                         }
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                    }
+                }
+                case NullaryInstruction u -> {
+                    switch (u) {
+                        case NOP -> {}
+                        case MEMORY_SIZE -> pushInt(getMemorySize());
                     }
                 }
                 case StoreInstruction s -> {
