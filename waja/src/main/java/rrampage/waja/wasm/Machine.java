@@ -8,13 +8,14 @@ import static rrampage.waja.utils.ConversionUtils.*;
 
 
 public class Machine {
+    private static final int MEM_PAGE_SIZE = 65536;
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
     private byte[] memory;
     private final Function[] functions;
 
-    public Machine(Function[] functions, int memSize) {
+    public Machine(Function[] functions, int pages) {
        this.stack = new ArrayDeque<>(8192);
-       this.memory = new byte[memSize];
+       this.memory = new byte[pages * MEM_PAGE_SIZE];
        this.functions = functions;
     }
 
@@ -342,14 +343,14 @@ public class Machine {
         }
     }
 
-    public static Machine createAndExecute(Function[] functions, int memSize, Instruction[] instructions) {
-        Machine m = new Machine(functions, memSize);
+    public static Machine createAndExecute(Function[] functions, int pages, Instruction[] instructions) {
+        Machine m = new Machine(functions, pages);
         m.execute(instructions, null);
         return m;
     }
 
     public static void main(String[] args) {
-        Machine m = new Machine(null, 65536);
+        Machine m = new Machine(null, 1);
         Instruction[] ins = new Instruction[]{
                 new DoubleConst(1.0)
         };
