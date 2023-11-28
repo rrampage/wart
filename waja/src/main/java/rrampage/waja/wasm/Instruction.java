@@ -221,3 +221,9 @@ record Call(int val) implements FunctionInstruction { public String opCode() {re
 record LocalGet(int val) implements FunctionInstruction { public String opCode() {return "local.get";}}
 record LocalSet(int val) implements FunctionInstruction { public String opCode() {return "local.set";}}
 record LocalTee(int val) implements FunctionInstruction { public String opCode() {return "local.tee";}}
+
+sealed interface GlobalInstruction extends Instruction {}
+record GlobalGet(int val) implements GlobalInstruction { public String opCode() {return "global.get";}}
+record GlobalSet(int val) implements GlobalInstruction { public String opCode() {return "global.set";}}
+
+record Select(long t1, long t2, int cmp) implements Instruction {public String opCode() {return "select";}}

@@ -13,11 +13,13 @@ public class Machine {
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
     private byte[] memory;
     private final Function[] functions;
+    private final Variable[] globals;
 
-    public Machine(Function[] functions, int pages) {
+    public Machine(Function[] functions, Variable[] globals, int pages) {
        this.stack = new ArrayDeque<>(8192);
        this.memory = new byte[pages * MEM_PAGE_SIZE];
        this.functions = functions;
+       this.globals = globals;
     }
 
     public long pop() {
@@ -59,7 +61,7 @@ public class Machine {
         System.arraycopy(data, 0, memory, addr, data.length);
     }
 
-    private int getMemorySize() {
+    public int getMemorySize() {
         return memory.length/MEM_PAGE_SIZE;
     }
 
@@ -342,7 +344,6 @@ public class Machine {
                             pushVariable(var);
                         }
                         case LocalSet l -> {
-                            // What if we are setting new variable?
                             Variable var = locals[l.val()];
                             locals[l.val()] = Variable.newVariable(var.getType(), pop());
                         }
@@ -354,6 +355,24 @@ public class Machine {
                             pushVariable(var);
                         }
                     }
+                }
+                case GlobalInstruction i -> {
+                    switch (i) {
+                        case GlobalGet g -> {
+                            Variable var = globals[g.val()];
+                            pushVariable(var);
+                        }
+                        case GlobalSet g -> {
+                            Variable var = globals[g.val()];
+                            globals[g.val()] = Variable.newVariable(var.getType(), pop());
+                        }
+                    }
+                }
+                case Select i -> {
+                    int cmp = popInt();
+                    long t1 = pop();
+                    long t2 = pop();
+                    push((cmp == 0) ? t1 : t2);
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
@@ -369,14 +388,14 @@ public class Machine {
         }
     }
 
-    public static Machine createAndExecute(Function[] functions, int pages, Instruction[] instructions) {
-        Machine m = new Machine(functions, pages);
+    public static Machine createAndExecute(Function[] functions, Variable[] globals, int pages, Instruction[] instructions) {
+        Machine m = new Machine(functions, globals, pages);
         m.execute(instructions, null);
         return m;
     }
 
     public static void main(String[] args) {
-        Machine m = new Machine(null, 1);
+        Machine m = new Machine(null, null, 1);
         Instruction[] ins = new Instruction[]{
                 new DoubleConst(1.0)
         };
