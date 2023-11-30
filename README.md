@@ -33,12 +33,11 @@ go test -v
 - Stack push/pop works for i32, i64, f32 and f64
 - Uses Java 21 pattern matching and records to implement instructions
 - Arithmetic and comparison ops implemented
-- Basic load/store working
+- Load/store with alignment and offset support
 - Unary ops like popcnt, ceil, floor, trunc implemented
 - Functions
 
 ### TODO
-- Load/store with alignment and offset support
 - Blocks, loops and conditionals
 - Bitshift ops
 

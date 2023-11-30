@@ -83,6 +83,16 @@ public class Machine {
         return Arrays.copyOfRange(memory, addr, addr + offset);
     }
 
+    private boolean isAligned(int align, int offset, int addr) {
+        // TODO: 64 bit instruction can only support alignment of 4
+        // (baseAddr + memarg.offset) mod 2^memarg.align == 0
+        if (align > 4) {
+            return false;
+        }
+        int effectiveAddr = addr + offset;
+        return effectiveAddr%(1<<align) == 0;
+    }
+
     public Variable[] call(Function fun) {
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
@@ -310,21 +320,45 @@ public class Machine {
                 case StoreInstruction s -> {
                     byte[] data = switch (s) {
                         case I32Store i -> intToBytes(popInt());
+                        case I32Store8 i -> new byte[]{(byte)popInt()};
+                        case I32Store16 i -> shortToBytes((short)popInt());
                         case I64Store i -> longToBytes(pop());
+                        case I64Store8 i -> new byte[]{(byte)pop()};
+                        case I64Store16 i -> shortToBytes((short)pop());
+                        case I64Store32 i -> intToBytes((int) pop());
                         case F32Store i -> floatToBytes(popFloat());
                         case F64Store i -> doubleToBytes(popDouble());
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     };
                     int addr = popInt();
-                    store(addr, data);
+                    int effectiveAddr = addr + s.offset();
+                    if (isAligned(s.align(), s.offset(), effectiveAddr)) {
+                        System.out.println("Aligned write for " + s.align() + " " + s.opCode());
+                        store(effectiveAddr, data);
+                    } else {
+                        System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
+                        store(addr, data);
+                    }
                 }
                 case LoadInstruction l -> {
                     int addr = popInt();
+                    int effectiveAddr = addr + l.offset();
+                    int loadAddr = isAligned(l.align(), l.offset(), effectiveAddr) ? effectiveAddr : addr;
                     switch (l) {
-                        case I32Load i -> pushInt(bytesToInt(load(addr, Integer.BYTES)));
-                        case I64Load i -> push(bytesToLong(load(addr, Long.BYTES)));
-                        case F32Load i -> pushFloat(bytesToFloat(load(addr, Float.BYTES)));
-                        case F64Load i -> pushDouble(bytesToDouble(load(addr, Double.BYTES)));
+                        case I32Load i -> pushInt(bytesToInt(load(loadAddr, Integer.BYTES)));
+                        case I32Load8S i -> pushInt(load(loadAddr, Byte.BYTES)[0]);
+                        case I32Load8U i -> pushInt(Byte.toUnsignedInt(load(loadAddr, Byte.BYTES)[0]));
+                        case I32Load16S i -> pushInt(bytesToShort(load(loadAddr, Short.BYTES)));
+                        case I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(load(loadAddr, Short.BYTES))));
+                        case I64Load i -> push(bytesToLong(load(loadAddr, Long.BYTES)));
+                        case I64Load8S i -> push(load(loadAddr, Byte.BYTES)[0]);
+                        case I64Load8U i -> push(Byte.toUnsignedLong(load(loadAddr, Byte.BYTES)[0]));
+                        case I64Load16S i -> push(bytesToShort(load(loadAddr, Short.BYTES)));
+                        case I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(load(loadAddr, Short.BYTES))));
+                        case I64Load32S i -> push(bytesToInt(load(loadAddr, Integer.BYTES)));
+                        case I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(load(loadAddr, Integer.BYTES))));
+                        case F32Load i -> pushFloat(bytesToFloat(load(loadAddr, Float.BYTES)));
+                        case F64Load i -> pushDouble(bytesToDouble(load(loadAddr, Double.BYTES)));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }

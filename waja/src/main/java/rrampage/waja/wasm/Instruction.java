@@ -188,15 +188,36 @@ enum NullaryInstruction implements Instruction {
     public String opCode() { return opCode;}
 }
 
-sealed interface StoreInstruction extends Instruction {}
+sealed interface StoreInstruction extends Instruction {
+    int offset();
+    int align();
+}
 record I32Store(int align, int offset) implements StoreInstruction {public String opCode() {return "i32.store";}}
+record I32Store8(int align, int offset) implements StoreInstruction {public String opCode() {return "i32.store8";}}
+record I32Store16(int align, int offset) implements StoreInstruction {public String opCode() {return "i32.store16";}}
 record I64Store(int align, int offset) implements StoreInstruction {public String opCode() {return "i64.store";}}
+record I64Store8(int align, int offset) implements StoreInstruction {public String opCode() {return "i64.store8";}}
+record I64Store16(int align, int offset) implements StoreInstruction {public String opCode() {return "i64.store16";}}
+record I64Store32(int align, int offset) implements StoreInstruction {public String opCode() {return "i64.store32";}}
 record F32Store(int align, int offset) implements StoreInstruction {public String opCode() {return "f32.store";}}
 record F64Store(int align, int offset) implements StoreInstruction {public String opCode() {return "f64.store";}}
 
-sealed interface LoadInstruction extends Instruction {}
+sealed interface LoadInstruction extends Instruction {
+    int offset();
+    int align();
+}
 record I32Load(int align, int offset) implements LoadInstruction {public String opCode() {return "i32.load";}}
+record I32Load8S(int align, int offset) implements LoadInstruction {public String opCode() {return "i32.load8_s";}}
+record I32Load8U(int align, int offset) implements LoadInstruction {public String opCode() {return "i32.load8_u";}}
+record I32Load16S(int align, int offset) implements LoadInstruction {public String opCode() {return "i32.load16_s";}}
+record I32Load16U(int align, int offset) implements LoadInstruction {public String opCode() {return "i32.load16_u";}}
 record I64Load(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load";}}
+record I64Load8S(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load8_s";}}
+record I64Load8U(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load8_u";}}
+record I64Load16S(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load16_s";}}
+record I64Load16U(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load16_u";}}
+record I64Load32S(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load32_s";}}
+record I64Load32U(int align, int offset) implements LoadInstruction {public String opCode() {return "i64.load32_u";}}
 record F32Load(int align, int offset) implements LoadInstruction {public String opCode() {return "f32.load";}}
 record F64Load(int align, int offset) implements LoadInstruction {public String opCode() {return "f64.load";}}
 

@@ -3,6 +3,7 @@ package rrampage.waja.wasm;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static rrampage.waja.utils.ConversionUtils.*;
 
 public class MachineTest {
     private static final int MEM_PAGES = 1;
@@ -113,7 +114,8 @@ public class MachineTest {
         int fAddr = iAddr+4;
         int lAddr = fAddr+8;
         int dAddr = lAddr+8;
-        int i = 1111;
+        int sAddr = dAddr+8;
+        int i = 1111, s = 100000;
         long l = -1111111111L;
         float f = 111111.0f;
         double d = 1111.0;
@@ -126,6 +128,9 @@ public class MachineTest {
                 new FloatConst(f),
                 new IntConst(iAddr),
                 new IntConst(i),
+                new IntConst(sAddr),
+                new IntConst(s),
+                new I32Store16(1, 0),
                 new I32Store(0, 0),
                 new F32Store(0, 0),
                 new I64Store(0, 0),
@@ -138,12 +143,17 @@ public class MachineTest {
                 new F32Load(0, 0),
                 new IntConst(iAddr),
                 new I32Load(0,0),
+                new IntConst(sAddr),
+                new I32Load16U(0, 0),
         };
         Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
+        assertEquals(m.popInt(), s%65536);
         assertEquals(m.popInt(), i);
         assertEquals(m.popFloat(), f, 0.0f);
         assertEquals(m.pop(), l);
         assertEquals(m.popDouble(), d, 0.0);
+        long x = Short.toUnsignedLong(bytesToShort(m.load(sAddr, 2)));
+        assertEquals(x, s%65536);
     }
 
     @Test
