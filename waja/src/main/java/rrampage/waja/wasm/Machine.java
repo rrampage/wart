@@ -188,6 +188,11 @@ public class Machine {
                         case I64_GT_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) > 0));
                         case I64_LE_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) <= 0));
                         case I64_LT_U -> pushInt(wrapBoolean(Long.compareUnsigned(l,r) < 0));
+                        case I64_SHL -> push(l << r);
+                        case I64_SHR_S -> push(l >> r);
+                        case I64_SHR_U -> push(l >>> r);
+                        case I64_ROTL -> push(Long.rotateLeft(l, (int) r));
+                        case I64_ROTR -> push(Long.rotateRight(l, (int) r));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -217,6 +222,11 @@ public class Machine {
                         case I32_GT_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) > 0));
                         case I32_LE_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) <= 0));
                         case I32_LT_U -> pushInt(wrapBoolean(Integer.compareUnsigned(l,r) < 0));
+                        case I32_SHL -> pushInt(l << r);
+                        case I32_SHR_S -> push(l >> r);
+                        case I32_SHR_U -> pushInt(l >>> r);
+                        case I32_ROTL -> pushInt(Integer.rotateLeft(l, r));
+                        case I32_ROTR -> pushInt(Integer.rotateRight(l, r));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }

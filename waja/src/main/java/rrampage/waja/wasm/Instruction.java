@@ -79,6 +79,11 @@ enum IntBinaryInstruction implements Instruction {
     I32_AND("i32.and"),
     I32_OR("i32.or"),
     I32_XOR("i32.xor"),
+    I32_SHL("i32.shl"),
+    I32_SHR_S("i32.shr_s"),
+    I32_SHR_U("i32.shr_u"),
+    I32_ROTL("i32.rotl"),
+    I32_ROTR("i32.rotr"),
     ;
     private final String opCode;
     IntBinaryInstruction(String opCode) {
@@ -110,6 +115,11 @@ enum LongBinaryInstruction implements Instruction {
     I64_AND("i64.and"),
     I64_OR("i64.or"),
     I64_XOR("i64.xor"),
+    I64_SHL("i64.shl"),
+    I64_SHR_S("i64.shr_s"),
+    I64_SHR_U("i64.shr_u"),
+    I64_ROTL("i64.rotl"),
+    I64_ROTR("i64.rotr"),
     ;
     private final String opCode;
     LongBinaryInstruction(String opCode) {
