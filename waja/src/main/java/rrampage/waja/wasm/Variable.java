@@ -12,6 +12,15 @@ public sealed interface Variable {
             case F64 -> new F64Variable(longToDouble(val));
         };
     }
+
+    static String debug(Variable variable) {
+        return switch (variable) {
+            case F32Variable v -> v.getType().toString() + " " + v.val();
+            case F64Variable v -> v.getType().toString() + " " + v.val();
+            case I32Variable v -> v.getType().toString() + " " + v.val();
+            case I64Variable v -> v.getType().toString() + " " + v.val();
+        };
+    }
 }
 
 record I32Variable(int val) implements Variable { public DataType getType() {return DataType.I32;}}

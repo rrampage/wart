@@ -14,12 +14,17 @@ public class Machine {
     private byte[] memory;
     private final Function[] functions;
     private final Variable[] globals;
+    private final int[] labels;
 
     public Machine(Function[] functions, Variable[] globals, int pages) {
        this.stack = new ArrayDeque<>(8192);
        this.memory = new byte[pages * MEM_PAGE_SIZE];
        this.functions = functions;
        this.globals = globals;
+       /*
+              this stores level of the label of block
+        */
+       this.labels = new int[]{0, -1, -1, -1, -1, -1};
     }
 
     public long pop() {
@@ -65,6 +70,12 @@ public class Machine {
         return memory.length/MEM_PAGE_SIZE;
     }
 
+    public void printStack() {
+        Long[] arr = new Long[stack.size()];
+        stack.toArray(arr);
+        System.out.println(" Stack: " + Arrays.toString(arr));
+    }
+
     private int growMemory(int numPages) {
         int currPages = getMemorySize();
         if (numPages < 0 || currPages + numPages > MAX_PAGES) {
@@ -93,7 +104,7 @@ public class Machine {
         return effectiveAddr%(1<<align) == 0;
     }
 
-    public Variable[] call(Function fun) {
+    public Variable[] call(Function fun, int level) {
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
         // LIFO for function params as params are pushed to stack and must be popped in reverse order
@@ -103,7 +114,7 @@ public class Machine {
         for (int i = fun.numParams(); i < locals.length; i++) {
             locals[i] = Variable.newVariable(fun.locals()[i - fun.numParams()], 0);
         }
-        execute(fun.code(), locals);
+        execute(fun.code(), locals, level);
         if (fun.isVoidReturn()) {
             return null;
         }
@@ -114,17 +125,18 @@ public class Machine {
         }
         return returns;
     }
-    public void execute(Instruction[] instructions, Variable[] locals) {
+    public int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
             System.out.println("Instruction: " + ins.opCode());
+            printStack();
             switch (ins) {
                 case DoubleConst c -> pushDouble(c.val());
                 case FloatConst c -> pushFloat(c.val());
                 case IntConst c -> pushInt(c.val());
                 case LongConst c -> push(c.val());
                 case DoubleBinaryInstruction b -> {
-                    double l = popDouble();
                     double r = popDouble();
+                    double l = popDouble();
                     switch (b) {
                         case F64_ADD -> pushDouble(l+r);
                         case F64_SUB -> pushDouble(l-r);
@@ -143,8 +155,8 @@ public class Machine {
                     }
                 }
                 case FloatBinaryInstruction b -> {
-                    float l = popFloat();
                     float r = popFloat();
+                    float l = popFloat();
                     switch (b) {
                         case F32_ADD -> pushFloat(l+r);
                         case F32_SUB -> pushFloat(l-r);
@@ -163,8 +175,8 @@ public class Machine {
                     }
                 }
                 case LongBinaryInstruction b -> {
-                    long l = pop();
                     long r = pop();
+                    long l = pop();
                     switch (b) {
                         case I64_ADD -> push(l+r);
                         case I64_SUB -> push(l-r);
@@ -197,8 +209,8 @@ public class Machine {
                     }
                 }
                 case IntBinaryInstruction b -> {
-                    int l = popInt();
                     int r = popInt();
+                    int l = popInt();
                     switch (b) {
                         case I32_ADD -> pushInt(l+r);
                         case I32_SUB -> pushInt(l-r);
@@ -376,7 +388,7 @@ public class Machine {
                     switch (f) {
                         case Call l -> {
                             Function fun = functions[l.val()];
-                            Variable[] res = call(fun);
+                            Variable[] res = call(fun, level);
                             if (!fun.isVoidReturn()) {
                                 // Push in reverse order
                                 for (int i = res.length -1; i >= 0; i--) {
@@ -410,6 +422,7 @@ public class Machine {
                         case GlobalSet g -> {
                             Variable var = globals[g.val()];
                             globals[g.val()] = Variable.newVariable(var.getType(), pop());
+                            System.out.println(Variable.debug(globals[g.val()]));
                         }
                     }
                 }
@@ -422,6 +435,7 @@ public class Machine {
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
         }
+        return level;
     }
 
     private void pushVariable(Variable var) {
@@ -435,7 +449,7 @@ public class Machine {
 
     public static Machine createAndExecute(Function[] functions, Variable[] globals, int pages, Instruction[] instructions) {
         Machine m = new Machine(functions, globals, pages);
-        m.execute(instructions, null);
+        m.execute(instructions, null, 0);
         return m;
     }
 
@@ -444,7 +458,7 @@ public class Machine {
         Instruction[] ins = new Instruction[]{
                 new DoubleConst(1.0)
         };
-        m.execute(ins, null);
+        m.execute(ins, null, 0);
         System.out.println(m.popDouble());
     }
 }
