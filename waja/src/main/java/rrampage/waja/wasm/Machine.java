@@ -402,13 +402,12 @@ public class Machine {
                         }
                         case LocalSet l -> {
                             Variable var = locals[l.val()];
-                            locals[l.val()] = Variable.newVariable(var.getType(), pop());
+                            var.setVal(pop());
                         }
                         case LocalTee l -> {
                             long val = pop();
                             Variable var = locals[l.val()];
-                            var = Variable.newVariable(var.getType(), val);
-                            locals[l.val()] = var;
+                            var.setVal(val);
                             pushVariable(var);
                         }
                     }
@@ -421,7 +420,7 @@ public class Machine {
                         }
                         case GlobalSet g -> {
                             Variable var = globals[g.val()];
-                            globals[g.val()] = Variable.newVariable(var.getType(), pop());
+                            var.setVal(pop());
                             System.out.println(Variable.debug(globals[g.val()]));
                         }
                     }
@@ -440,10 +439,10 @@ public class Machine {
 
     private void pushVariable(Variable var) {
         switch (var) {
-            case F32Variable v -> pushFloat(v.val());
-            case F64Variable v -> pushDouble(v.val());
-            case I32Variable v -> pushInt(v.val());
-            case I64Variable v -> push(v.val());
+            case F32Variable v -> pushFloat(v.getVal());
+            case F64Variable v -> pushDouble(v.getVal());
+            case I32Variable v -> pushInt(v.getVal());
+            case I64Variable v -> push(v.getVal());
         }
     }
 

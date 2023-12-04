@@ -4,6 +4,7 @@ import static rrampage.waja.utils.ConversionUtils.*;
 
 public sealed interface Variable {
     DataType getType();
+    void setVal(long val);
     static Variable newVariable(DataType dataType, long val) {
         return switch (dataType) {
             case I32 -> new I32Variable(longToInt(val));
@@ -15,15 +16,47 @@ public sealed interface Variable {
 
     static String debug(Variable variable) {
         return switch (variable) {
-            case F32Variable v -> v.getType().toString() + " " + v.val();
-            case F64Variable v -> v.getType().toString() + " " + v.val();
-            case I32Variable v -> v.getType().toString() + " " + v.val();
-            case I64Variable v -> v.getType().toString() + " " + v.val();
+            case F32Variable v -> v.getType().toString() + " " + v.getVal();
+            case F64Variable v -> v.getType().toString() + " " + v.getVal();
+            case I32Variable v -> v.getType().toString() + " " + v.getVal();
+            case I64Variable v -> v.getType().toString() + " " + v.getVal();
         };
     }
 }
 
-record I32Variable(int val) implements Variable { public DataType getType() {return DataType.I32;}}
-record I64Variable(long val) implements Variable {public DataType getType() {return DataType.I64;}}
-record F32Variable(float val) implements Variable {public DataType getType() {return DataType.F32;}}
-record F64Variable(double val) implements Variable {public DataType getType() {return DataType.F64;}}
+final class I32Variable implements Variable {
+    private int val;
+    I32Variable(int val) {
+        this.val = val;
+    }
+    public DataType getType() {return DataType.I32;}
+    public int getVal() { return val;}
+    public void setVal(long val) { this.val = longToInt(val);}
+}
+final class I64Variable implements Variable {
+    private long val;
+    I64Variable(long val) {
+        this.val = val;
+    }
+    public long getVal() { return val;}
+    public void setVal(long val) { this.val = val;}
+    public DataType getType() {return DataType.I64;}
+}
+final class F32Variable implements Variable {
+    private float val;
+    F32Variable(float val) {
+        this.val = val;
+    }
+    public float getVal() { return val;}
+    public void setVal(long val) { this.val = longToFloat(val);}
+    public DataType getType() {return DataType.F32;}
+}
+final class F64Variable implements Variable {
+    private double val;
+    F64Variable(double val) {
+        this.val = val;
+    }
+    public double getVal() { return val;}
+    public void setVal(long val) { this.val = longToDouble(val);}
+    public DataType getType() {return DataType.F64;}
+}
