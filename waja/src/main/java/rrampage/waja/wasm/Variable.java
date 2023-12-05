@@ -3,7 +3,6 @@ package rrampage.waja.wasm;
 import static rrampage.waja.utils.ConversionUtils.*;
 
 public sealed interface Variable {
-    DataType getType();
     void setVal(long val);
     static Variable newVariable(DataType dataType, long val) {
         return switch (dataType) {

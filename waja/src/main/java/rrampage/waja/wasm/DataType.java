@@ -5,4 +5,9 @@ public enum DataType {
     I64,
     F32,
     F64;
+
+    @Override
+    public String toString() {
+        return this.name();
+    }
 }
