@@ -1,6 +1,8 @@
 package rrampage.waja.wasm;
 
 import org.junit.Test;
+import rrampage.waja.wasm.data.DataType;
+import rrampage.waja.wasm.data.Function;
 
 import static org.junit.Assert.assertEquals;
 import static rrampage.waja.utils.ConversionUtils.*;

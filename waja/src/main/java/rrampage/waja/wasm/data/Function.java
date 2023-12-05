@@ -1,4 +1,6 @@
-package rrampage.waja.wasm;
+package rrampage.waja.wasm.data;
+
+import rrampage.waja.wasm.Instruction;
 
 import java.util.Arrays;
 

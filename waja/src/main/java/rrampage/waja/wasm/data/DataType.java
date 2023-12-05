@@ -1,4 +1,4 @@
-package rrampage.waja.wasm;
+package rrampage.waja.wasm.data;
 
 public enum DataType {
     I32,

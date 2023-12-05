@@ -1,5 +1,7 @@
 package rrampage.waja.wasm;
 
+import rrampage.waja.wasm.data.Function;
+
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;

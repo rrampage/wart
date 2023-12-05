@@ -1,5 +1,7 @@
 package rrampage.waja.wasm;
 
+import rrampage.waja.wasm.data.DataType;
+
 import static rrampage.waja.utils.ConversionUtils.*;
 
 public sealed interface Variable {
