@@ -3,6 +3,7 @@ package rrampage.waja.wasm;
 import org.junit.Test;
 import rrampage.waja.wasm.data.DataType;
 import rrampage.waja.wasm.data.Function;
+import rrampage.waja.wasm.data.FunctionType;
 
 import static org.junit.Assert.assertEquals;
 import static rrampage.waja.utils.ConversionUtils.*;
@@ -161,7 +162,7 @@ public class MachineTest {
     @Test
     public void shouldCallIntConstFunction() {
         int i = 42;
-        Function fun = new Function(null, null, new DataType[]{DataType.I32}, new Instruction[]{new IntConst(i)});
+        Function fun = new Function(new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new IntConst(i)});
         Instruction[] ins = new Instruction[] {
           new Call(0)
         };
@@ -177,7 +178,7 @@ public class MachineTest {
                 new LocalGet(1),
                 IntBinaryInstruction.I32_ADD
         };
-        Function fun = new Function(new DataType[]{DataType.I32, DataType.I32}, null, new DataType[]{DataType.I32}, funIns);
+        Function fun = new Function(new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null, funIns);
         Instruction[] ins = new Instruction[] {
                 new IntConst(b),
                 new IntConst(a),
