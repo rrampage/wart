@@ -188,4 +188,25 @@ public class MachineTest {
         Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), 1);
     }
+
+    @Test
+    public void shouldLoop() {
+        Variable[] globals = new Variable[]{Variable.newVariable(DataType.I32, 0)};
+        Instruction[] loopIns = new Instruction[] {
+                new GlobalGet(0),
+                new IntConst(1),
+                IntBinaryInstruction.I32_ADD,
+                new GlobalSet(0),
+                new GlobalGet(0),
+                new IntConst(10),
+                IntBinaryInstruction.I32_LT_S,
+                new BranchIf(1),
+        };
+        Instruction[] ins = new Instruction[] {
+                new Loop(1, loopIns),
+                new GlobalGet(0),
+        };
+        Machine m = Machine.createAndExecute(null, globals, MEM_PAGES, ins);
+        assertEquals(m.popInt(), 10);
+    }
 }

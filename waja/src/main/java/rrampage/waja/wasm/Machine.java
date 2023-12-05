@@ -431,6 +431,49 @@ public class Machine {
                     long t2 = pop();
                     push((cmp == 0) ? t1 : t2);
                 }
+                case ControlFlowInstruction i -> {
+                    // TODO
+                    switch (i) {
+                        case Block b -> {
+                            labels[b.label()] = level;
+                            level = execute(b.code(), locals, level+1);
+                        }
+                        case Loop b -> {
+                            int currLevel = level;
+                            labels[b.label()] = level;
+                            do {
+                                System.out.println("Level:" + level + ", currLevel: " + currLevel);
+                                level = execute(b.code(), locals, currLevel+1);
+                                System.out.println("Level:" + level + ", currLevel: " + currLevel);
+                            } while (level != currLevel + 1);
+                        }
+                        case Branch b -> {
+                            // it has to jump to level pointed by the label
+                            return labels[b.label()];
+                        }
+                        case BranchIf b -> {
+                            int cmp = popInt();
+                            System.out.println("Branch If - " + (cmp == 1));
+                            if (cmp == 1) {
+                                return labels[b.label()];
+                            }
+                        }
+                        case If b -> {
+                            int cmp = popInt();
+                            if (cmp == 1) {
+                                execute(b.ifBlock(), locals, level);
+                            }
+                        }
+                        case IfElse b -> {
+                            int cmp = popInt();
+                            if (cmp == 1) {
+                                execute(b.ifBlock(), locals, level);
+                            } else {
+                                execute(b.elseBlock(), locals, level);
+                            }
+                        }
+                    }
+                }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
         }
