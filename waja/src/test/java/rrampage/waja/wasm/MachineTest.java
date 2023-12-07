@@ -1,7 +1,7 @@
 package rrampage.waja.wasm;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import rrampage.waja.wasm.data.*;
 import rrampage.waja.wasm.instructions.*;
 
@@ -9,7 +9,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static rrampage.waja.utils.ConversionUtils.*;
 
 public class MachineTest {
@@ -227,8 +227,8 @@ public class MachineTest {
         try {
             mh = MethodHandles.lookup().findStatic(Math.class, "pow", mt);
         } catch (Exception e) {
-            Assert.fail();
             e.printStackTrace();
+            Assertions.assertNull(e); // placeholder to fail
             return;
         }
         Instruction[] funIns = new Instruction[]{

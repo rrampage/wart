@@ -1,12 +1,12 @@
 package rrampage.waja.wasm;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import rrampage.waja.utils.FileUtils;
 import rrampage.waja.wasm.parser.WatParser;
 
 import java.nio.file.Paths;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class WatParserTest {
     private static final String examplesDir = "../examples";
