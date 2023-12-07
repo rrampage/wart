@@ -12,7 +12,6 @@ import java.util.*;
 public class WatParser {
 
     private final String input;
-    private final HashMap<String, Function> functions = new HashMap<>();
 
     public WatParser(String input) {
         this.input = input;
@@ -110,7 +109,7 @@ public class WatParser {
                         types.add(ft);
                         continue;
                     }
-                    var f = parseFunction(x);
+                    var f = parseFunction(x, types);
                     if (f != null) {
                         functions.add(f);
                         continue;
@@ -213,15 +212,23 @@ public class WatParser {
         return null;
     }
 
-    private Function parseFunction(ConsList cl) {
+    private Function parseFunction(ConsList cl, ArrayList<FunctionType> types) {
+        /*
+            Example Data:
+            (func (;14;) (type 0) (param i32) (local i32 i32 i32 i32) .... )
+            (func (;11;) (type 3) (param i32 i32 i32) (local i32)... )
+         */
         if (!cl.startsWith("func")) {
             return null;
         }
+        /*String cls = cl.toString();
+        System.out.println(cls.substring(0, Math.min(cls.length(), 100)));*/
         ArrayList<DataType> paramTypes = new ArrayList<>();
         ArrayList<DataType> locals = new ArrayList<>();
         ArrayList<DataType> returnTypes = new ArrayList<>();
         String funcName = "";
         Instruction[] code = null;
+        FunctionType ft = null;
         for (Cons c : cl.val()) {
             switch (c) {
                 case ConsAtom(String x) -> {
@@ -255,16 +262,22 @@ public class WatParser {
                         continue;
                     }
                     var i = parseTypeIdx(x);
-                    if (i >= 0) {
+                    if (i >= 0 && types != null && i < types.size()) {
                         // System.out.println("Type idx: " + i);
-                        // TODO: Type check??
+                        if (ft == null) {
+                            ft = types.get(i);
+                        }
+                        continue;
                     }
                 }
             }
         }
-        Function f = new Function(funcName,
-                new FunctionType(paramTypes.toArray(new DataType[]{}), returnTypes.toArray(new DataType[]{})), locals.toArray(new DataType[]{}), code);
-        functions.put(funcName, f);
+        FunctionType type = new FunctionType(paramTypes.toArray(new DataType[]{}), returnTypes.toArray(new DataType[]{}));
+        if (ft != null && !type.equals(ft)) {
+            throw new RuntimeException("Type index in module does not match" + ft + " " + type);
+            //System.out.println("Function "+ funcName  + ": Type index in module does not match" + ft + " " + type);
+        }
+        Function f = new Function(funcName, type, locals.toArray(new DataType[]{}), code);
         return f;
     }
 
@@ -291,7 +304,7 @@ public class WatParser {
 
     private Function parseImport(ConsList cl, ArrayList<FunctionType> types) {
         /*
-            TODO
+            Example data:
             (import "host" "print" (func $hprint (param i32) (result i32)))
             (import "env" "Math_atan" (func (;0;) (type 5)))
          */
@@ -362,7 +375,5 @@ public class WatParser {
                 """;
         System.out.println(program);
         WatParser watParser = new WatParser(program);
-        ConsList cl = watParser.parseTokens();
-        System.out.println(watParser.functions);
     }
 }
