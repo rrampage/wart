@@ -17,6 +17,20 @@ public record FunctionType(DataType[] paramTypes, DataType[] returnTypes) {
         );
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || !(obj instanceof FunctionType ft)) {
+            return false;
+        }
+        if (this.isVoidReturn() != ft.isVoidReturn() || this.numParams() != ft.numParams()) {
+            return false;
+        }
+        return Arrays.equals(this.paramTypes, ft.paramTypes) && Arrays.equals(this.returnTypes, ft.returnTypes);
+    }
+
     public static Class<?> getClassFromDataType(DataType d) {
         return switch (d) {
             case null -> void.class;
