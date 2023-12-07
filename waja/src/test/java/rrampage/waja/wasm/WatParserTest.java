@@ -2,6 +2,7 @@ package rrampage.waja.wasm;
 
 import org.junit.Test;
 import rrampage.waja.utils.FileUtils;
+import rrampage.waja.wasm.parser.WatParser;
 
 import java.nio.file.Paths;
 
@@ -15,10 +16,40 @@ public class WatParserTest {
     }
 
     @Test
+    public void shouldReadFile() {
+        String program = FileUtils.readFile(getFilePath("rocket.wat"));
+        assertNotEquals(program, "");
+    }
+
+    @Test
+    public void shouldParseEmptyModule() {
+        String program = FileUtils.readFile(getFilePath("empty_module.wat"));
+        WatParser parser = new WatParser(program);
+        Module m = parser.parseModule();
+        assertNotEquals(m, null);
+    }
+
+    @Test
     public void shouldReadFileAndCreateParser() {
+        String program = FileUtils.readFile(getFilePath("add_two.wat"));
+        assertNotEquals(program, "");
+        WatParser parser = new WatParser(program);
+        Module m = parser.parseModule();
+        //System.out.println(m.types().length);
+        System.out.println(program);
+        System.out.println(m);
+        assertEquals(m.functions().length, 2);
+    }
+
+    @Test
+    public void shouldParseRocket() {
         String program = FileUtils.readFile(getFilePath("rocket.wat"));
         assertNotEquals(program, "");
         WatParser parser = new WatParser(program);
+        Module m = parser.parseModule();
+        //System.out.println(m.types().length);
         System.out.println(program);
+        assertNotEquals(m, null); // till parser impl is completed, just doing a non-null check here
+        assertEquals(m.types().length, 17);
     }
 }
