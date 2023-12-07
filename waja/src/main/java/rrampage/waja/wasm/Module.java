@@ -6,7 +6,7 @@ import rrampage.waja.wasm.data.FunctionType;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public record Module(FunctionType[] types, Function[] functions, HashMap<String, Function> exports) {
+public record Module(FunctionType[] types, Function[] functions, HashMap<String, Function> exports, HashMap<String, Integer> importMap) {
     /*
         TODO
         Module contains:

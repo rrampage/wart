@@ -6,7 +6,7 @@
 
   <groupId>rrampage.waja.wasm</groupId>
   <artifactId>waja</artifactId>
-  <version>0.0.5</version>
+  <version>0.0.6</version>
 
   <name>waja</name>
   <url>http://github.com/rrampage/wart</url>

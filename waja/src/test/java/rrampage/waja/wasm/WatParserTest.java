@@ -38,7 +38,7 @@ public class WatParserTest {
         //System.out.println(m.types().length);
         System.out.println(program);
         System.out.println(m);
-        assertEquals(m.functions().length, 2);
+        assertEquals(3, m.functions().length);
     }
 
     @Test
@@ -47,9 +47,9 @@ public class WatParserTest {
         assertNotEquals(program, "");
         WatParser parser = new WatParser(program);
         Module m = parser.parseModule();
-        //System.out.println(m.types().length);
-        System.out.println(program);
         assertNotEquals(m, null); // till parser impl is completed, just doing a non-null check here
-        assertEquals(m.types().length, 17);
+        assertEquals(17, m.types().length);
+        assertEquals(125, m.functions().length);
+        System.out.println(m.importMap());
     }
 }

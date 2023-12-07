@@ -97,6 +97,7 @@ public class WatParser {
         }
         ArrayList<FunctionType> types = new ArrayList<>();
         ArrayList<Function> functions = new ArrayList<>();
+        HashMap<String, Integer> imports = new HashMap<>();
 
         for (Cons c : cl.val()) {
             switch (c) {
@@ -114,7 +115,13 @@ public class WatParser {
                         functions.add(f);
                         continue;
                     }
-                    // TODO imports
+                    // imports
+                    var ifun = parseImport(x, types);
+                    if (ifun != null) {
+                        functions.add(ifun);
+                        imports.put(ifun.name(), functions.size()-1);
+                        continue;
+                    }
                     // TODO exports
                 }
                 case ConsAtom x -> {
@@ -126,7 +133,8 @@ public class WatParser {
         return new Module(
                 types.toArray(new FunctionType[]{}),
                 functions.toArray(new Function[]{}),
-                new HashMap<>());
+                new HashMap<>(),
+                imports);
     }
 
     private FunctionType parseFunctionType(ConsList cl) {
@@ -229,7 +237,6 @@ public class WatParser {
                 }
                 case ConsList x -> {
                     if (parseBlockComment(x)) {
-                        System.out.println("Comment: " + x);
                         continue;
                     }
                     var p = parseDataTypes("param", x);
@@ -249,7 +256,7 @@ public class WatParser {
                     }
                     var i = parseTypeIdx(x);
                     if (i >= 0) {
-                        System.out.println("Type idx: " + i);
+                        // System.out.println("Type idx: " + i);
                         // TODO: Type check??
                     }
                 }
@@ -282,16 +289,45 @@ public class WatParser {
         }
     }
 
-    private void parseImport(ConsList cl, FunctionType[] types) {
+    private Function parseImport(ConsList cl, ArrayList<FunctionType> types) {
         /*
             TODO
             (import "host" "print" (func $hprint (param i32) (result i32)))
             (import "env" "Math_atan" (func (;0;) (type 5)))
          */
         if (!cl.startsWith("import")) {
-            return;
+            return null;
         }
-
+        String[] importData = ((ConsAtom) cl.val().get(0)).val().split(" +");
+        if (importData.length < 3) {
+            return null;
+        }
+        String importName = importData[1];
+        String functionName = importData[2];
+        for (Cons c : cl.val().subList(1, cl.val().size())) {
+            if (c instanceof ConsList x) {
+                if (parseBlockComment(x)) {
+                    continue;
+                }
+                var ft = parseFunctionType(x);
+                if (ft != null) {
+                    return Function.createStubFunction(importName+"::" + functionName, ft);
+                }
+                for (Cons cc : x.val()) {
+                    if (cc instanceof ConsList xx) {
+                        if (parseBlockComment(xx)) {
+                            continue;
+                        }
+                        var i = parseTypeIdx(x);
+                        if (i >= 0 && types != null && i < types.size()) {
+                            System.out.println("Type idx for import function: " + i);
+                            return Function.createStubFunction(importName+"::" + functionName, types.get(i));
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private void parseTable(ConsList cl) {
