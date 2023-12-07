@@ -1,8 +1,7 @@
 package rrampage.waja.wasm;
 
-import rrampage.waja.wasm.data.DataType;
-import rrampage.waja.wasm.data.Function;
-import rrampage.waja.wasm.data.FunctionType;
+import rrampage.waja.wasm.data.*;
+import rrampage.waja.wasm.instructions.*;
 
 import java.lang.invoke.MethodHandle;
 import java.math.BigDecimal;
@@ -135,10 +134,10 @@ public class Machine {
             System.out.println("Instruction: " + ins.opCode());
             printStack();
             switch (ins) {
-                case DoubleConst c -> pushDouble(c.val());
-                case FloatConst c -> pushFloat(c.val());
-                case IntConst c -> pushInt(c.val());
-                case LongConst c -> push(c.val());
+                case ConstInstruction.DoubleConst c -> pushDouble(c.val());
+                case ConstInstruction.FloatConst c -> pushFloat(c.val());
+                case ConstInstruction.IntConst c -> pushInt(c.val());
+                case ConstInstruction.LongConst c -> push(c.val());
                 case DoubleBinaryInstruction b -> {
                     double r = popDouble();
                     double l = popDouble();
@@ -346,16 +345,15 @@ public class Machine {
                 }
                 case StoreInstruction s -> {
                     byte[] data = switch (s) {
-                        case I32Store i -> intToBytes(popInt());
-                        case I32Store8 i -> new byte[]{(byte)popInt()};
-                        case I32Store16 i -> shortToBytes((short)popInt());
-                        case I64Store i -> longToBytes(pop());
-                        case I64Store8 i -> new byte[]{(byte)pop()};
-                        case I64Store16 i -> shortToBytes((short)pop());
-                        case I64Store32 i -> intToBytes((int) pop());
-                        case F32Store i -> floatToBytes(popFloat());
-                        case F64Store i -> doubleToBytes(popDouble());
-                        default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                        case StoreInstruction.I32Store i -> intToBytes(popInt());
+                        case StoreInstruction.I32Store8 i -> new byte[]{(byte)popInt()};
+                        case StoreInstruction.I32Store16 i -> shortToBytes((short)popInt());
+                        case StoreInstruction.I64Store i -> longToBytes(pop());
+                        case StoreInstruction.I64Store8 i -> new byte[]{(byte)pop()};
+                        case StoreInstruction.I64Store16 i -> shortToBytes((short)pop());
+                        case StoreInstruction.I64Store32 i -> intToBytes((int) pop());
+                        case StoreInstruction.F32Store i -> floatToBytes(popFloat());
+                        case StoreInstruction.F64Store i -> doubleToBytes(popDouble());
                     };
                     int addr = popInt();
                     int effectiveAddr = addr + s.offset();
@@ -372,26 +370,26 @@ public class Machine {
                     int effectiveAddr = addr + l.offset();
                     int loadAddr = isAligned(l.align(), l.offset(), effectiveAddr) ? effectiveAddr : addr;
                     switch (l) {
-                        case I32Load i -> pushInt(bytesToInt(load(loadAddr, Integer.BYTES)));
-                        case I32Load8S i -> pushInt(load(loadAddr, Byte.BYTES)[0]);
-                        case I32Load8U i -> pushInt(Byte.toUnsignedInt(load(loadAddr, Byte.BYTES)[0]));
-                        case I32Load16S i -> pushInt(bytesToShort(load(loadAddr, Short.BYTES)));
-                        case I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(load(loadAddr, Short.BYTES))));
-                        case I64Load i -> push(bytesToLong(load(loadAddr, Long.BYTES)));
-                        case I64Load8S i -> push(load(loadAddr, Byte.BYTES)[0]);
-                        case I64Load8U i -> push(Byte.toUnsignedLong(load(loadAddr, Byte.BYTES)[0]));
-                        case I64Load16S i -> push(bytesToShort(load(loadAddr, Short.BYTES)));
-                        case I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(load(loadAddr, Short.BYTES))));
-                        case I64Load32S i -> push(bytesToInt(load(loadAddr, Integer.BYTES)));
-                        case I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(load(loadAddr, Integer.BYTES))));
-                        case F32Load i -> pushFloat(bytesToFloat(load(loadAddr, Float.BYTES)));
-                        case F64Load i -> pushDouble(bytesToDouble(load(loadAddr, Double.BYTES)));
+                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(load(loadAddr, Integer.BYTES)));
+                        case LoadInstruction.I32Load8S i -> pushInt(load(loadAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(load(loadAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(load(loadAddr, Short.BYTES)));
+                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(load(loadAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load i -> push(bytesToLong(load(loadAddr, Long.BYTES)));
+                        case LoadInstruction.I64Load8S i -> push(load(loadAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(load(loadAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I64Load16S i -> push(bytesToShort(load(loadAddr, Short.BYTES)));
+                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(load(loadAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load32S i -> push(bytesToInt(load(loadAddr, Integer.BYTES)));
+                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(load(loadAddr, Integer.BYTES))));
+                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(load(loadAddr, Float.BYTES)));
+                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(load(loadAddr, Double.BYTES)));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
                 case FunctionInstruction f -> {
                     switch (f) {
-                        case Call l -> {
+                        case FunctionInstruction.Call l -> {
                             Function fun = functions[l.val()];
                             Variable[] res = call(fun, level);
                             if (!fun.isVoidReturn()) {
@@ -401,7 +399,7 @@ public class Machine {
                                 }
                             }
                         }
-                        case CallJava(FunctionType type, MethodHandle function) -> {
+                        case FunctionInstruction.CallJava(FunctionType type, MethodHandle function) -> {
                             try {
                                 Object[] args = new Object[type.numParams()];
                                 for (int  i = 0; i < type.numParams(); i++) {
@@ -431,15 +429,15 @@ public class Machine {
                                 throw new RuntimeException("InvokeError " + e.getMessage());
                             }
                         }
-                        case LocalGet l -> {
+                        case FunctionInstruction.LocalGet l -> {
                             Variable var = locals[l.val()];
                             pushVariable(var);
                         }
-                        case LocalSet l -> {
+                        case FunctionInstruction.LocalSet l -> {
                             Variable var = locals[l.val()];
                             var.setVal(pop());
                         }
-                        case LocalTee l -> {
+                        case FunctionInstruction.LocalTee l -> {
                             long val = pop();
                             Variable var = locals[l.val()];
                             var.setVal(val);
@@ -449,11 +447,11 @@ public class Machine {
                 }
                 case GlobalInstruction i -> {
                     switch (i) {
-                        case GlobalGet g -> {
+                        case GlobalInstruction.GlobalGet g -> {
                             Variable var = globals[g.val()];
                             pushVariable(var);
                         }
-                        case GlobalSet g -> {
+                        case GlobalInstruction.GlobalSet g -> {
                             Variable var = globals[g.val()];
                             var.setVal(pop());
                             System.out.println(Variable.debug(globals[g.val()]));
@@ -469,11 +467,11 @@ public class Machine {
                 case ControlFlowInstruction i -> {
                     // TODO
                     switch (i) {
-                        case Block b -> {
+                        case ControlFlowInstruction.Block b -> {
                             labels[b.label()] = level;
                             level = execute(b.code(), locals, level+1);
                         }
-                        case Loop b -> {
+                        case ControlFlowInstruction.Loop b -> {
                             int currLevel = level;
                             labels[b.label()] = level;
                             do {
@@ -482,24 +480,24 @@ public class Machine {
                                 System.out.println("Level:" + level + ", currLevel: " + currLevel);
                             } while (level != currLevel + 1);
                         }
-                        case Branch b -> {
+                        case ControlFlowInstruction.Branch b -> {
                             // it has to jump to level pointed by the label
                             return labels[b.label()];
                         }
-                        case BranchIf b -> {
+                        case ControlFlowInstruction.BranchIf b -> {
                             int cmp = popInt();
                             System.out.println("Branch If - " + (cmp == 1));
                             if (cmp == 1) {
                                 return labels[b.label()];
                             }
                         }
-                        case If b -> {
+                        case ControlFlowInstruction.If b -> {
                             int cmp = popInt();
                             if (cmp == 1) {
                                 execute(b.ifBlock(), locals, level);
                             }
                         }
-                        case IfElse b -> {
+                        case ControlFlowInstruction.IfElse b -> {
                             int cmp = popInt();
                             if (cmp == 1) {
                                 execute(b.ifBlock(), locals, level);
@@ -533,7 +531,7 @@ public class Machine {
     public static void main(String[] args) {
         Machine m = new Machine(null, null, 1);
         Instruction[] ins = new Instruction[]{
-                new DoubleConst(1.0)
+                new ConstInstruction.DoubleConst(1.0)
         };
         m.execute(ins, null, 0);
         System.out.println(m.popDouble());

@@ -2,9 +2,8 @@ package rrampage.waja.wasm;
 
 import org.junit.Assert;
 import org.junit.Test;
-import rrampage.waja.wasm.data.DataType;
-import rrampage.waja.wasm.data.Function;
-import rrampage.waja.wasm.data.FunctionType;
+import rrampage.waja.wasm.data.*;
+import rrampage.waja.wasm.instructions.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -19,10 +18,10 @@ public class MachineTest {
     @Test
     public void shouldPushConst() {
         Instruction[] ins = new Instruction[]{
-                new FloatConst(2.0f),
-                new DoubleConst(1.0),
-                new IntConst(4),
-                new LongConst(1112345345667L),
+                new ConstInstruction.FloatConst(2.0f),
+                new ConstInstruction.DoubleConst(1.0),
+                new ConstInstruction.IntConst(4),
+                new ConstInstruction.LongConst(1112345345667L),
         };
         Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
         assertEquals(1112345345667L, m.pop());
@@ -34,8 +33,8 @@ public class MachineTest {
     @Test
     public void shouldDrop() {
         Instruction[] ins = new Instruction[]{
-                new IntConst(4),
-                new LongConst(1112345345667L),
+                new ConstInstruction.IntConst(4),
+                new ConstInstruction.LongConst(1112345345667L),
                 UnaryInstruction.DROP,
         };
         Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
@@ -53,17 +52,17 @@ public class MachineTest {
         int il = 11111;
         int ir = 1111111;
         Instruction[] ins = new Instruction[]{
-                new DoubleConst(l),
-                new DoubleConst(r),
+                new ConstInstruction.DoubleConst(l),
+                new ConstInstruction.DoubleConst(r),
                 DoubleBinaryInstruction.F64_ADD,
-                new FloatConst(fl),
-                new FloatConst(fr),
+                new ConstInstruction.FloatConst(fl),
+                new ConstInstruction.FloatConst(fr),
                 FloatBinaryInstruction.F32_ADD,
-                new IntConst(il),
-                new IntConst(ir),
+                new ConstInstruction.IntConst(il),
+                new ConstInstruction.IntConst(ir),
                 IntBinaryInstruction.I32_ADD,
-                new LongConst(ll),
-                new LongConst(lr),
+                new ConstInstruction.LongConst(ll),
+                new ConstInstruction.LongConst(lr),
                 LongBinaryInstruction.I64_ADD,
         };
         Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
@@ -88,25 +87,25 @@ public class MachineTest {
         int ir = 1111111;
         int ia = il + ir;
         Instruction[] ins = new Instruction[]{
-                new DoubleConst(l),
-                new DoubleConst(r),
+                new ConstInstruction.DoubleConst(l),
+                new ConstInstruction.DoubleConst(r),
                 DoubleBinaryInstruction.F64_ADD,
-                new DoubleConst(a),
+                new ConstInstruction.DoubleConst(a),
                 DoubleBinaryInstruction.F64_EQ,
-                new FloatConst(fl),
-                new FloatConst(fr),
+                new ConstInstruction.FloatConst(fl),
+                new ConstInstruction.FloatConst(fr),
                 FloatBinaryInstruction.F32_ADD,
-                new FloatConst(fa),
+                new ConstInstruction.FloatConst(fa),
                 FloatBinaryInstruction.F32_EQ,
-                new IntConst(il),
-                new IntConst(ir),
+                new ConstInstruction.IntConst(il),
+                new ConstInstruction.IntConst(ir),
                 IntBinaryInstruction.I32_ADD,
-                new IntConst(ia),
+                new ConstInstruction.IntConst(ia),
                 IntBinaryInstruction.I32_EQ,
-                new LongConst(ll),
-                new LongConst(lr),
+                new ConstInstruction.LongConst(ll),
+                new ConstInstruction.LongConst(lr),
                 LongBinaryInstruction.I64_ADD,
-                new LongConst(la),
+                new ConstInstruction.LongConst(la),
                 LongBinaryInstruction.I64_EQ,
         };
         Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
@@ -128,31 +127,31 @@ public class MachineTest {
         float f = 111111.0f;
         double d = 1111.0;
         Instruction[] ins = new Instruction[]{
-                new IntConst(dAddr),
-                new DoubleConst(d),
-                new IntConst(lAddr),
-                new LongConst(l),
-                new IntConst(fAddr),
-                new FloatConst(f),
-                new IntConst(iAddr),
-                new IntConst(i),
-                new IntConst(sAddr),
-                new IntConst(s),
-                new I32Store16(1, 0),
-                new I32Store(0, 0),
-                new F32Store(0, 0),
-                new I64Store(0, 0),
-                new F64Store(0, 0),
-                new IntConst(dAddr),
-                new F64Load(0, 0),
-                new IntConst(lAddr),
-                new I64Load(0, 0),
-                new IntConst(fAddr),
-                new F32Load(0, 0),
-                new IntConst(iAddr),
-                new I32Load(0,0),
-                new IntConst(sAddr),
-                new I32Load16U(0, 0),
+                new ConstInstruction.IntConst(dAddr),
+                new ConstInstruction.DoubleConst(d),
+                new ConstInstruction.IntConst(lAddr),
+                new ConstInstruction.LongConst(l),
+                new ConstInstruction.IntConst(fAddr),
+                new ConstInstruction.FloatConst(f),
+                new ConstInstruction.IntConst(iAddr),
+                new ConstInstruction.IntConst(i),
+                new ConstInstruction.IntConst(sAddr),
+                new ConstInstruction.IntConst(s),
+                new StoreInstruction.I32Store16(1, 0),
+                new StoreInstruction.I32Store(0, 0),
+                new StoreInstruction.F32Store(0, 0),
+                new StoreInstruction.I64Store(0, 0),
+                new StoreInstruction.F64Store(0, 0),
+                new ConstInstruction.IntConst(dAddr),
+                new LoadInstruction.F64Load(0, 0),
+                new ConstInstruction.IntConst(lAddr),
+                new LoadInstruction.I64Load(0, 0),
+                new ConstInstruction.IntConst(fAddr),
+                new LoadInstruction.F32Load(0, 0),
+                new ConstInstruction.IntConst(iAddr),
+                new LoadInstruction.I32Load(0,0),
+                new ConstInstruction.IntConst(sAddr),
+                new LoadInstruction.I32Load16U(0, 0),
         };
         Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), s%65536);
@@ -167,9 +166,9 @@ public class MachineTest {
     @Test
     public void shouldCallIntConstFunction() {
         int i = 42;
-        Function fun = new Function("add", new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new IntConst(i)});
+        Function fun = new Function("add", new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)});
         Instruction[] ins = new Instruction[] {
-          new Call(0)
+          new FunctionInstruction.Call(0)
         };
         Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), i);
@@ -179,17 +178,17 @@ public class MachineTest {
     public void shouldCallAddIntFunction() {
         int a = 123, b = -123;
         Instruction[] funIns = new Instruction[] {
-                new LocalGet(0),
-                new LocalGet(1),
+                new FunctionInstruction.LocalGet(0),
+                new FunctionInstruction.LocalGet(1),
                 IntBinaryInstruction.I32_ADD
         };
         Function fun = new Function("add", new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null, funIns);
         Instruction[] ins = new Instruction[] {
-                new IntConst(b),
-                new IntConst(a),
-                new Call(0),
-                new IntConst(b),
-                new IntConst(a),
+                new ConstInstruction.IntConst(b),
+                new ConstInstruction.IntConst(a),
+                new FunctionInstruction.Call(0),
+                new ConstInstruction.IntConst(b),
+                new ConstInstruction.IntConst(a),
                 IntBinaryInstruction.I32_ADD,
                 IntBinaryInstruction.I32_EQ
         };
@@ -201,18 +200,18 @@ public class MachineTest {
     public void shouldLoop() {
         Variable[] globals = new Variable[]{Variable.newVariable(DataType.I32, 0)};
         Instruction[] loopIns = new Instruction[] {
-                new GlobalGet(0),
-                new IntConst(1),
+                new GlobalInstruction.GlobalGet(0),
+                new ConstInstruction.IntConst(1),
                 IntBinaryInstruction.I32_ADD,
-                new GlobalSet(0),
-                new GlobalGet(0),
-                new IntConst(10),
+                new GlobalInstruction.GlobalSet(0),
+                new GlobalInstruction.GlobalGet(0),
+                new ConstInstruction.IntConst(10),
                 IntBinaryInstruction.I32_LT_S,
-                new BranchIf(1),
+                new ControlFlowInstruction.BranchIf(1),
         };
         Instruction[] ins = new Instruction[] {
-                new Loop(1, loopIns),
-                new GlobalGet(0),
+                new ControlFlowInstruction.Loop(1, loopIns),
+                new GlobalInstruction.GlobalGet(0),
         };
         Machine m = Machine.createAndExecute(null, globals, MEM_PAGES, ins);
         assertEquals(m.popInt(), 10);
@@ -233,13 +232,13 @@ public class MachineTest {
             return;
         }
         Instruction[] funIns = new Instruction[]{
-                new CallJava(type, mh),
+                new FunctionInstruction.CallJava(type, mh),
         };
         Function fun = new Function("pow", type, null, funIns);
         Instruction[] ins = new Instruction[]{
-                new DoubleConst(b),
-                new DoubleConst(a),
-                new Call(0)
+                new ConstInstruction.DoubleConst(b),
+                new ConstInstruction.DoubleConst(a),
+                new FunctionInstruction.Call(0)
         };
         Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
         double callRes = m.popDouble();

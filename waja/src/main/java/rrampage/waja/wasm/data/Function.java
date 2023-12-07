@@ -1,6 +1,6 @@
 package rrampage.waja.wasm.data;
 
-import rrampage.waja.wasm.Instruction;
+import rrampage.waja.wasm.instructions.Instruction;
 
 public record Function(String name, FunctionType type, DataType[] locals, Instruction[] code) {
     public boolean isVoidReturn() {
