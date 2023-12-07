@@ -1,6 +1,9 @@
 package rrampage.waja.wasm.data;
 
+import rrampage.waja.wasm.instructions.FunctionInstruction;
 import rrampage.waja.wasm.instructions.Instruction;
+
+import java.lang.invoke.MethodHandle;
 
 public record Function(String name, FunctionType type, DataType[] locals, Instruction[] code) {
     public boolean isVoidReturn() {
@@ -20,5 +23,14 @@ public record Function(String name, FunctionType type, DataType[] locals, Instru
 
     public static Function createStubFunction(String name, FunctionType type) {
         return new Function(name, type, null, new Instruction[]{});
+    }
+
+    public static Function createImportFunction(String name, FunctionType type, MethodHandle func) {
+        // Defined type signature must match
+        if (!func.type().equals(FunctionType.getMethodTypeFromFunctionType(type))) {
+            // Can throw RuntimeException here??
+            return null;
+        }
+        return new Function(name, type, null, new Instruction[]{new FunctionInstruction.CallJava(type, func)});
     }
 }

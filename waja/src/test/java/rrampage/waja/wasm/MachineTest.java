@@ -218,6 +218,22 @@ public class MachineTest {
     }
 
     @Test
+    public void shouldReturnValidImportFunction() {
+        FunctionType type = new FunctionType(new DataType[]{DataType.F64, DataType.F64}, new DataType[]{DataType.F64});
+        MethodType mt = MethodType.methodType(double.class, double.class, double.class);
+        MethodHandle mh;
+        try {
+            mh = MethodHandles.lookup().findStatic(Math.class, "pow", mt);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assertions.assertNull(e); // placeholder to fail
+            return;
+        }
+        Function fun = Function.createImportFunction("pow", type, mh);
+        Assertions.assertNotNull(fun);
+    }
+
+    @Test
     public void shouldCallJavaMethod() {
         double a = 4.0, b = 2.0;
         double res = Math.pow(a, b);
