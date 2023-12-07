@@ -1,7 +1,15 @@
 package rrampage.waja.wasm;
 
+import rrampage.waja.wasm.data.FunctionType;
+
+import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
+
 public sealed interface Instruction {
     String opCode();
+    static Instruction[] parse(String s) {
+        return InstructionParser.parse(s);
+    }
 }
 
 sealed interface ConstInstruction extends Instruction {}
@@ -234,6 +242,7 @@ record F64Load(int align, int offset) implements LoadInstruction {public String 
 sealed interface FunctionInstruction extends Instruction {}
 
 record Call(int val) implements FunctionInstruction { public String opCode() {return "call";}}
+record CallJava(FunctionType type, MethodHandle function) implements FunctionInstruction { public String opCode() {return "java";}}
 record LocalGet(int val) implements FunctionInstruction { public String opCode() {return "local.get";}}
 record LocalSet(int val) implements FunctionInstruction { public String opCode() {return "local.set";}}
 record LocalTee(int val) implements FunctionInstruction { public String opCode() {return "local.tee";}}
@@ -242,7 +251,7 @@ sealed interface GlobalInstruction extends Instruction {}
 record GlobalGet(int val) implements GlobalInstruction { public String opCode() {return "global.get";}}
 record GlobalSet(int val) implements GlobalInstruction { public String opCode() {return "global.set";}}
 
-record Select(long t1, long t2, int cmp) implements Instruction {public String opCode() {return "select";}}
+record Select() implements Instruction {public String opCode() {return "select";}}
 
 sealed interface ControlFlowInstruction extends Instruction {}
 record Block(int label, Instruction[] code) implements ControlFlowInstruction {public String opCode() {return "block";}}

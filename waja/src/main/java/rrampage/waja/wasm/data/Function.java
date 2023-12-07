@@ -2,7 +2,7 @@ package rrampage.waja.wasm.data;
 
 import rrampage.waja.wasm.Instruction;
 
-public record Function(FunctionType type, DataType[] locals, Instruction[] code) {
+public record Function(String name, FunctionType type, DataType[] locals, Instruction[] code) {
     public boolean isVoidReturn() {
         return type().isVoidReturn();
     }
@@ -15,6 +15,10 @@ public record Function(FunctionType type, DataType[] locals, Instruction[] code)
     }
 
     public String toString() {
-        return type().toString();
+        return String.format("Function: %s Type: %s", name, type);
+    }
+
+    public static Function createStubFunction(String name, FunctionType type) {
+        return new Function(name, type, null, new Instruction[]{});
     }
 }

@@ -1,9 +1,14 @@
 package rrampage.waja.wasm;
 
+import org.junit.Assert;
 import org.junit.Test;
 import rrampage.waja.wasm.data.DataType;
 import rrampage.waja.wasm.data.Function;
 import rrampage.waja.wasm.data.FunctionType;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 import static org.junit.Assert.assertEquals;
 import static rrampage.waja.utils.ConversionUtils.*;
@@ -162,7 +167,7 @@ public class MachineTest {
     @Test
     public void shouldCallIntConstFunction() {
         int i = 42;
-        Function fun = new Function(new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new IntConst(i)});
+        Function fun = new Function("add", new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new IntConst(i)});
         Instruction[] ins = new Instruction[] {
           new Call(0)
         };
@@ -178,7 +183,7 @@ public class MachineTest {
                 new LocalGet(1),
                 IntBinaryInstruction.I32_ADD
         };
-        Function fun = new Function(new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null, funIns);
+        Function fun = new Function("add", new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null, funIns);
         Instruction[] ins = new Instruction[] {
                 new IntConst(b),
                 new IntConst(a),
@@ -211,5 +216,34 @@ public class MachineTest {
         };
         Machine m = Machine.createAndExecute(null, globals, MEM_PAGES, ins);
         assertEquals(m.popInt(), 10);
+    }
+
+    @Test
+    public void shouldCallJavaMethod() {
+        double a = 4.0, b = 2.0;
+        double res = Math.pow(a, b);
+        FunctionType type = new FunctionType(new DataType[]{DataType.F64, DataType.F64}, new DataType[]{DataType.F64});
+        MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
+        MethodHandle mh;
+        try {
+            mh = MethodHandles.lookup().findStatic(Math.class, "pow", mt);
+        } catch (Exception e) {
+            Assert.fail();
+            e.printStackTrace();
+            return;
+        }
+        Instruction[] funIns = new Instruction[]{
+                new CallJava(type, mh),
+        };
+        Function fun = new Function("pow", type, null, funIns);
+        Instruction[] ins = new Instruction[]{
+                new DoubleConst(b),
+                new DoubleConst(a),
+                new Call(0)
+        };
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        double callRes = m.popDouble();
+        System.out.println("Call result: " + callRes);
+        assertEquals(callRes, res, 0.0);
     }
 }

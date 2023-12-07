@@ -1,7 +1,10 @@
 package rrampage.waja.wasm;
 
+import rrampage.waja.wasm.data.DataType;
 import rrampage.waja.wasm.data.Function;
+import rrampage.waja.wasm.data.FunctionType;
 
+import java.lang.invoke.MethodHandle;
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -398,6 +401,36 @@ public class Machine {
                                 }
                             }
                         }
+                        case CallJava(FunctionType type, MethodHandle function) -> {
+                            try {
+                                Object[] args = new Object[type.numParams()];
+                                for (int  i = 0; i < type.numParams(); i++) {
+                                    Variable v = locals[i];
+                                    args[i] = switch (v) {
+                                        case F32Variable x -> x.getVal();
+                                        case F64Variable x -> x.getVal();
+                                        case I32Variable x -> x.getVal();
+                                        case I64Variable x -> x.getVal();
+                                    };
+                                    System.out.println("Class for " + i + " is " + args[i].getClass());
+                                }
+                                Object ret = function.invokeWithArguments(args);
+                                if (!type.isVoidReturn()) {
+                                    // push ret to Stack
+                                    DataType retType = type.returnTypes()[0];
+                                    switch (retType) {
+                                        case I32 -> pushInt((int) ret);
+                                        case I64 -> push((long) ret);
+                                        case F32 -> pushFloat((float) ret);
+                                        case F64 -> pushDouble((double) ret);
+                                    }
+                                }
+                            } catch (Throwable e) {
+                                System.err.println(e.getMessage());
+                                e.printStackTrace();
+                                throw new RuntimeException("InvokeError " + e.getMessage());
+                            }
+                        }
                         case LocalGet l -> {
                             Variable var = locals[l.val()];
                             pushVariable(var);
@@ -427,7 +460,7 @@ public class Machine {
                         }
                     }
                 }
-                case Select i -> {
+                case Select() -> {
                     int cmp = popInt();
                     long t1 = pop();
                     long t2 = pop();

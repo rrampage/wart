@@ -7,6 +7,40 @@ WASM opcode references:
 - [Opcode table](https://pengowray.github.io/wasm-ops/)
 - [MDN WASM Instruction reference](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference)
 
+## waja - Java WASM interpreter
+
+### Currently implemented
+#### Machine
+- Stack push/pop works for i32, i64, f32 and f64
+- Uses Java 21 pattern matching and records to implement instructions
+- Arithmetic and comparison ops implemented
+- Load/store with alignment and offset support
+- Unary ops like popcnt, ceil, floor, trunc implemented
+- Functions
+- Bitshift ops
+- Blocks, loops and conditionals
+
+#### Parser
+- Instructions
+- Imports
+- Exports
+- Memory
+- Tables
+- Start
+
+#### Interop
+- Import Java functions in WASM using MethodHandle for typesafe invoking
+
+### TODO
+#### Machine
+- br_table, call_indirect
+
+#### Interop
+- Use exported functions from Java
+- Create support infrastructure to pass multiple imports
+  - We do not have to pass imports while parsing. We can create stubbed-out functions using the type signature
+  - Later, when instantiating machine, we can replace these stubbed functions with method handles from a HashMap<String, MethodHandle>
+
 ## wag - Golang WASM interpreter
 ```bash
 cd wag
@@ -27,20 +61,6 @@ go test -v
 - Imports
 - Run on simple wasm files
 
-## waja - Java WASM interpreter
-
-### Currently implemented
-- Stack push/pop works for i32, i64, f32 and f64
-- Uses Java 21 pattern matching and records to implement instructions
-- Arithmetic and comparison ops implemented
-- Load/store with alignment and offset support
-- Unary ops like popcnt, ceil, floor, trunc implemented
-- Functions
-
-### TODO
-- Blocks, loops and conditionals
-- Bitshift ops
-
 ## walrus - Rust WASM interpreter
 
 ### TODO 
@@ -48,5 +68,7 @@ go test -v
 - Use enums and pattern matching
 
 ## Tools:
-- [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools)
-- 
+### [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools)
+- Convert `wasm` to `wat` : `wasm-tools print my_file.wasm > my_file.wat`
+- Generate valid WASM files: `head -c 1000 /dev/urandom | wasm-tools smith -o test.wasm`
+- Generate valid WAT files: `head -c 1000 /dev/urandom | wasm-tools smith | wasm-tools print > test.wat`
