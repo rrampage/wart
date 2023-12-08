@@ -7,7 +7,7 @@ WASM opcode references:
 - [Opcode table](https://pengowray.github.io/wasm-ops/)
 - [MDN WASM Instruction reference](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference)
 
-## waja - Java WASM interpreter
+## wasp - Java WASM interpreter
 
 ### Currently implemented
 #### Machine
