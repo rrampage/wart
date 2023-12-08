@@ -405,10 +405,10 @@ public class Machine {
                                 for (int  i = 0; i < type.numParams(); i++) {
                                     Variable v = locals[i];
                                     args[i] = switch (v) {
-                                        case F32Variable x -> x.getVal();
-                                        case F64Variable x -> x.getVal();
-                                        case I32Variable x -> x.getVal();
-                                        case I64Variable x -> x.getVal();
+                                        case Variable.F32Variable x -> x.getVal();
+                                        case Variable.F64Variable x -> x.getVal();
+                                        case Variable.I32Variable x -> x.getVal();
+                                        case Variable.I64Variable x -> x.getVal();
                                     };
                                     System.out.println("Class for " + i + " is " + args[i].getClass());
                                 }
@@ -515,10 +515,10 @@ public class Machine {
 
     private void pushVariable(Variable var) {
         switch (var) {
-            case F32Variable v -> pushFloat(v.getVal());
-            case F64Variable v -> pushDouble(v.getVal());
-            case I32Variable v -> pushInt(v.getVal());
-            case I64Variable v -> push(v.getVal());
+            case Variable.F32Variable v -> pushFloat(v.getVal());
+            case Variable.F64Variable v -> pushDouble(v.getVal());
+            case Variable.I32Variable v -> pushInt(v.getVal());
+            case Variable.I64Variable v -> push(v.getVal());
         }
     }
 

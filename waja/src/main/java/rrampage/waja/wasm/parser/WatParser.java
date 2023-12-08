@@ -1,6 +1,6 @@
 package rrampage.waja.wasm.parser;
 
-import rrampage.waja.wasm.Module;
+import rrampage.waja.wasm.data.Module;
 import rrampage.waja.wasm.data.DataType;
 import rrampage.waja.wasm.data.Function;
 import rrampage.waja.wasm.data.FunctionType;
@@ -9,13 +9,7 @@ import rrampage.waja.wasm.parser.repr.*;
 
 import java.util.*;
 
-public class WatParser {
-
-    private final String input;
-
-    public WatParser(String input) {
-        this.input = input;
-    }
+public record WatParser(String input) {
 
     private ConsList parseTokens() {
         ConsList c = new ConsList(new ArrayList<>());
@@ -24,10 +18,6 @@ public class WatParser {
             c = cl;
         }
         //System.out.println(c);
-        /*Function f = parseFunction(c);
-        if (f != null) {
-            System.out.println(f);
-        }*/
         return c;
     }
 
@@ -275,10 +265,8 @@ public class WatParser {
         FunctionType type = new FunctionType(paramTypes.toArray(new DataType[]{}), returnTypes.toArray(new DataType[]{}));
         if (ft != null && !type.equals(ft)) {
             throw new RuntimeException("Type index in module does not match" + ft + " " + type);
-            //System.out.println("Function "+ funcName  + ": Type index in module does not match" + ft + " " + type);
         }
-        Function f = new Function(funcName, type, locals.toArray(new DataType[]{}), code);
-        return f;
+        return new Function(funcName, type, locals.toArray(new DataType[]{}), code);
     }
 
     private List<DataType> parseDataTypes(String term, ConsList cl) {

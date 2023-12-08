@@ -2,6 +2,7 @@ package rrampage.waja.wasm;
 
 import org.junit.jupiter.api.Test;
 import rrampage.waja.utils.FileUtils;
+import rrampage.waja.wasm.data.Module;
 import rrampage.waja.wasm.parser.WatParser;
 
 import java.nio.file.Paths;
