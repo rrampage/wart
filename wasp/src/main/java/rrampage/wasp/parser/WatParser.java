@@ -5,6 +5,7 @@ import rrampage.wasp.data.DataType;
 import rrampage.wasp.data.Function;
 import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.instructions.Instruction;
+import rrampage.wasp.parser.repr.*;
 
 import java.util.*;
 

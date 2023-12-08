@@ -1,4 +1,4 @@
-package rrampage.wasp.parser;
+package rrampage.wasp.parser.repr;
 
 import java.util.List;
 import java.util.stream.Collectors;
