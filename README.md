@@ -20,13 +20,12 @@ WASM opcode references:
 - Bitshift ops
 - Blocks, loops and conditionals
 
-#### Parser
+#### WAT Parser
 - Instructions
 - Imports
-- Exports
-- Memory
-- Tables
-- Start
+- Types
+- Functions
+- Block comments
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -34,6 +33,14 @@ WASM opcode references:
 ### TODO
 #### Machine
 - br_table, call_indirect
+- Labels set/reset during/after function call
+- Tables
+
+#### WAT Parser
+- Exports
+- Memory
+- Tables
+- Start
 
 #### Interop
 - Use exported functions from Java

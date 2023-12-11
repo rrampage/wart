@@ -1,9 +1,7 @@
 package rrampage.wasp.parser;
 
+import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
-import rrampage.wasp.data.DataType;
-import rrampage.wasp.data.Function;
-import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.repr.*;
 
@@ -122,6 +120,7 @@ public record WatParser(String input) {
         return new Module(
                 types.toArray(new FunctionType[]{}),
                 functions.toArray(new Function[]{}),
+                new Table[]{},
                 new HashMap<>(),
                 imports);
     }
