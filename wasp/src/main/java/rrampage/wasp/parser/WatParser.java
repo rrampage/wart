@@ -7,7 +7,7 @@ import rrampage.wasp.parser.repr.*;
 
 import java.util.*;
 
-public record WatParser(String input) {
+public record WatParser(String input) implements Parser {
 
     private ConsList parseTokens() {
         ConsList c = new ConsList(new ArrayList<>());
@@ -55,7 +55,8 @@ public record WatParser(String input) {
     }
 
     private String stripLineComment(ConsAtom c) {
-        return c.val().split(" *;; *")[0];
+        // block ;; label = @3
+        return c.val().split(" *;; *", 2)[0];
     }
 
     private boolean parseBlockComment(ConsList cl) {
