@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;
+import rrampage.wasp.utils.ImportUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -14,6 +15,7 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 
 public class MachineTest {
     private static final int MEM_PAGES = 1;
+    private static final Object[] TEST_OBJ_ARR = new Object[] {1111, -111111L};
 
     @Test
     public void shouldPushConst() {
@@ -258,7 +260,61 @@ public class MachineTest {
         };
         Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
         double callRes = m.popDouble();
-        System.out.println("Call result: " + callRes);
+        System.out.printf("Call result: %s%n", callRes);
         assertEquals(callRes, res, 0.0);
+    }
+
+    public void shouldCallJavaMethodWithHomogenousMultipleReturn() {
+        double a = 4.0, b = 2.0;
+        double c = a *2, d = b*2;
+        FunctionType type = new FunctionType(new DataType[]{DataType.F64, DataType.F64}, new DataType[]{DataType.F64, DataType.F64});
+        MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
+        MethodHandle mh;
+        try {
+            mh = MethodHandles.lookup().findStatic(ImportUtils.class, "doubleArr", MethodType.methodType(double[].class, double.class, double.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assertions.assertNull(e); // placeholder to fail
+            return;
+        }
+        Function fun = Function.createImportFunction("doubleArr", type, mh);
+        Instruction[] ins = new Instruction[]{
+                new ConstInstruction.DoubleConst(b),
+                new ConstInstruction.DoubleConst(a),
+                new FunctionInstruction.Call(0)
+        };
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        double callRes1 = m.popDouble();
+        double callRes2 = m.popDouble();
+        System.out.printf("Call result: %s %s%n", callRes1, callRes2);
+        assertEquals(callRes1, c, 0.0);
+        assertEquals(callRes2, d, 0.0);
+    }
+
+    public void shouldCallJavaMethodWithHeterogenousMultipleReturn() {
+        FunctionType type = new FunctionType(new DataType[]{}, new DataType[]{DataType.I32, DataType.I64});
+        MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
+        MethodHandle mh;
+        try {
+            mh = MethodHandles.lookup().findStatic(MachineTest.class, "objArr", MethodType.methodType(Object[].class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assertions.assertNull(e); // placeholder to fail
+            return;
+        }
+        Function fun = Function.createImportFunction("objArr", type, mh);
+        Instruction[] ins = new Instruction[]{
+                new FunctionInstruction.Call(0)
+        };
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        int callRes1 = m.popInt();
+        long callRes2 = m.pop();
+        System.out.printf("Call result: %s %s%n", callRes1, callRes2);
+        assertEquals(callRes1, TEST_OBJ_ARR[0]);
+        assertEquals(callRes2, TEST_OBJ_ARR[1]);
+    }
+
+    private static Object[] objArr() {
+        return TEST_OBJ_ARR;
     }
 }

@@ -4,6 +4,7 @@ import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -425,16 +426,18 @@ public class Machine {
                                         case F32 -> pushFloat((float) ret);
                                         case F64 -> pushDouble((double) ret);
                                     }
-                                } else {
-                                    Object[] rets = (Object[]) ret;
-                                    // Push in reverse order
-                                    for (int i = type.returnTypes().length -1; i >= 0; i--) {
-                                        switch (type.returnTypes()[i]) {
-                                            case I32 -> pushInt((int) rets[i]);
-                                            case I64 -> push((long) rets[i]);
-                                            case F32 -> pushFloat((float) rets[i]);
-                                            case F64 -> pushDouble((double) rets[i]);
-                                        }
+                                    continue;
+                                }
+                                if (!ret.getClass().isArray()) {
+                                    throw new RuntimeException("Invalid class returned for import function: %s".formatted(ret.getClass()));
+                                }
+                                // Push in reverse order
+                                for (int i = type.returnTypes().length -1; i >= 0; i--) {
+                                    switch (type.returnTypes()[i]) {
+                                        case I32 -> pushInt((int) Array.get(ret, i));
+                                        case I64 -> push((long) Array.get(ret, i));
+                                        case F32 -> pushFloat((float) Array.get(ret, i));
+                                        case F64 -> pushDouble((double) Array.get(ret, i));
                                     }
                                 }
                             } catch (Throwable e) {
