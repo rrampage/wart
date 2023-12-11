@@ -22,7 +22,7 @@ public record FunctionType(DataType[] paramTypes, DataType[] returnTypes) {
         if (this == obj) {
             return true;
         }
-        if (obj == null || !(obj instanceof FunctionType ft)) {
+        if (!(obj instanceof FunctionType ft)) {
             return false;
         }
         if (this.isVoidReturn() != ft.isVoidReturn() || this.numParams() != ft.numParams()) {
@@ -42,7 +42,8 @@ public record FunctionType(DataType[] paramTypes, DataType[] returnTypes) {
     }
 
     public static MethodType getMethodTypeFromFunctionType(FunctionType ft) {
-        Class<?> rtype = ft.isVoidReturn() ? void.class : getClassFromDataType(ft.returnTypes()[0]);
+        Class<?> rtype = ft.isVoidReturn() ? void.class :
+                ((ft.returnTypes().length == 1) ? getClassFromDataType(ft.returnTypes()[0]) : Object[].class);
         Class<?>[] ptypes = (ft.numParams() == 0) ?
                 new Class<?>[]{void.class} :
                 Arrays.stream(ft.paramTypes()).map(FunctionType::getClassFromDataType).toArray(Class<?>[]::new);

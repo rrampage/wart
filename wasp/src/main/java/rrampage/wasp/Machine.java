@@ -413,7 +413,10 @@ public class Machine {
                                     System.out.println("Class for " + i + " is " + args[i].getClass());
                                 }
                                 Object ret = function.invokeWithArguments(args);
-                                if (!type.isVoidReturn()) {
+                                if (type.isVoidReturn()) {
+                                    continue;
+                                }
+                                if (type.returnTypes().length == 1) {
                                     // push ret to Stack
                                     DataType retType = type.returnTypes()[0];
                                     switch (retType) {
@@ -421,6 +424,17 @@ public class Machine {
                                         case I64 -> push((long) ret);
                                         case F32 -> pushFloat((float) ret);
                                         case F64 -> pushDouble((double) ret);
+                                    }
+                                } else {
+                                    Object[] rets = (Object[]) ret;
+                                    // Push in reverse order
+                                    for (int i = type.returnTypes().length -1; i >= 0; i--) {
+                                        switch (type.returnTypes()[i]) {
+                                            case I32 -> pushInt((int) rets[i]);
+                                            case I64 -> push((long) rets[i]);
+                                            case F32 -> pushFloat((float) rets[i]);
+                                            case F64 -> pushDouble((double) rets[i]);
+                                        }
                                     }
                                 }
                             } catch (Throwable e) {
