@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;
-import rrampage.wasp.utils.ImportUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -271,7 +270,7 @@ public class MachineTest {
         MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
         MethodHandle mh;
         try {
-            mh = MethodHandles.lookup().findStatic(ImportUtils.class, "doubleArr", MethodType.methodType(double[].class, double.class, double.class));
+            mh = MethodHandles.lookup().findStatic(MachineTest.class, "doubleArr", MethodType.methodType(double[].class, double.class, double.class));
         } catch (Exception e) {
             e.printStackTrace();
             Assertions.assertNull(e); // placeholder to fail
@@ -316,5 +315,9 @@ public class MachineTest {
 
     private static Object[] objArr() {
         return TEST_OBJ_ARR;
+    }
+
+    private static double[] doubleArr(double a, double b) {
+        return new double[] {a*2, b*2};
     }
 }
