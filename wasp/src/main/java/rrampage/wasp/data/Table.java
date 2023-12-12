@@ -9,22 +9,20 @@ package rrampage.wasp.data;
  */
 public class Table {
     private static final String FUNCREF = "funcref";
-    private final int index;
     private int size;
     private final int max;
     private Function[] data;
-    public Table(int index, int initialSize, int maxSize, String type) {
-        if (!type.equals(FUNCREF) || initialSize > maxSize || index < 0) {
+    public Table(int initialSize, int maxSize, String type) {
+        if (!type.equals(FUNCREF) || initialSize > maxSize) {
             throw new RuntimeException("Invalid table init");
         }
-        this.index = index;
         this.size = initialSize;
         this.max = maxSize;
         this.data = new Function[this.size];
     }
 
-    public Table(int index, int size) {
-        this(index, size, size, FUNCREF);
+    public Table(int size) {
+        this(size, size, FUNCREF);
     }
 
     public Function get(int i) {
@@ -39,9 +37,5 @@ public class Table {
             size = max;
         }
         this.data[i] = f;
-    }
-
-    public int index() {
-        return index;
     }
 }

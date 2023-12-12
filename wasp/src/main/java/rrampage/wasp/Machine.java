@@ -18,13 +18,15 @@ public class Machine {
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
     private byte[] memory;
     private final Function[] functions;
+    private final Table[] tables;
     private final Variable[] globals;
     private final int[] labels;
 
-    public Machine(Function[] functions, Variable[] globals, int pages) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages) {
        this.stack = new ArrayDeque<>(8192);
        this.memory = new byte[pages * MEM_PAGE_SIZE];
        this.functions = functions;
+       this.tables = tables;
        this.globals = globals;
        /*
               this stores level of the label of block
@@ -539,14 +541,14 @@ public class Machine {
         }
     }
 
-    public static Machine createAndExecute(Function[] functions, Variable[] globals, int pages, Instruction[] instructions) {
-        Machine m = new Machine(functions, globals, pages);
+    public static Machine createAndExecute(Function[] functions, Table[] tables, Variable[] globals, int pages, Instruction[] instructions) {
+        Machine m = new Machine(functions, tables, globals, pages);
         m.execute(instructions, null, 0);
         return m;
     }
 
     public static void main(String[] args) {
-        Machine m = new Machine(null, null, 1);
+        Machine m = new Machine(null,  null, null, 1);
         Instruction[] ins = new Instruction[]{
                 new ConstInstruction.DoubleConst(1.0)
         };

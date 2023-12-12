@@ -24,7 +24,7 @@ public class MachineTest {
                 new ConstInstruction.IntConst(4),
                 new ConstInstruction.LongConst(1112345345667L),
         };
-        Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(null, null, null, MEM_PAGES, ins);
         assertEquals(1112345345667L, m.pop());
         assertEquals(4, m.popInt());
         assertEquals(1.0, m.popDouble(), 0.0);
@@ -38,7 +38,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(1112345345667L),
                 UnaryInstruction.DROP,
         };
-        Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(null, null, null, MEM_PAGES, ins);
         assertEquals(4, m.popInt());
     }
 
@@ -66,7 +66,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(lr),
                 LongBinaryInstruction.I64_ADD,
         };
-        Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(null, null, null, MEM_PAGES, ins);
         assertEquals(ll+lr, m.pop());
         assertEquals(il+ir, m.popInt());
         assertEquals(0.0f, m.popFloat(), 0.0f);
@@ -109,7 +109,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(la),
                 LongBinaryInstruction.I64_EQ,
         };
-        Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(null, null, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
@@ -154,7 +154,7 @@ public class MachineTest {
                 new ConstInstruction.IntConst(sAddr),
                 new LoadInstruction.I32Load16U(0, 0),
         };
-        Machine m = Machine.createAndExecute(null, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(null, null, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), s%65536);
         assertEquals(m.popInt(), i);
         assertEquals(m.popFloat(), f, 0.0f);
@@ -171,7 +171,7 @@ public class MachineTest {
         Instruction[] ins = new Instruction[] {
           new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), i);
     }
 
@@ -193,7 +193,7 @@ public class MachineTest {
                 IntBinaryInstruction.I32_ADD,
                 IntBinaryInstruction.I32_EQ
         };
-        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), 1);
     }
 
@@ -214,7 +214,7 @@ public class MachineTest {
                 new ControlFlowInstruction.Loop(1, loopIns),
                 new GlobalInstruction.GlobalGet(0),
         };
-        Machine m = Machine.createAndExecute(null, globals, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(null, null, globals, MEM_PAGES, ins);
         assertEquals(m.popInt(), 10);
     }
 
@@ -257,7 +257,7 @@ public class MachineTest {
                 new ConstInstruction.DoubleConst(a),
                 new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
         double callRes = m.popDouble();
         System.out.printf("Call result: %s%n", callRes);
         assertEquals(callRes, res, 0.0);
@@ -282,7 +282,7 @@ public class MachineTest {
                 new ConstInstruction.DoubleConst(a),
                 new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
         double callRes1 = m.popDouble();
         double callRes2 = m.popDouble();
         System.out.printf("Call result: %s %s%n", callRes1, callRes2);
@@ -305,7 +305,7 @@ public class MachineTest {
         Instruction[] ins = new Instruction[]{
                 new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndExecute(new Function[]{fun}, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
         int callRes1 = m.popInt();
         long callRes2 = m.pop();
         System.out.printf("Call result: %s %s%n", callRes1, callRes2);
