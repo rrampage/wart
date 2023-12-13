@@ -168,7 +168,7 @@ public class MachineTest {
         assertEquals(m.popFloat(), f, 0.0f);
         assertEquals(m.pop(), l);
         assertEquals(m.popDouble(), d, 0.0);
-        long x = Short.toUnsignedLong(bytesToShort(m.load(sAddr, 2)));
+        long x = Short.toUnsignedLong(bytesToShort(m.getMemory().load(sAddr, 2)));
         assertEquals(x, s%65536);
     }
 

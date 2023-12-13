@@ -16,22 +16,30 @@ public class Machine {
     private static final int MEM_PAGE_SIZE = 65536;
     private static final int MAX_PAGES = 256;
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
-    private byte[] memory;
+    private Memory memory;
     private final Function[] functions;
     private final Table[] tables;
     private final Variable[] globals;
     private int[] labels;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages) {
-       this.stack = new ArrayDeque<>(8192);
-       this.memory = new byte[pages * MEM_PAGE_SIZE];
-       this.functions = functions;
-       this.tables = tables;
-       this.globals = globals;
+       this(functions, tables, globals, new Memory(pages));
+    }
+
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory memory) {
+        this.stack = new ArrayDeque<>(8192);
+        this.memory = memory;
+        this.functions = functions;
+        this.tables = tables;
+        this.globals = globals;
        /*
               this stores level of the label of block
         */
-       this.labels = new int[]{0, -1, -1, -1, -1, -1};
+        this.labels = new int[]{0, -1, -1, -1, -1, -1};
+    }
+
+    public Memory getMemory() {
+        return this.memory;
     }
 
     public long pop() {
@@ -66,39 +74,10 @@ public class Machine {
         stack.push(doubleToLong(val));
     }
 
-    public void store(int addr, byte[] data) {
-        if (addr >= memory.length) {
-            throw new RuntimeException("Invalid address passed to memory: " + addr);
-        }
-        System.arraycopy(data, 0, memory, addr, data.length);
-    }
-
-    public int getMemorySize() {
-        return memory.length/MEM_PAGE_SIZE;
-    }
-
     public void printStack() {
         Long[] arr = new Long[stack.size()];
         stack.toArray(arr);
         System.out.println(" Stack: " + Arrays.toString(arr));
-    }
-
-    private int growMemory(int numPages) {
-        int currPages = getMemorySize();
-        if (numPages < 0 || currPages + numPages > MAX_PAGES) {
-            return -1;
-        }
-        if (numPages == 0) {
-            return currPages;
-        }
-        byte[] newMemory = new byte[(currPages+numPages)*MEM_PAGE_SIZE];
-        System.arraycopy(memory, 0, newMemory, 0, memory.length);
-        memory = newMemory;
-        return -1;
-    }
-
-    public byte[] load(int addr, int offset) {
-        return Arrays.copyOfRange(memory, addr, addr + offset);
     }
 
     private boolean isAligned(int align, int offset, int addr) {
@@ -256,7 +235,7 @@ public class Machine {
                 case UnaryInstruction u -> {
                     switch (u) {
                         case DROP -> pop();
-                        case MEMORY_GROW -> pushInt(growMemory(popInt()));
+                        case MEMORY_GROW -> pushInt(memory.grow(popInt()));
                         case I32_EQZ -> pushInt(wrapBoolean(popInt() == 0));
                         case I64_EQZ -> pushInt(wrapBoolean(pop() == 0));
                         case I32_POPCNT -> pushInt(Integer.bitCount(popInt()));
@@ -347,7 +326,7 @@ public class Machine {
                     switch (u) {
                         case UNREACHABLE -> throw new RuntimeException("Unreachable op code detected! Crashing on demand!");
                         case NOP -> {}
-                        case MEMORY_SIZE -> pushInt(getMemorySize());
+                        case MEMORY_SIZE -> pushInt(memory.getMemorySize());
                     }
                 }
                 case StoreInstruction s -> {
@@ -366,10 +345,10 @@ public class Machine {
                     int effectiveAddr = addr + s.offset();
                     if (isAligned(s.align(), s.offset(), effectiveAddr)) {
                         System.out.println("Aligned write for " + s.align() + " " + s.opCode());
-                        store(effectiveAddr, data);
+                        memory.store(effectiveAddr, data);
                     } else {
                         System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
-                        store(addr, data);
+                        memory.store(addr, data);
                     }
                 }
                 case LoadInstruction l -> {
@@ -377,20 +356,20 @@ public class Machine {
                     int effectiveAddr = addr + l.offset();
                     int loadAddr = isAligned(l.align(), l.offset(), effectiveAddr) ? effectiveAddr : addr;
                     switch (l) {
-                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(load(loadAddr, Integer.BYTES)));
-                        case LoadInstruction.I32Load8S i -> pushInt(load(loadAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(load(loadAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(load(loadAddr, Short.BYTES)));
-                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(load(loadAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load i -> push(bytesToLong(load(loadAddr, Long.BYTES)));
-                        case LoadInstruction.I64Load8S i -> push(load(loadAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(load(loadAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I64Load16S i -> push(bytesToShort(load(loadAddr, Short.BYTES)));
-                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(load(loadAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load32S i -> push(bytesToInt(load(loadAddr, Integer.BYTES)));
-                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(load(loadAddr, Integer.BYTES))));
-                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(load(loadAddr, Float.BYTES)));
-                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(load(loadAddr, Double.BYTES)));
+                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(memory.load(loadAddr, Integer.BYTES)));
+                        case LoadInstruction.I32Load8S i -> pushInt(memory.load(loadAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(memory.load(loadAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(memory.load(loadAddr, Short.BYTES)));
+                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(memory.load(loadAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load i -> push(bytesToLong(memory.load(loadAddr, Long.BYTES)));
+                        case LoadInstruction.I64Load8S i -> push(memory.load(loadAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(memory.load(loadAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I64Load16S i -> push(bytesToShort(memory.load(loadAddr, Short.BYTES)));
+                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(memory.load(loadAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load32S i -> push(bytesToInt(memory.load(loadAddr, Integer.BYTES)));
+                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(memory.load(loadAddr, Integer.BYTES))));
+                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(memory.load(loadAddr, Float.BYTES)));
+                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(memory.load(loadAddr, Double.BYTES)));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
