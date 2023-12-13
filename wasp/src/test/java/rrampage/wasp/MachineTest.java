@@ -16,6 +16,14 @@ public class MachineTest {
     private static final int MEM_PAGES = 1;
     private static final Object[] TEST_OBJ_ARR = new Object[] {1111, -111111L};
 
+    private static final Function addFunction = new Function("add",
+            new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null,
+            new Instruction[] {
+                    new FunctionInstruction.LocalGet(0),
+                    new FunctionInstruction.LocalGet(1),
+                    IntBinaryInstruction.I32_ADD
+            });
+
     @Test
     public void shouldPushConst() {
         Instruction[] ins = new Instruction[]{
@@ -178,12 +186,6 @@ public class MachineTest {
     @Test
     public void shouldCallAddIntFunction() {
         int a = 123, b = -123;
-        Instruction[] funIns = new Instruction[] {
-                new FunctionInstruction.LocalGet(0),
-                new FunctionInstruction.LocalGet(1),
-                IntBinaryInstruction.I32_ADD
-        };
-        Function fun = new Function("add", new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null, funIns);
         Instruction[] ins = new Instruction[] {
                 new ConstInstruction.IntConst(b),
                 new ConstInstruction.IntConst(a),
@@ -193,7 +195,7 @@ public class MachineTest {
                 IntBinaryInstruction.I32_ADD,
                 IntBinaryInstruction.I32_EQ
         };
-        Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
+        Machine m = Machine.createAndExecute(new Function[]{addFunction}, null, null, MEM_PAGES, ins);
         assertEquals(m.popInt(), 1);
     }
 
@@ -312,6 +314,26 @@ public class MachineTest {
         System.out.printf("Call result: %s %s%n", callRes1, callRes2);
         assertEquals(callRes1, TEST_OBJ_ARR[0]);
         assertEquals(callRes2, TEST_OBJ_ARR[1]);
+    }
+
+    @Test
+    public void shouldCallIndirectAddIntFunction() {
+        int a = 123, b = -123;
+        int tblOffset = 3;
+        Table t = new Table(4);
+        t.set(tblOffset, addFunction);
+        Instruction[] ins = new Instruction[] {
+                new ConstInstruction.IntConst(b),
+                new ConstInstruction.IntConst(a),
+                new ConstInstruction.IntConst(tblOffset),
+                new FunctionInstruction.CallIndirect(0, addFunction.type()),
+                new ConstInstruction.IntConst(b),
+                new ConstInstruction.IntConst(a),
+                IntBinaryInstruction.I32_ADD,
+                IntBinaryInstruction.I32_EQ
+        };
+        Machine m = Machine.createAndExecute(new Function[]{addFunction}, new Table[]{t}, null, MEM_PAGES, ins);
+        assertEquals(m.popInt(), 1);
     }
 
     private static Object[] objArr() {

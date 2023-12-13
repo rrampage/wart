@@ -402,6 +402,24 @@ public class Machine {
                                 }
                             }
                         }
+                        case FunctionInstruction.CallIndirect l -> {
+                            int tblOffset = popInt();
+                            int tblIdx = l.tableIdx();
+                            if (tblOffset < 0 || tblIdx < 0 || tblIdx >= tables.length || tblOffset >= tables[tblIdx].size()) {
+                                throw new RuntimeException("Array bounds mismatch in indirect call");
+                            }
+                            Function fun = tables[tblIdx].get(tblOffset);
+                            if (fun == null || !fun.type().equals(l.type())) {
+                                throw new RuntimeException("Function Type mismatch in indirect call");
+                            }
+                            Variable[] res = call(fun, level);
+                            if (!fun.isVoidReturn()) {
+                                // Push in reverse order
+                                for (int i = res.length -1; i >= 0; i--) {
+                                    pushVariable(res[i]);
+                                }
+                            }
+                        }
                         case FunctionInstruction.CallJava(FunctionType type, MethodHandle function) -> {
                             try {
                                 Object[] args = new Object[type.numParams()];
@@ -484,7 +502,7 @@ public class Machine {
                     push((cmp == 0) ? t1 : t2);
                 }
                 case ControlFlowInstruction i -> {
-                    // TODO
+                    // TODO - Verify block instruction
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
                             labels[b.label()] = level;

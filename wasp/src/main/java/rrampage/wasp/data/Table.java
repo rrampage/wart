@@ -25,6 +25,10 @@ public class Table {
         this(size, size, FUNCREF);
     }
 
+    public int size() {
+        return this.size;
+    }
+
     public Function get(int i) {
         return this.data[i];
     }
