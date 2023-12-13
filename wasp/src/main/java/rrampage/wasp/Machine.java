@@ -20,7 +20,7 @@ public class Machine {
     private final Function[] functions;
     private final Table[] tables;
     private final Variable[] globals;
-    private final int[] labels;
+    private int[] labels;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages) {
        this.stack = new ArrayDeque<>(8192);
@@ -121,7 +121,11 @@ public class Machine {
         for (int i = fun.numParams(); i < locals.length; i++) {
             locals[i] = Variable.newVariable(fun.locals()[i - fun.numParams()], 0);
         }
+        int[] oldLabels = Arrays.copyOf(labels, labels.length);
+        // Set labels of machine to function labels and reset to original labels once execution is completed
+        this.labels = fun.labels();
         execute(fun.code(), locals, level);
+        this.labels = oldLabels;
         if (fun.isVoidReturn()) {
             return null;
         }

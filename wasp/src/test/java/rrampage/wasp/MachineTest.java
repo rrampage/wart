@@ -22,7 +22,7 @@ public class MachineTest {
                     new FunctionInstruction.LocalGet(0),
                     new FunctionInstruction.LocalGet(1),
                     IntBinaryInstruction.I32_ADD
-            });
+            }, null);
 
     @Test
     public void shouldPushConst() {
@@ -175,7 +175,7 @@ public class MachineTest {
     @Test
     public void shouldCallIntConstFunction() {
         int i = 42;
-        Function fun = new Function("add", new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)});
+        Function fun = new Function("const", new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)}, null);
         Instruction[] ins = new Instruction[] {
           new FunctionInstruction.Call(0)
         };
@@ -217,7 +217,35 @@ public class MachineTest {
                 new GlobalInstruction.GlobalGet(0),
         };
         Machine m = Machine.createAndExecute(null, null, globals, MEM_PAGES, ins);
-        assertEquals(m.popInt(), 10);
+        assertEquals(10, m.popInt());
+    }
+
+    @Test
+    public void shouldLoopFunction() {
+        Instruction[] loopIns = new Instruction[] {
+                new FunctionInstruction.LocalGet(0),
+                new ConstInstruction.IntConst(1),
+                IntBinaryInstruction.I32_ADD,
+                new FunctionInstruction.LocalSet(0),
+                new FunctionInstruction.LocalGet(0),
+                new ConstInstruction.IntConst(10),
+                IntBinaryInstruction.I32_LT_S,
+                new ControlFlowInstruction.BranchIf(1),
+        };
+        Instruction[] funIns = new Instruction[] {
+                new ControlFlowInstruction.Loop(1, loopIns),
+                new FunctionInstruction.LocalGet(0),
+        };
+        int[] labels = Function.getLabelsFromInstructions(funIns);
+        assertArrayEquals(new int[]{-1, -1}, labels);
+        Function f = new Function("loop_check", new FunctionType(null, null),
+                new DataType[]{DataType.I32}, funIns, labels);
+        Instruction[] ins = new Instruction[] {
+                new ConstInstruction.IntConst(0),
+                new FunctionInstruction.Call(0),
+        };
+        Machine m = Machine.createAndExecute(new Function[]{f}, null, null, MEM_PAGES, ins);
+        assertEquals(10, m.popInt());
     }
 
     @Test
@@ -253,7 +281,7 @@ public class MachineTest {
         Instruction[] funIns = new Instruction[]{
                 new FunctionInstruction.CallJava(type, mh),
         };
-        Function fun = new Function("pow", type, null, funIns);
+        Function fun = new Function("pow", type, null, funIns, null);
         Instruction[] ins = new Instruction[]{
                 new ConstInstruction.DoubleConst(b),
                 new ConstInstruction.DoubleConst(a),
@@ -265,6 +293,7 @@ public class MachineTest {
         assertEquals(callRes, res, 0.0);
     }
 
+    @Test
     public void shouldCallJavaMethodWithHomogenousMultipleReturn() {
         double a = 4.0, b = 2.0;
         double c = a *2, d = b*2;
@@ -285,8 +314,8 @@ public class MachineTest {
                 new FunctionInstruction.Call(0)
         };
         Machine m = Machine.createAndExecute(new Function[]{fun}, null, null, MEM_PAGES, ins);
-        double callRes1 = m.popDouble();
         double callRes2 = m.popDouble();
+        double callRes1 = m.popDouble();
         System.out.printf("Call result: %s %s%n", callRes1, callRes2);
         assertEquals(callRes1, c, 0.0);
         assertEquals(callRes2, d, 0.0);

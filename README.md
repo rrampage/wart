@@ -16,7 +16,9 @@ WASM opcode references:
 - Arithmetic and comparison ops implemented
 - Load/store with alignment and offset support
 - Unary ops like popcnt, ceil, floor, trunc implemented
-- Functions - call and call_indirect
+- Functions
+  - call and call_indirect
+  - Labels set/reset during/after function call
 - Bitshift ops
 - Blocks, loops and conditionals
 
@@ -33,7 +35,6 @@ WASM opcode references:
 ### TODO
 #### Machine
 - br_table
-- Labels set/reset during/after function call
 
 #### WAT Parser
 - Exports

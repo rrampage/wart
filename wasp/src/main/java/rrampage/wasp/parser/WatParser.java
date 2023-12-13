@@ -266,7 +266,8 @@ public record WatParser(String input) implements Parser {
         if (ft != null && !type.equals(ft)) {
             throw new RuntimeException("Type index in module does not match" + ft + " " + type);
         }
-        return new Function(funcName, type, locals.toArray(new DataType[]{}), code);
+        // TODO Fill labels correctly from block/loop instructions
+        return new Function(funcName, type, locals.toArray(new DataType[]{}), code, null);
     }
 
     private List<DataType> parseDataTypes(String term, ConsList cl) {
