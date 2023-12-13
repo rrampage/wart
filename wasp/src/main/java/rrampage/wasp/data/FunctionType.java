@@ -60,7 +60,7 @@ public record FunctionType(DataType[] paramTypes, DataType[] returnTypes) {
     public static MethodType getMethodTypeFromFunctionType(FunctionType ft) {
         Class<?> rtype = getReturnType(ft);
         Class<?>[] ptypes = (ft.numParams() == 0) ?
-                new Class<?>[]{void.class} :
+                new Class<?>[]{} :
                 Arrays.stream(ft.paramTypes()).map(FunctionType::getClassFromDataType).toArray(Class<?>[]::new);
         return MethodType.methodType(rtype, ptypes);
     }

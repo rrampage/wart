@@ -290,6 +290,7 @@ public class MachineTest {
         assertEquals(callRes2, d, 0.0);
     }
 
+    @Test
     public void shouldCallJavaMethodWithHeterogenousMultipleReturn() {
         FunctionType type = new FunctionType(new DataType[]{}, new DataType[]{DataType.I32, DataType.I64});
         MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
