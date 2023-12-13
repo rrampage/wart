@@ -2,9 +2,13 @@ package rrampage.wasp.data;
 
 import java.util.Arrays;
 
+/**
+ * Memory - Supports size, grow, load and store
+ * This implementation has max limit of 256 pages i.e 1024 * 64 KiB = 64 MiB
+ */
 public class Memory {
     private static final int MEM_PAGE_SIZE = 65536;
-    private static final int MAX_PAGES = 256;
+    private static final int MAX_PAGES = 1024;
     private byte[] memory;
     public Memory(int pages) {
         if (pages > MAX_PAGES) {

@@ -13,22 +13,26 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 
 
 public class Machine {
-    private static final int MEM_PAGE_SIZE = 65536;
-    private static final int MAX_PAGES = 256;
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
-    private Memory memory;
+
+    // TODO : Keep in mind proposal for multiple memories:
+    //  https://github.com/WebAssembly/multi-memory/blob/main/proposals/multi-memory/Overview.md
+    private Memory[] memories;
     private final Function[] functions;
     private final Table[] tables;
     private final Variable[] globals;
     private int[] labels;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages) {
-       this(functions, tables, globals, new Memory(pages));
+       this(functions, tables, globals, new Memory[]{new Memory(pages)});
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory memory) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories) {
+        if (memories == null || memories.length == 0) {
+            throw new RuntimeException("Null or zero size memories during init");
+        }
         this.stack = new ArrayDeque<>(8192);
-        this.memory = memory;
+        this.memories = memories;
         this.functions = functions;
         this.tables = tables;
         this.globals = globals;
@@ -38,8 +42,8 @@ public class Machine {
         this.labels = new int[]{0, -1, -1, -1, -1, -1};
     }
 
-    public Memory getMemory() {
-        return this.memory;
+    public Memory getMainMemory() {
+        return this.memories[0];
     }
 
     public long pop() {
@@ -235,7 +239,7 @@ public class Machine {
                 case UnaryInstruction u -> {
                     switch (u) {
                         case DROP -> pop();
-                        case MEMORY_GROW -> pushInt(memory.grow(popInt()));
+                        case MEMORY_GROW -> pushInt(getMainMemory().grow(popInt()));
                         case I32_EQZ -> pushInt(wrapBoolean(popInt() == 0));
                         case I64_EQZ -> pushInt(wrapBoolean(pop() == 0));
                         case I32_POPCNT -> pushInt(Integer.bitCount(popInt()));
@@ -326,7 +330,7 @@ public class Machine {
                     switch (u) {
                         case UNREACHABLE -> throw new RuntimeException("Unreachable op code detected! Crashing on demand!");
                         case NOP -> {}
-                        case MEMORY_SIZE -> pushInt(memory.getMemorySize());
+                        case MEMORY_SIZE -> pushInt(getMainMemory().getMemorySize());
                     }
                 }
                 case StoreInstruction s -> {
@@ -345,10 +349,10 @@ public class Machine {
                     int effectiveAddr = addr + s.offset();
                     if (isAligned(s.align(), s.offset(), effectiveAddr)) {
                         System.out.println("Aligned write for " + s.align() + " " + s.opCode());
-                        memory.store(effectiveAddr, data);
+                        getMainMemory().store(effectiveAddr, data);
                     } else {
                         System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
-                        memory.store(addr, data);
+                        getMainMemory().store(addr, data);
                     }
                 }
                 case LoadInstruction l -> {
@@ -356,20 +360,20 @@ public class Machine {
                     int effectiveAddr = addr + l.offset();
                     int loadAddr = isAligned(l.align(), l.offset(), effectiveAddr) ? effectiveAddr : addr;
                     switch (l) {
-                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(memory.load(loadAddr, Integer.BYTES)));
-                        case LoadInstruction.I32Load8S i -> pushInt(memory.load(loadAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(memory.load(loadAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(memory.load(loadAddr, Short.BYTES)));
-                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(memory.load(loadAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load i -> push(bytesToLong(memory.load(loadAddr, Long.BYTES)));
-                        case LoadInstruction.I64Load8S i -> push(memory.load(loadAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(memory.load(loadAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I64Load16S i -> push(bytesToShort(memory.load(loadAddr, Short.BYTES)));
-                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(memory.load(loadAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load32S i -> push(bytesToInt(memory.load(loadAddr, Integer.BYTES)));
-                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(memory.load(loadAddr, Integer.BYTES))));
-                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(memory.load(loadAddr, Float.BYTES)));
-                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(memory.load(loadAddr, Double.BYTES)));
+                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(getMainMemory().load(loadAddr, Integer.BYTES)));
+                        case LoadInstruction.I32Load8S i -> pushInt(getMainMemory().load(loadAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(getMainMemory().load(loadAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES)));
+                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load i -> push(bytesToLong(getMainMemory().load(loadAddr, Long.BYTES)));
+                        case LoadInstruction.I64Load8S i -> push(getMainMemory().load(loadAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(getMainMemory().load(loadAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I64Load16S i -> push(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES)));
+                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load32S i -> push(bytesToInt(getMainMemory().load(loadAddr, Integer.BYTES)));
+                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(getMainMemory().load(loadAddr, Integer.BYTES))));
+                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(getMainMemory().load(loadAddr, Float.BYTES)));
+                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(getMainMemory().load(loadAddr, Double.BYTES)));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
