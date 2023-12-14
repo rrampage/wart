@@ -34,7 +34,8 @@ WASM opcode references:
 
 ### TODO
 #### Machine
-- br_table
+- start
+- Exports
 
 #### WAT Parser
 - Exports
@@ -79,3 +80,10 @@ go test -v
 - Convert `wasm` to `wat` : `wasm-tools print my_file.wasm > my_file.wat`
 - Generate valid WASM files: `head -c 1000 /dev/urandom | wasm-tools smith -o test.wasm`
 - Generate valid WAT files: `head -c 1000 /dev/urandom | wasm-tools smith | wasm-tools print > test.wat`
+
+### [Web Assembly Binary Toolkit (`wabt`)](https://github.com/WebAssembly/wabt)
+- Convert `wat` to `wasm` : `wat2wasm my_file.wat` will create `my_file.wasm`
+- Analyze wasm file: `wasm-objdump -x my_file.wasm`. 
+  - `-x` shows section details
+  - `-d` shows disassembly of all function bodies
+  - `-s` shows section contents

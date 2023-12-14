@@ -453,6 +453,9 @@ public class Machine {
                                 throw new RuntimeException("InvokeError " + e.getMessage());
                             }
                         }
+                        case FunctionInstruction.Return() -> {
+                            return level;
+                        }
                         case FunctionInstruction.LocalGet l -> {
                             Variable var = locals[l.val()];
                             pushVariable(var);
@@ -513,6 +516,14 @@ public class Machine {
                             System.out.println("Branch If - " + (cmp == 1));
                             if (cmp == 1) {
                                 return labels[b.label()];
+                            }
+                        }
+                        case ControlFlowInstruction.BranchTable b -> {
+                            int jmpIdx = popInt();
+                            if (jmpIdx < b.labels().length) {
+                                return labels[b.labels()[jmpIdx]];
+                            } else {
+                                return labels[b.defaultLabel()];
                             }
                         }
                         case ControlFlowInstruction.If b -> {
