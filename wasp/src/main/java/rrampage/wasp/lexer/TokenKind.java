@@ -35,6 +35,8 @@ public sealed interface TokenKind {
         // A reserved series of `idchar` symbols. Unknown what this is meant to be
         // used for, you'll probably generate an error about an unexpected token.
         Reserved,
+
+        EOF,
     }
 
     record IntKind(Optional<SignToken> sign, boolean hasUnderscores, boolean hex) implements TokenKind {}
