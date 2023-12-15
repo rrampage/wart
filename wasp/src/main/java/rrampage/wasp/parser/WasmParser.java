@@ -1,7 +1,6 @@
 package rrampage.wasp.parser;
 
-import rrampage.wasp.data.DataType;
-import rrampage.wasp.data.FunctionType;
+import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.parser.types.*;
 import rrampage.wasp.utils.FileUtils;
@@ -88,14 +87,16 @@ public class WasmParser implements Parser {
             case 1 -> {
                 // Table
                 var refType = ValueType.of(bb.get());
+                byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
-                int max = (int) Leb128.readUnsigned(bb);
+                int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Memory.MAX_PAGES;
                 desc = new Descriptor.TableDescriptor(refType, min, max);
             }
             case 2 -> {
                 // Memory
+                byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
-                int max = (int) Leb128.readUnsigned(bb);
+                int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Memory.MAX_PAGES;
                 desc = new Descriptor.MemoryDescriptor(min, max);
             }
             case 3 -> {

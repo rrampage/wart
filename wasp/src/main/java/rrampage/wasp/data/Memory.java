@@ -8,7 +8,7 @@ import java.util.Arrays;
  */
 public class Memory {
     private static final int MEM_PAGE_SIZE = 65536;
-    private static final int MAX_PAGES = 1024;
+    public static final int MAX_PAGES = 1024;
     private byte[] memory;
     public Memory(int pages) {
         if (pages > MAX_PAGES) {
