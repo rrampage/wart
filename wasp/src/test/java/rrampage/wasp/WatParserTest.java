@@ -5,6 +5,7 @@ import rrampage.wasp.utils.FileUtils;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.parser.WatParser;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,15 +17,23 @@ public class WatParserTest {
         return Paths.get(examplesDir, fileName).toAbsolutePath().normalize().toString();
     }
 
+    private static String readFile(String path) {
+        try {
+            return FileUtils.readFile(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     public void shouldReadFile() {
-        String program = FileUtils.readFile(getFilePath("rocket.wat"));
+        String program = readFile(getFilePath("rocket.wat"));
         assertNotEquals(program, "");
     }
 
     @Test
     public void shouldParseEmptyModule() {
-        String program = FileUtils.readFile(getFilePath("empty_module.wat"));
+        String program = readFile(getFilePath("empty_module.wat"));
         WatParser parser = new WatParser(program);
         Module m = parser.parseModule();
         assertNotEquals(m, null);
@@ -32,7 +41,7 @@ public class WatParserTest {
 
     @Test
     public void shouldReadFileAndCreateParser() {
-        String program = FileUtils.readFile(getFilePath("add_two.wat"));
+        String program = readFile(getFilePath("add_two.wat"));
         assertNotEquals(program, "");
         WatParser parser = new WatParser(program);
         Module m = parser.parseModule();
@@ -44,7 +53,7 @@ public class WatParserTest {
 
     @Test
     public void shouldParseRocket() {
-        String program = FileUtils.readFile(getFilePath("rocket.wat"));
+        String program = readFile(getFilePath("rocket.wat"));
         assertNotEquals(program, "");
         WatParser parser = new WatParser(program);
         Module m = parser.parseModule();
