@@ -9,6 +9,7 @@ import rrampage.wasp.utils.Leb128;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
@@ -63,13 +64,67 @@ public class WasmParser implements Parser {
         if (numBytes <= 0) {
             return null;
         }
-        int pos = bb.position();
         int numTypes = (int) Leb128.readUnsigned(bb);
         FunctionType[] types = new FunctionType[numTypes];
         for (int i = 0; i < numTypes; i++) {
             types[i] = parseFunctionType();
         }
         return types;
+    }
+
+    private ImportMetadata parseImport() {
+        int ml = (int) Leb128.readUnsigned(bb);
+        byte[] moduleName = new byte[ml];
+        bb.get(moduleName);
+        int fl = (int) Leb128.readUnsigned(bb);
+        byte[] name = new byte[fl];
+        bb.get(name);
+        byte ib = bb.get();
+        if (ib > 3) {
+            System.out.println("Invalid Import type: " + ib);
+            return null;
+        }
+        ImportMetadata.ImportDescriptor desc = null;
+        switch (ib) {
+            case 0 -> {
+                // Function
+                int typeIdx = (int) Leb128.readUnsigned(bb);
+                desc = new ImportMetadata.FunctionDescriptor(typeIdx);
+            }
+            case 1 -> {
+                // Table
+                var refType = ValueType.of(bb.get());
+                int min = (int) Leb128.readUnsigned(bb);
+                int max = (int) Leb128.readUnsigned(bb);
+                desc = new ImportMetadata.TableDescriptor(refType, min, max);
+            }
+            case 2 -> {
+                // Memory
+                int min = (int) Leb128.readUnsigned(bb);
+                int max = (int) Leb128.readUnsigned(bb);
+                desc = new ImportMetadata.MemoryDescriptor(min, max);
+            }
+            case 3 -> {
+                // Global
+                var valType = ValueType.of(bb.get());
+                boolean mutable = bb.get() == 1;
+                desc = new ImportMetadata.GlobalDescriptor(valType, mutable);
+            }
+        }
+        return new ImportMetadata(new String(moduleName, StandardCharsets.UTF_8), new String(name, StandardCharsets.UTF_8), desc);
+    }
+
+    private ImportMetadata[] parseImports(int numBytes) {
+        if (numBytes <= 0) {
+            return null;
+        }
+        int startPos = bb.position();
+        int numImports = (int) Leb128.readUnsigned(bb);
+        ImportMetadata[] imports = new ImportMetadata[numImports];
+        for (int i = 0; i < numImports; i++) {
+            imports[i] = parseImport();
+        }
+        return imports;
     }
 
     public Module parseModule() {
@@ -88,22 +143,25 @@ public class WasmParser implements Parser {
             return null;
         }
         FunctionType[] types = new FunctionType[0];
+        ImportMetadata[] imports = new ImportMetadata[0];
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
-            long sectionLength = Leb128.readUnsigned(bb);
+            int sectionLength = (int) Leb128.readUnsigned(bb);
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, IMPORT, FUNCTION,
+                case CUSTOM, FUNCTION,
                         TABLE, MEMORY, GLOBAL,
                         EXPORT, START, ELEMENT,
                         CODE, DATA, DATA_COUNT -> bb.position((int) (bb.position() + sectionLength));
-                case TYPE -> types = parseTypes((int) sectionLength);
+                case TYPE -> types = parseTypes(sectionLength);
+                case IMPORT -> imports = parseImports(sectionLength);
             }
         }
         System.out.println(bb.position());
         System.out.println(Arrays.toString(types));
-        return new Module(1, types, null, null, null, null);
+        System.out.println(Arrays.toString(imports));
+        return new Module(1, types, null, null, null, imports);
     }
 
     public static WasmParser fromFile(String path) throws IOException {
@@ -113,7 +171,7 @@ public class WasmParser implements Parser {
 
     public static void main(String[] args) throws Exception {
         String f1 = "./examples/empty_module.wasm";
-        String f2 = "./examples/fizzbuzz_manual.wasm";
+        String f2 = "./examples/import_global.wasm";
         String f3 = "./examples/add_two.wasm";
         String path = Paths.get(f2).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);

@@ -4,6 +4,7 @@ import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.repr.*;
+import rrampage.wasp.parser.types.ImportMetadata;
 
 import java.util.*;
 
@@ -107,7 +108,7 @@ public record WatParser(String input) implements Parser {
                     var ifun = parseImport(x, types);
                     if (ifun != null) {
                         functions.add(ifun);
-                        imports.put(ifun.name(), functions.size()-1);
+                        //imports.put(ifun.name(), functions.size()-1);
                         continue;
                     }
                     // TODO exports
@@ -123,7 +124,7 @@ public record WatParser(String input) implements Parser {
                 functions.toArray(new Function[]{}),
                 new Table[]{},
                 new HashMap<>(),
-                imports);
+                new ImportMetadata[]{});
     }
 
     private FunctionType parseFunctionType(ConsList cl) {
