@@ -34,6 +34,7 @@ WASM opcode references:
 - Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) decode
 - Read sections
   - Type 
+  - Import
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -54,7 +55,6 @@ WASM opcode references:
 - Read section metadata
 - Read sections
   - Custom
-  - Import
   - Function
   - Table
   - Memory

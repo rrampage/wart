@@ -118,13 +118,24 @@ public class WasmParser implements Parser {
         if (numBytes <= 0) {
             return null;
         }
-        int startPos = bb.position();
         int numImports = (int) Leb128.readUnsigned(bb);
         ImportMetadata[] imports = new ImportMetadata[numImports];
         for (int i = 0; i < numImports; i++) {
             imports[i] = parseImport();
         }
         return imports;
+    }
+
+    private int[] parseFunctionSection(int numBytes) {
+        if (numBytes <= 0) {
+            return null;
+        }
+        int numFunctions = (int) Leb128.readUnsigned(bb);
+        int[] functions = new int[numFunctions];
+        for (int i = 0; i < numFunctions; i++) {
+            functions[i] = (int) Leb128.readUnsigned(bb);
+        }
+        return functions;
     }
 
     public Module parseModule() {
@@ -144,23 +155,25 @@ public class WasmParser implements Parser {
         }
         FunctionType[] types = new FunctionType[0];
         ImportMetadata[] imports = new ImportMetadata[0];
+        int[] functions = new int[0];
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
             int sectionLength = (int) Leb128.readUnsigned(bb);
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, FUNCTION,
-                        TABLE, MEMORY, GLOBAL,
+                case CUSTOM, TABLE, MEMORY, GLOBAL,
                         EXPORT, START, ELEMENT,
-                        CODE, DATA, DATA_COUNT -> bb.position((int) (bb.position() + sectionLength));
+                        CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
                 case TYPE -> types = parseTypes(sectionLength);
                 case IMPORT -> imports = parseImports(sectionLength);
+                case FUNCTION -> functions = parseFunctionSection(sectionLength);
             }
         }
         System.out.println(bb.position());
         System.out.println(Arrays.toString(types));
         System.out.println(Arrays.toString(imports));
+        System.out.println(Arrays.toString(functions));
         return new Module(1, types, null, null, null, imports);
     }
 
@@ -173,7 +186,7 @@ public class WasmParser implements Parser {
         String f1 = "./examples/empty_module.wasm";
         String f2 = "./examples/import_global.wasm";
         String f3 = "./examples/add_two.wasm";
-        String path = Paths.get(f2).toAbsolutePath().normalize().toString();
+        String path = Paths.get(f3).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);
