@@ -72,6 +72,42 @@ public class WasmParser implements Parser {
         return types;
     }
 
+    private Descriptor parseDescriptor() {
+        byte ib = bb.get();
+        if (ib > 3) {
+            System.out.println("Invalid Descriptor type: " + ib);
+            return null;
+        }
+        Descriptor desc = null;
+        switch (ib) {
+            case 0 -> {
+                // Function
+                int typeIdx = (int) Leb128.readUnsigned(bb);
+                desc = new Descriptor.FunctionDescriptor(typeIdx);
+            }
+            case 1 -> {
+                // Table
+                var refType = ValueType.of(bb.get());
+                int min = (int) Leb128.readUnsigned(bb);
+                int max = (int) Leb128.readUnsigned(bb);
+                desc = new Descriptor.TableDescriptor(refType, min, max);
+            }
+            case 2 -> {
+                // Memory
+                int min = (int) Leb128.readUnsigned(bb);
+                int max = (int) Leb128.readUnsigned(bb);
+                desc = new Descriptor.MemoryDescriptor(min, max);
+            }
+            case 3 -> {
+                // Global
+                var valType = ValueType.of(bb.get());
+                boolean mutable = bb.get() == 1;
+                desc = new Descriptor.GlobalDescriptor(valType, mutable);
+            }
+        }
+        return desc;
+    }
+
     private ImportMetadata parseImport() {
         int ml = (int) Leb128.readUnsigned(bb);
         byte[] moduleName = new byte[ml];
@@ -79,38 +115,7 @@ public class WasmParser implements Parser {
         int fl = (int) Leb128.readUnsigned(bb);
         byte[] name = new byte[fl];
         bb.get(name);
-        byte ib = bb.get();
-        if (ib > 3) {
-            System.out.println("Invalid Import type: " + ib);
-            return null;
-        }
-        ImportMetadata.ImportDescriptor desc = null;
-        switch (ib) {
-            case 0 -> {
-                // Function
-                int typeIdx = (int) Leb128.readUnsigned(bb);
-                desc = new ImportMetadata.FunctionDescriptor(typeIdx);
-            }
-            case 1 -> {
-                // Table
-                var refType = ValueType.of(bb.get());
-                int min = (int) Leb128.readUnsigned(bb);
-                int max = (int) Leb128.readUnsigned(bb);
-                desc = new ImportMetadata.TableDescriptor(refType, min, max);
-            }
-            case 2 -> {
-                // Memory
-                int min = (int) Leb128.readUnsigned(bb);
-                int max = (int) Leb128.readUnsigned(bb);
-                desc = new ImportMetadata.MemoryDescriptor(min, max);
-            }
-            case 3 -> {
-                // Global
-                var valType = ValueType.of(bb.get());
-                boolean mutable = bb.get() == 1;
-                desc = new ImportMetadata.GlobalDescriptor(valType, mutable);
-            }
-        }
+        Descriptor desc = parseDescriptor();
         return new ImportMetadata(new String(moduleName, StandardCharsets.UTF_8), new String(name, StandardCharsets.UTF_8), desc);
     }
 
@@ -124,6 +129,26 @@ public class WasmParser implements Parser {
             imports[i] = parseImport();
         }
         return imports;
+    }
+
+    private ExportMetadata parseExport() {
+        int fl = (int) Leb128.readUnsigned(bb);
+        byte[] name = new byte[fl];
+        bb.get(name);
+        Descriptor desc = parseDescriptor();
+        return new ExportMetadata(new String(name, StandardCharsets.UTF_8), desc);
+    }
+
+    private ExportMetadata[] parseExports(int numBytes) {
+        if (numBytes <= 0) {
+            return null;
+        }
+        int n = (int) Leb128.readUnsigned(bb);
+        ExportMetadata[] exports = new ExportMetadata[n];
+        for (int i = 0; i < n; i++) {
+            exports[i] = parseExport();
+        }
+        return exports;
     }
 
     private int[] parseFunctionSection(int numBytes) {
@@ -155,6 +180,7 @@ public class WasmParser implements Parser {
         }
         FunctionType[] types = new FunctionType[0];
         ImportMetadata[] imports = new ImportMetadata[0];
+        ExportMetadata[] exports = new ExportMetadata[0];
         int[] functions = new int[0];
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
@@ -162,19 +188,20 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, TABLE, MEMORY, GLOBAL,
-                        EXPORT, START, ELEMENT,
+                case CUSTOM, TABLE, MEMORY, GLOBAL, START, ELEMENT,
                         CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
                 case TYPE -> types = parseTypes(sectionLength);
                 case IMPORT -> imports = parseImports(sectionLength);
+                case EXPORT -> exports = parseExports(sectionLength);
                 case FUNCTION -> functions = parseFunctionSection(sectionLength);
             }
         }
         System.out.println(bb.position());
         System.out.println(Arrays.toString(types));
         System.out.println(Arrays.toString(imports));
+        System.out.println(Arrays.toString(exports));
         System.out.println(Arrays.toString(functions));
-        return new Module(1, types, null, null, null, imports);
+        return new Module(1, types, null, null, exports, imports);
     }
 
     public static WasmParser fromFile(String path) throws IOException {

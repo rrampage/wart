@@ -1,11 +1,12 @@
 package rrampage.wasp.data;
 
+import rrampage.wasp.parser.types.ExportMetadata;
 import rrampage.wasp.parser.types.ImportMetadata;
 
 import java.util.Arrays;
 import java.util.HashMap;
 
-public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, HashMap<String, Function> exports, ImportMetadata[] imports) {
+public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, ExportMetadata[] exports, ImportMetadata[] imports) {
     /*
         TODO
         Module contains:

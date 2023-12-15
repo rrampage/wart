@@ -4,6 +4,7 @@ import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.repr.*;
+import rrampage.wasp.parser.types.ExportMetadata;
 import rrampage.wasp.parser.types.ImportMetadata;
 
 import java.util.*;
@@ -123,7 +124,7 @@ public record WatParser(String input) implements Parser {
                 types.toArray(new FunctionType[]{}),
                 functions.toArray(new Function[]{}),
                 new Table[]{},
-                new HashMap<>(),
+                new ExportMetadata[]{},
                 new ImportMetadata[]{});
     }
 
