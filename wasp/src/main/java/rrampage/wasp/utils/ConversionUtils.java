@@ -77,9 +77,19 @@ public class ConversionUtils {
     }
 
     public static String bytesToHex(byte[] bytes) {
+        return bytesToHex(bytes, " ", 8);
+    }
+
+    public static String bytesToHex(byte[] bytes, String sep, int bytesPerLine) {
         final StringBuilder hex = new StringBuilder(2 * bytes.length);
+        int i = 0;
         for (final byte b : bytes) {
-            hex.append(HEXES.charAt((b & 0xF0) >> 4)).append(HEXES.charAt((b & 0x0F)));
+            i++;
+            hex.append(HEXES.charAt((b & 0xF0) >> 4)).append(HEXES.charAt((b & 0x0F))).append(sep);
+            if (i >= bytesPerLine) {
+                hex.append('\n');
+                i = 0;
+            }
         }
         return hex.toString();
     }

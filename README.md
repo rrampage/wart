@@ -32,6 +32,8 @@ WASM opcode references:
 #### WASM parser
 - Magic bytes and version check
 - Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) decode
+- Read sections
+  - Type 
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -52,7 +54,6 @@ WASM opcode references:
 - Read section metadata
 - Read sections
   - Custom
-  - Type
   - Import
   - Function
   - Table

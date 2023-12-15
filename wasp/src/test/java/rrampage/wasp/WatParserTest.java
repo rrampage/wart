@@ -1,29 +1,14 @@
 package rrampage.wasp;
 
 import org.junit.jupiter.api.Test;
-import rrampage.wasp.utils.FileUtils;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.parser.WatParser;
 
-import java.io.IOException;
-import java.nio.file.Paths;
+import static rrampage.wasp.TestUtils.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class WatParserTest {
-    private static final String examplesDir = "../examples";
-
-    private static String getFilePath(String fileName) {
-        return Paths.get(examplesDir, fileName).toAbsolutePath().normalize().toString();
-    }
-
-    private static String readFile(String path) {
-        try {
-            return FileUtils.readFile(path);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Test
     public void shouldReadFile() {
