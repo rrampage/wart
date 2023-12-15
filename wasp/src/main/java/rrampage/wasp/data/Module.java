@@ -3,7 +3,7 @@ package rrampage.wasp.data;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public record Module(FunctionType[] types, Function[] functions, Table[] tables, HashMap<String, Function> exports, HashMap<String, Integer> importMap) {
+public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, HashMap<String, Function> exports, HashMap<String, Integer> importMap) {
     /*
         TODO
         Module contains:

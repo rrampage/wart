@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class ConversionUtils {
+    private static final String    HEXES    = "0123456789ABCDEF";
     public static ByteBuffer bytesToBuffer(byte[] data) {
         return ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
     }
@@ -73,5 +74,13 @@ public class ConversionUtils {
 
     public static double longToDouble(long val) {
         return Double.longBitsToDouble(val);
+    }
+
+    public static String bytesToHex(byte[] bytes) {
+        final StringBuilder hex = new StringBuilder(2 * bytes.length);
+        for (final byte b : bytes) {
+            hex.append(HEXES.charAt((b & 0xF0) >> 4)).append(HEXES.charAt((b & 0x0F)));
+        }
+        return hex.toString();
     }
 }

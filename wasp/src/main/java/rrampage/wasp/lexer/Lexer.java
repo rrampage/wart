@@ -152,6 +152,7 @@ public class Lexer {
                 if (remaining == null || remaining.length == 0) {
                     return Optional.of(new TokenKind.IntKind(Optional.ofNullable(st), hasUnderscores.get(), isHex));
                 }
+                // TODO
                 if (remaining[0] == '.') {
                     Arrays.stream(remaining).skip(1);
                 }
@@ -242,7 +243,6 @@ public class Lexer {
                 }
                 default -> {
                     if (ID_CHARS.contains(c) || c == '"') {
-                        // TODO
                         pos.set(i);
                         var res = parseReserved(pos);
                         if (res.isError() && res.err().isPresent()) {
@@ -251,7 +251,10 @@ public class Lexer {
                         var rk = res.ok().get();
                         switch (rk.getKey()) {
                             case IdChars -> {
-                                // TODO classifyNum
+                                var optNum = classifyNumber(rk.getValue());
+                                if (optNum.isPresent()) {
+                                    return new Result.Ok<>(optNum.get());
+                                }
                                 if (c == '$' && rk.getValue().length() > 1) {
                                     return new Result.Ok<>(TokenKind.TokenType.Id);
                                 }

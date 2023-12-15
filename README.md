@@ -29,6 +29,10 @@ WASM opcode references:
 - Functions
 - Block comments
 
+#### WASM parser
+- Magic bytes and version check
+- Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) decode
+
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
 
@@ -42,6 +46,24 @@ WASM opcode references:
 - Memory
 - Tables
 - Start
+
+#### WASM parser
+- Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) encode
+- Read section metadata
+- Read sections
+  - Custom
+  - Type
+  - Import
+  - Function
+  - Table
+  - Memory
+  - Global
+  - Export
+  - Start
+  - Element
+  - Code
+  - Data
+  - Data count
 
 #### Interop
 - Use exported functions from Java
@@ -87,3 +109,7 @@ go test -v
   - `-x` shows section details
   - `-d` shows disassembly of all function bodies
   - `-s` shows section contents
+
+### Standard coreutils / binutils
+- Read wasm file as hex:
+  - `xxd -u -g 1 my_file.wasm` or `hexdump -C my_file.wasm`

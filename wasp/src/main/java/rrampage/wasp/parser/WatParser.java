@@ -118,7 +118,7 @@ public record WatParser(String input) implements Parser {
             }
         }
 
-        return new Module(
+        return new Module(1,
                 types.toArray(new FunctionType[]{}),
                 functions.toArray(new Function[]{}),
                 new Table[]{},
