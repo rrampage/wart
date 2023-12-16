@@ -1,2 +1,2 @@
 package rrampage.wasp.parser.types;
-public record ExportMetadata(String name, Descriptor descriptor) { }
+public record ExportMetadata(String name, ExportDescriptor descriptor) {}

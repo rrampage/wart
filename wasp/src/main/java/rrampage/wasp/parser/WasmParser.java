@@ -71,18 +71,34 @@ public class WasmParser implements Parser {
         return types;
     }
 
-    private Descriptor parseDescriptor() {
+    private ExportDescriptor parseExportDescriptor() {
+        byte ib = bb.get();
+        if (ib > 3) {
+            throw new RuntimeException("Invalid Descriptor type: " + ib);
+        }
+        int idx = (int) Leb128.readUnsigned(bb);
+        ExportDescriptor desc = switch (ib) {
+            case 0 -> new ExportDescriptor.FunctionDescriptor(idx);
+            case 1 -> new ExportDescriptor.TableDescriptor(idx);
+            case 2 -> new ExportDescriptor.MemoryDescriptor(idx);
+            case 3 -> new ExportDescriptor.GlobalDescriptor(idx);
+            default -> throw new RuntimeException("Invalid Descriptor type: " + ib);
+        };
+        return desc;
+    }
+
+    private ImportDescriptor parseImportDescriptor() {
         byte ib = bb.get();
         if (ib > 3) {
             System.out.println("Invalid Descriptor type: " + ib);
             return null;
         }
-        Descriptor desc = null;
+        ImportDescriptor desc = null;
         switch (ib) {
             case 0 -> {
                 // Function
                 int typeIdx = (int) Leb128.readUnsigned(bb);
-                desc = new Descriptor.FunctionDescriptor(typeIdx);
+                desc = new ImportDescriptor.FunctionDescriptor(typeIdx);
             }
             case 1 -> {
                 // Table
@@ -90,20 +106,20 @@ public class WasmParser implements Parser {
                 byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
                 int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Memory.MAX_PAGES;
-                desc = new Descriptor.TableDescriptor(refType, min, max);
+                desc = new ImportDescriptor.TableDescriptor(refType, min, max);
             }
             case 2 -> {
                 // Memory
                 byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
                 int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Memory.MAX_PAGES;
-                desc = new Descriptor.MemoryDescriptor(min, max);
+                desc = new ImportDescriptor.MemoryDescriptor(min, max);
             }
             case 3 -> {
                 // Global
                 var valType = ValueType.from(bb.get());
                 boolean mutable = bb.get() == 1;
-                desc = new Descriptor.GlobalDescriptor(valType, mutable);
+                desc = new ImportDescriptor.GlobalDescriptor(valType, mutable);
             }
         }
         return desc;
@@ -116,7 +132,7 @@ public class WasmParser implements Parser {
         int fl = (int) Leb128.readUnsigned(bb);
         byte[] name = new byte[fl];
         bb.get(name);
-        Descriptor desc = parseDescriptor();
+        ImportDescriptor desc = parseImportDescriptor();
         return new ImportMetadata(new String(moduleName, StandardCharsets.UTF_8), new String(name, StandardCharsets.UTF_8), desc);
     }
 
@@ -136,8 +152,10 @@ public class WasmParser implements Parser {
         int fl = (int) Leb128.readUnsigned(bb);
         byte[] name = new byte[fl];
         bb.get(name);
-        Descriptor desc = parseDescriptor();
-        return new ExportMetadata(new String(name, StandardCharsets.UTF_8), desc);
+        String exportName = new String(name, StandardCharsets.UTF_8);
+        System.out.printf("Export name: %s size: %d\n", exportName, fl);
+        ExportDescriptor desc = parseExportDescriptor();
+        return new ExportMetadata(exportName, desc);
     }
 
     private ExportMetadata[] parseExports(int numBytes) {
@@ -221,11 +239,14 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, TABLE, GLOBAL, ELEMENT, CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
+                case CUSTOM, GLOBAL, ELEMENT, CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
                 case TYPE -> types = parseTypes(sectionLength);
                 case IMPORT -> imports = parseImports(sectionLength);
-                case EXPORT -> exports = parseExports(sectionLength);
                 case FUNCTION -> functions = parseFunctionSection(sectionLength);
+                case TABLE -> {
+                    bb.position((bb.position() + sectionLength));
+                }
+                case EXPORT -> exports = parseExports(sectionLength);
                 case START -> startIdx = parseStartIdx();
                 case MEMORY -> memories = parseMemorySection(sectionLength);
             }
@@ -250,7 +271,8 @@ public class WasmParser implements Parser {
         String f2 = "./examples/import_global.wasm";
         String f3 = "./examples/add_two.wasm";
         String f4 = "./examples/fizzbuzz_manual.wasm";
-        String path = Paths.get(f4).toAbsolutePath().normalize().toString();
+        String f5 = "./examples/rocket.wasm";
+        String path = Paths.get(f5).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);
