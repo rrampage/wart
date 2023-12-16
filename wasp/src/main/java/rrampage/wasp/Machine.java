@@ -572,7 +572,7 @@ public class Machine {
         }
     }
 
-    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, Instruction[] instructions, long startIdx) {
+    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, long startIdx) {
         Machine m = new Machine(functions, tables, globals, pages, startIdx);
         m.start();
         return m;

@@ -21,6 +21,7 @@ WASM opcode references:
   - Labels set/reset during/after function call
 - Bitshift ops
 - Blocks, loops and conditionals
+- Start
 
 #### WAT Parser
 - Instructions
@@ -36,13 +37,14 @@ WASM opcode references:
   - Type 
   - Import
   - Export
+  - Start
+  - Function
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
 
 ### TODO
 #### Machine
-- start
 - Exports
 
 #### WAT Parser
@@ -56,11 +58,9 @@ WASM opcode references:
 - Read section metadata
 - Read sections
   - Custom
-  - Function
   - Table
   - Memory
   - Global
-  - Start
   - Element
   - Code
   - Data
