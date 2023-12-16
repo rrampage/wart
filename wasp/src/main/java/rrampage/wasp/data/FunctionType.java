@@ -3,7 +3,7 @@ package rrampage.wasp.data;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
 
-public record FunctionType(DataType[] paramTypes, DataType[] returnTypes) {
+public record FunctionType(ValueType.NumType[] paramTypes, ValueType.NumType[] returnTypes) {
     public boolean isVoidReturn() {
         return returnTypes == null || returnTypes.length == 0;
     }
@@ -31,7 +31,7 @@ public record FunctionType(DataType[] paramTypes, DataType[] returnTypes) {
         return Arrays.equals(this.paramTypes, ft.paramTypes) && Arrays.equals(this.returnTypes, ft.returnTypes);
     }
 
-    public static Class<?> getClassFromDataType(DataType d) {
+    public static Class<?> getClassFromDataType(ValueType.NumType d) {
         return switch (d) {
             case null -> void.class;
             case I32 -> int.class;

@@ -17,7 +17,7 @@ public class MachineTest {
     private static final Object[] TEST_OBJ_ARR = new Object[] {1111, -111111L};
 
     private static final Function addFunction = new Function("add",
-            new FunctionType(new DataType[]{DataType.I32, DataType.I32}, new DataType[]{DataType.I32}), null,
+            new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32, ValueType.NumType.I32}, new ValueType.NumType[]{ValueType.NumType.I32}), null,
             new Instruction[] {
                     new FunctionInstruction.LocalGet(0),
                     new FunctionInstruction.LocalGet(1),
@@ -176,7 +176,7 @@ public class MachineTest {
     @Test
     public void shouldCallIntConstFunction() {
         int i = 42;
-        Function fun = new Function("const", new FunctionType(null, new DataType[]{DataType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)}, null);
+        Function fun = new Function("const", new FunctionType(null, new ValueType.NumType[]{ValueType.NumType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)}, null);
         Instruction[] ins = new Instruction[] {
           new FunctionInstruction.Call(0)
         };
@@ -202,7 +202,7 @@ public class MachineTest {
 
     @Test
     public void shouldLoopUsingGlobal() {
-        Variable[] globals = new Variable[]{Variable.newVariable(DataType.I32, 0)};
+        Variable[] globals = new Variable[]{Variable.newVariable(ValueType.NumType.I32, 0)};
         Instruction[] loopIns = new Instruction[] {
                 new GlobalInstruction.GlobalGet(0),
                 new ConstInstruction.IntConst(1),
@@ -240,7 +240,7 @@ public class MachineTest {
         int[] labels = Function.getLabelsFromInstructions(funIns);
         assertArrayEquals(new int[]{-1, -1}, labels);
         Function f = new Function("loop_check", new FunctionType(null, null),
-                new DataType[]{DataType.I32}, funIns, labels);
+                new ValueType.NumType[]{ValueType.NumType.I32}, funIns, labels);
         Instruction[] ins = new Instruction[] {
                 new ConstInstruction.IntConst(0),
                 new FunctionInstruction.Call(0),
@@ -251,7 +251,7 @@ public class MachineTest {
 
     @Test
     public void shouldReturnValidImportFunction() {
-        FunctionType type = new FunctionType(new DataType[]{DataType.F64, DataType.F64}, new DataType[]{DataType.F64});
+        FunctionType type = new FunctionType(new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64}, new ValueType.NumType[]{ValueType.NumType.F64});
         MethodType mt = MethodType.methodType(double.class, double.class, double.class);
         MethodHandle mh;
         try {
@@ -269,7 +269,7 @@ public class MachineTest {
     public void shouldCallJavaMethod() {
         double a = 4.0, b = 2.0;
         double res = Math.pow(a, b);
-        FunctionType type = new FunctionType(new DataType[]{DataType.F64, DataType.F64}, new DataType[]{DataType.F64});
+        FunctionType type = new FunctionType(new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64}, new ValueType.NumType[]{ValueType.NumType.F64});
         MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
         MethodHandle mh;
         try {
@@ -298,7 +298,7 @@ public class MachineTest {
     public void shouldCallJavaMethodWithHomogenousMultipleReturn() {
         double a = 4.0, b = 2.0;
         double c = a *2, d = b*2;
-        FunctionType type = new FunctionType(new DataType[]{DataType.F64, DataType.F64}, new DataType[]{DataType.F64, DataType.F64});
+        FunctionType type = new FunctionType(new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64}, new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64});
         MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
         MethodHandle mh;
         try {
@@ -324,7 +324,7 @@ public class MachineTest {
 
     @Test
     public void shouldCallJavaMethodWithHeterogenousMultipleReturn() {
-        FunctionType type = new FunctionType(new DataType[]{}, new DataType[]{DataType.I32, DataType.I64});
+        FunctionType type = new FunctionType(new ValueType.NumType[]{}, new ValueType.NumType[]{ValueType.NumType.I32, ValueType.NumType.I64});
         MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
         MethodHandle mh;
         try {

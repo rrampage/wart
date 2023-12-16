@@ -47,14 +47,14 @@ public class WasmParser implements Parser {
             return null;
         }
         int numParams = (int) Leb128.readUnsigned(bb);
-        DataType[] params = new DataType[numParams];
+        ValueType.NumType[] params = new ValueType.NumType[numParams];
         for (int i = 0; i < numParams; i++) {
-            params[i] = ValueType.fromValueType(ValueType.of(bb.get())) ;
+            params[i] = ValueType.NumType.from(bb.get());
         }
         int numReturns = (int) Leb128.readUnsigned(bb);
-        DataType[] returns = new DataType[numReturns];
+        ValueType.NumType[] returns = new ValueType.NumType[numReturns];
         for (int i = 0; i < numReturns; i++) {
-            returns[i] = ValueType.fromValueType(ValueType.of(bb.get())) ;
+            returns[i] = ValueType.NumType.from(bb.get());
         }
         return new FunctionType(params, returns);
     }
@@ -86,7 +86,7 @@ public class WasmParser implements Parser {
             }
             case 1 -> {
                 // Table
-                var refType = ValueType.of(bb.get());
+                var refType = ValueType.RefType.from(bb.get());
                 byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
                 int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Memory.MAX_PAGES;
@@ -101,7 +101,7 @@ public class WasmParser implements Parser {
             }
             case 3 -> {
                 // Global
-                var valType = ValueType.of(bb.get());
+                var valType = ValueType.from(bb.get());
                 boolean mutable = bb.get() == 1;
                 desc = new Descriptor.GlobalDescriptor(valType, mutable);
             }

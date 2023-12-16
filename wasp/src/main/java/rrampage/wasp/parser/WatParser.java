@@ -137,8 +137,8 @@ public record WatParser(String input) implements Parser {
         if (!cl.startsWith("func")) {
             return null;
         }
-        ArrayList<DataType> paramTypes = new ArrayList<>();
-        ArrayList<DataType> returnTypes = new ArrayList<>();
+        ArrayList<ValueType.NumType> paramTypes = new ArrayList<>();
+        ArrayList<ValueType.NumType> returnTypes = new ArrayList<>();
         for (Cons c : cl.val()) {
             if (c instanceof ConsList x) {
                 if (parseBlockComment(x)) {
@@ -155,7 +155,7 @@ public record WatParser(String input) implements Parser {
                 }
             }
         }
-        return new FunctionType(paramTypes.toArray(new DataType[]{}), returnTypes.toArray(new DataType[]{}));
+        return new FunctionType(paramTypes.toArray(new ValueType.NumType[]{}), returnTypes.toArray(new ValueType.NumType[]{}));
     }
 
     private int parseTypeIdx(ConsList cl) {
@@ -217,9 +217,9 @@ public record WatParser(String input) implements Parser {
         }
         /*String cls = cl.toString();
         System.out.println(cls.substring(0, Math.min(cls.length(), 100)));*/
-        ArrayList<DataType> paramTypes = new ArrayList<>();
-        ArrayList<DataType> locals = new ArrayList<>();
-        ArrayList<DataType> returnTypes = new ArrayList<>();
+        ArrayList<ValueType.NumType> paramTypes = new ArrayList<>();
+        ArrayList<ValueType.NumType> locals = new ArrayList<>();
+        ArrayList<ValueType.NumType> returnTypes = new ArrayList<>();
         String funcName = "";
         Instruction[] code = null;
         FunctionType ft = null;
@@ -266,30 +266,30 @@ public record WatParser(String input) implements Parser {
                 }
             }
         }
-        FunctionType type = new FunctionType(paramTypes.toArray(new DataType[]{}), returnTypes.toArray(new DataType[]{}));
+        FunctionType type = new FunctionType(paramTypes.toArray(new ValueType.NumType[]{}), returnTypes.toArray(new ValueType.NumType[]{}));
         if (ft != null && !type.equals(ft)) {
             throw new RuntimeException("Type index in module does not match" + ft + " " + type);
         }
         // TODO Fill labels correctly from block/loop instructions
-        return new Function(funcName, type, locals.toArray(new DataType[]{}), code, null);
+        return new Function(funcName, type, locals.toArray(new ValueType.NumType[]{}), code, null);
     }
 
-    private List<DataType> parseDataTypes(String term, ConsList cl) {
+    private List<ValueType.NumType> parseDataTypes(String term, ConsList cl) {
         if (!cl.startsWith(term)) {
             return List.of();
         }
         ConsAtom c = (ConsAtom) Objects.requireNonNull(cl.val().get(0));
         String[] ss = c.val().split(" +");
-        List<DataType> params = new ArrayList<>();
+        List<ValueType.NumType> params = new ArrayList<>();
         for (int i = 1; i < ss.length; i++) {
             parseDataType(ss[i]).ifPresent(params::add);
         }
         return params;
     }
 
-    public Optional<DataType> parseDataType(String s) {
+    public Optional<ValueType.NumType> parseDataType(String s) {
         try {
-            return Optional.of(DataType.valueOf(s.toUpperCase()));
+            return Optional.of(ValueType.NumType.valueOf(s.toUpperCase()));
         } catch (Exception e) {
             return Optional.empty();
         }

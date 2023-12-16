@@ -441,7 +441,7 @@ public class Machine {
                                 }
                                 if (type.returnTypes().length == 1) {
                                     // push ret to Stack
-                                    DataType retType = type.returnTypes()[0];
+                                    ValueType.NumType retType = type.returnTypes()[0];
                                     switch (retType) {
                                         case I32 -> pushInt((int) ret);
                                         case I64 -> push((long) ret);

@@ -7,7 +7,7 @@ import rrampage.wasp.instructions.FunctionInstruction;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
-public record Function(String name, FunctionType type, DataType[] locals, Instruction[] code, int[] labels) {
+public record Function(String name, FunctionType type, ValueType.NumType[] locals, Instruction[] code, int[] labels) {
     public boolean isVoidReturn() {
         return type().isVoidReturn();
     }

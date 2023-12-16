@@ -2,6 +2,11 @@ package rrampage.wasp.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class ConversionUtils {
     private static final String    HEXES    = "0123456789ABCDEF";
@@ -92,5 +97,9 @@ public class ConversionUtils {
             }
         }
         return hex.toString();
+    }
+
+    public static <K, V> Map<K, V> convertArrayToImmutableMap(V[] arr, Function<V, K> func) {
+         return Map.copyOf(Arrays.stream(arr).collect(Collectors.toMap(func::apply, v -> v)));
     }
 }
