@@ -126,6 +126,7 @@ public record WatParser(String input) implements Parser {
                 new Table[]{},
                 new ExportMetadata[]{},
                 new ImportMetadata[]{},
+                null,
                 -1
         );
     }

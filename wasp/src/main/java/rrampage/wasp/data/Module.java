@@ -5,7 +5,7 @@ import rrampage.wasp.parser.types.ImportMetadata;
 
 import java.util.Arrays;
 
-public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, ExportMetadata[] exports, ImportMetadata[] imports, long startIdx) {
+public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, ExportMetadata[] exports, ImportMetadata[] imports, Memory[] memories, long startIdx) {
     /*
         TODO
         Module contains:

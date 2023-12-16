@@ -10,10 +10,16 @@ public class Memory {
     private static final int MEM_PAGE_SIZE = 65536;
     public static final int MAX_PAGES = 1024;
     private byte[] memory;
+    private final int maxPages;
     public Memory(int pages) {
-        if (pages > MAX_PAGES) {
+        this(pages, MAX_PAGES);
+    }
+
+    public Memory(int pages, int maxPages) {
+        if (pages > MAX_PAGES || maxPages > MAX_PAGES) {
             throw new RuntimeException(String.format("Can not allocate more than %d pages of memory", MAX_PAGES));
         }
+        this.maxPages = maxPages;
         this.memory = new byte[pages * MEM_PAGE_SIZE];
     }
 
@@ -23,7 +29,7 @@ public class Memory {
 
     public int grow(int numPages) {
         int currPages = getMemorySize();
-        if (numPages < 0 || currPages + numPages > MAX_PAGES) {
+        if (numPages < 0 || currPages + numPages > maxPages) {
             return -1;
         }
         if (numPages == 0) {
@@ -46,4 +52,7 @@ public class Memory {
         System.arraycopy(data, 0, memory, addr, data.length);
     }
 
+    public String toString() {
+        return String.format("Memory: size %d pages, max size: %d pages", getMemorySize(), maxPages);
+    }
 }

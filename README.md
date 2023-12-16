@@ -39,6 +39,7 @@ WASM opcode references:
   - Export
   - Start
   - Function
+  - Memory
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -59,7 +60,6 @@ WASM opcode references:
 - Read sections
   - Custom
   - Table
-  - Memory
   - Global
   - Element
   - Code
