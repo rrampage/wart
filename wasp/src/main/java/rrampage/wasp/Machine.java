@@ -22,12 +22,13 @@ public class Machine {
     private final Table[] tables;
     private final Variable[] globals;
     private int[] labels;
+    private final long startIdx;
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)});
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, long startIdx) {
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, startIdx);
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, long startIdx) {
         if (memories == null || memories.length == 0) {
             throw new RuntimeException("Null or zero size memories during init");
         }
@@ -40,6 +41,7 @@ public class Machine {
               this stores level of the label of block
         */
         this.labels = new int[]{0, -1, -1, -1, -1, -1};
+        this.startIdx = startIdx;
     }
 
     public Memory getMainMemory() {
@@ -119,6 +121,19 @@ public class Machine {
         }
         return returns;
     }
+
+    public void start() {
+        if (startIdx < 0 || startIdx >= functions.length) {
+            return;
+        }
+        // Verify that it takes no params and returns none
+        Function startFun = functions[(int) startIdx];
+        if (!startFun.isVoidReturn() && startFun.numParams() > 0) {
+            return;
+        }
+        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, 0);
+    }
+
     public int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
             System.out.println("Instruction: " + ins.opCode());
@@ -557,14 +572,14 @@ public class Machine {
         }
     }
 
-    public static Machine createAndExecute(Function[] functions, Table[] tables, Variable[] globals, int pages, Instruction[] instructions) {
-        Machine m = new Machine(functions, tables, globals, pages);
-        m.execute(instructions, null, 0);
+    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, Instruction[] instructions, long startIdx) {
+        Machine m = new Machine(functions, tables, globals, pages, startIdx);
+        m.start();
         return m;
     }
 
     public static void main(String[] args) {
-        Machine m = new Machine(null,  null, null, 1);
+        Machine m = new Machine(null,  null, null, 1, -1);
         Instruction[] ins = new Instruction[]{
                 new ConstInstruction.DoubleConst(1.0)
         };

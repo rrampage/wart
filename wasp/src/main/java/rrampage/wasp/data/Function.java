@@ -57,4 +57,8 @@ public record Function(String name, FunctionType type, DataType[] locals, Instru
         }
         return new Function(name, type, null, new Instruction[]{new FunctionInstruction.CallJava(type, func)}, null);
     }
+
+    public static Function createStartFunction(String name, Instruction[] code) {
+        return new Function(name, new FunctionType(null, null), null, code, getLabelsFromInstructions(code));
+    }
 }

@@ -164,6 +164,14 @@ public class WasmParser implements Parser {
         return functions;
     }
 
+    private long parseStartIdx() {
+        var startIdx = Leb128.readUnsigned(bb);
+        if (startIdx < 0 || startIdx > 2L*Integer.MAX_VALUE-1) {
+            startIdx = -1;
+        }
+        return startIdx;
+    }
+
     public Module parseModule() {
         bb.rewind();
         // Check magic bytes
@@ -182,6 +190,7 @@ public class WasmParser implements Parser {
         FunctionType[] types = new FunctionType[0];
         ImportMetadata[] imports = new ImportMetadata[0];
         ExportMetadata[] exports = new ExportMetadata[0];
+        long startIdx = -1;
         int[] functions = new int[0];
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
@@ -189,12 +198,13 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, TABLE, MEMORY, GLOBAL, START, ELEMENT,
+                case CUSTOM, TABLE, MEMORY, GLOBAL, ELEMENT,
                         CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
                 case TYPE -> types = parseTypes(sectionLength);
                 case IMPORT -> imports = parseImports(sectionLength);
                 case EXPORT -> exports = parseExports(sectionLength);
                 case FUNCTION -> functions = parseFunctionSection(sectionLength);
+                case START -> startIdx = parseStartIdx();
             }
         }
         System.out.println(bb.position());
@@ -202,7 +212,8 @@ public class WasmParser implements Parser {
         System.out.println(Arrays.toString(imports));
         System.out.println(Arrays.toString(exports));
         System.out.println(Arrays.toString(functions));
-        return new Module(1, types, null, null, exports, imports);
+        System.out.println("Start Index: " + startIdx);
+        return new Module(1, types, null, null, exports, imports, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {
@@ -214,7 +225,8 @@ public class WasmParser implements Parser {
         String f1 = "./examples/empty_module.wasm";
         String f2 = "./examples/import_global.wasm";
         String f3 = "./examples/add_two.wasm";
-        String path = Paths.get(f3).toAbsolutePath().normalize().toString();
+        String f4 = "./examples/fizzbuzz_manual.wasm";
+        String path = Paths.get(f4).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);

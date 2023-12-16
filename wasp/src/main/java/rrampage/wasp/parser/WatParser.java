@@ -125,7 +125,9 @@ public record WatParser(String input) implements Parser {
                 functions.toArray(new Function[]{}),
                 new Table[]{},
                 new ExportMetadata[]{},
-                new ImportMetadata[]{});
+                new ImportMetadata[]{},
+                -1
+        );
     }
 
     private FunctionType parseFunctionType(ConsList cl) {

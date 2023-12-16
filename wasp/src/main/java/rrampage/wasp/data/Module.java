@@ -4,9 +4,8 @@ import rrampage.wasp.parser.types.ExportMetadata;
 import rrampage.wasp.parser.types.ImportMetadata;
 
 import java.util.Arrays;
-import java.util.HashMap;
 
-public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, ExportMetadata[] exports, ImportMetadata[] imports) {
+public record Module(int version, FunctionType[] types, Function[] functions, Table[] tables, ExportMetadata[] exports, ImportMetadata[] imports, long startIdx) {
     /*
         TODO
         Module contains:
