@@ -105,7 +105,7 @@ public class WasmParser implements Parser {
                 var refType = ValueType.RefType.from(bb.get());
                 byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
-                int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Memory.MAX_PAGES;
+                int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : min;
                 desc = new ImportDescriptor.TableDescriptor(refType, min, max);
             }
             case 2 -> {
@@ -212,6 +212,26 @@ public class WasmParser implements Parser {
         return memories;
     }
 
+    private Table parseTable() {
+        var refType = ValueType.RefType.from(bb.get());
+        byte fb = bb.get();
+        int min = (int) Leb128.readUnsigned(bb);
+        int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : min;
+        return new Table(min, max, refType);
+    }
+
+    private Table[] parseTableSection(int numBytes) {
+        if (numBytes <= 0) {
+            return null;
+        }
+        int n = (int) Leb128.readUnsigned(bb);
+        Table[] tables = new Table[n];
+        for (int i = 0; i < n; i++) {
+            tables[i] = parseTable();
+        }
+        return tables;
+    }
+
     public Module parseModule() {
         bb.rewind();
         // Check magic bytes
@@ -231,6 +251,7 @@ public class WasmParser implements Parser {
         ImportMetadata[] imports = new ImportMetadata[0];
         ExportMetadata[] exports = new ExportMetadata[0];
         Memory[] memories = new Memory[0];
+        Table[] tables = new Table[0];
         long startIdx = -1;
         int[] functions = new int[0];
         while (bb.hasRemaining()) {
@@ -243,9 +264,7 @@ public class WasmParser implements Parser {
                 case TYPE -> types = parseTypes(sectionLength);
                 case IMPORT -> imports = parseImports(sectionLength);
                 case FUNCTION -> functions = parseFunctionSection(sectionLength);
-                case TABLE -> {
-                    bb.position((bb.position() + sectionLength));
-                }
+                case TABLE -> tables = parseTableSection(sectionLength);
                 case EXPORT -> exports = parseExports(sectionLength);
                 case START -> startIdx = parseStartIdx();
                 case MEMORY -> memories = parseMemorySection(sectionLength);
@@ -257,8 +276,9 @@ public class WasmParser implements Parser {
         System.out.println(Arrays.toString(exports));
         System.out.println(Arrays.toString(functions));
         System.out.println(Arrays.toString(memories));
+        System.out.println(Arrays.toString(tables));
         System.out.println("Start Index: " + startIdx);
-        return new Module(1, types, null, null, exports, imports, memories, startIdx);
+        return new Module(1, types, null, tables, exports, imports, memories, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {

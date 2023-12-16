@@ -39,6 +39,7 @@ WASM opcode references:
   - Export
   - Start
   - Function
+  - Table
   - Memory
 
 #### Interop
@@ -59,7 +60,6 @@ WASM opcode references:
 - Read section metadata
 - Read sections
   - Custom
-  - Table
   - Global
   - Element
   - Code

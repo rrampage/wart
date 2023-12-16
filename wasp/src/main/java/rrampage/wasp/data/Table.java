@@ -8,21 +8,22 @@ package rrampage.wasp.data;
  * For now, only implementing function references
  */
 public class Table {
-    private static final String FUNCREF = "funcref";
     private int size;
     private final int max;
     private Function[] data;
-    public Table(int initialSize, int maxSize, String type) {
-        if (!type.equals(FUNCREF) || initialSize > maxSize) {
+    private final ValueType.RefType type;
+    public Table(int initialSize, int maxSize, ValueType.RefType type) {
+        if (!type.equals(ValueType.RefType.FUNCREF) || initialSize > maxSize) {
             throw new RuntimeException("Invalid table init");
         }
         this.size = initialSize;
         this.max = maxSize;
         this.data = new Function[this.size];
+        this.type = type;
     }
 
     public Table(int size) {
-        this(size, size, FUNCREF);
+        this(size, size, ValueType.RefType.FUNCREF);
     }
 
     public int size() {
@@ -42,4 +43,6 @@ public class Table {
         }
         this.data[i] = f;
     }
+
+    public String toString() {return String.format("Table Type: %s Size: %d Max Size: %d", type.name(), size, max);}
 }
