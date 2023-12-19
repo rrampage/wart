@@ -4,6 +4,7 @@ import rrampage.wasp.utils.ConversionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public sealed interface ValueType {
     enum VecType implements ValueType {
@@ -30,6 +31,11 @@ public sealed interface ValueType {
                 throw new RuntimeException("Invalid numType for bytecode " + b);
             }
             return nt;
+        }
+
+        public static Optional<NumType> parse(byte b) {
+            NumType nt = numTypeMap.get(b);
+            return (nt == null) ? Optional.empty() : Optional.of(nt);
         }
     }
 

@@ -48,6 +48,7 @@ WASM opcode references:
 ### TODO
 #### Machine
 - Exports
+- Block types
 
 #### WAT Parser
 - Exports
@@ -65,6 +66,7 @@ WASM opcode references:
   - Code
   - Data
   - Data count
+- Module instantiation
 
 #### Interop
 - Use exported functions from Java

@@ -406,12 +406,12 @@ public class Machine {
                         }
                         case FunctionInstruction.CallIndirect l -> {
                             int tblOffset = popInt();
-                            int tblIdx = l.tableIdx();
+                            int tblIdx = l.idx();
                             if (tblOffset < 0 || tblIdx < 0 || tblIdx >= tables.length || tblOffset >= tables[tblIdx].size()) {
                                 throw new RuntimeException("Array bounds mismatch in indirect call");
                             }
                             Function fun = tables[tblIdx].get(tblOffset);
-                            if (fun == null || !fun.type().equals(l.type())) {
+                            if (fun == null) {
                                 throw new RuntimeException("Function Type mismatch in indirect call");
                             }
                             Variable[] res = call(fun, level);

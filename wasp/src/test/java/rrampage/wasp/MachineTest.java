@@ -356,7 +356,7 @@ public class MachineTest {
                 new ConstInstruction.IntConst(b),
                 new ConstInstruction.IntConst(a),
                 new ConstInstruction.IntConst(tblOffset),
-                new FunctionInstruction.CallIndirect(0, addFunction.type()),
+                new FunctionInstruction.CallIndirect(0, (byte) 0),
                 new ConstInstruction.IntConst(b),
                 new ConstInstruction.IntConst(a),
                 IntBinaryInstruction.I32_ADD,

@@ -234,7 +234,7 @@ public record WatParser(String input) implements Parser {
                     }
                     // TODO: Parse instructions
                     if (x.contains("\n")) {
-                        code = Instruction.parse(x);
+
                     }
                 }
                 case ConsList x -> {

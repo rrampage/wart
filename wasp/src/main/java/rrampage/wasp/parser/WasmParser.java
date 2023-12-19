@@ -2,6 +2,7 @@ package rrampage.wasp.parser;
 
 import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
+import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.types.*;
 import rrampage.wasp.utils.FileUtils;
 import rrampage.wasp.utils.Leb128;
@@ -234,11 +235,39 @@ public class WasmParser implements Parser {
     }
 
     public void parseCodeSection() {
+        int n = (int) Leb128.readUnsigned(bb);
+        System.out.printf("%d code items\n", n);
+        /*
+            The encoding of each code entry consists of :
+            - the size of the function code in bytes,
+            - the actual function code, which in turn consists of:
+              - the declaration of locals,
+              - the function body as an expression.
+            Local declarations are compressed into a vector whose entries consist of:
+            - a count,
+            - a value type
+            denoting count locals of the same value type.
 
+         */
+        for (int i = 0; i < n; i++) {
+            int funSize = (int) Leb128.readUnsigned(bb);
+            int funPos = bb.position();
+            int lc = (int) Leb128.readUnsigned(bb);
+            System.out.printf("Index: %d Function size: %d Local declaration count %d\n", i, funSize, lc);
+            for (int j = 0; j < lc; j++) {
+                int numLocal = (int) Leb128.readUnsigned(bb);
+                var type = ValueType.NumType.from(bb.get());
+                System.out.printf("%d Locals of type %s\n", numLocal, type);
+            }
+            int bytesToParse = funPos + funSize - bb.position();
+            Instruction[] code = InstructionParser.parse(bb, bytesToParse);
+            System.out.println("Code : " + Arrays.toString(code));
+            bb.position(funPos + funSize);
+        }
     }
 
-    private void assertSectionParsed(int startPos, int numBytes) {
-        assert bb.position() == startPos + numBytes;
+    private void assertBufferPosition(int expectedPosition) {
+        assert bb.position() == expectedPosition;
     }
 
     public Module parseModule() {
@@ -288,7 +317,7 @@ public class WasmParser implements Parser {
                 }
             }
             // Check that section is fully consumed
-            assertSectionParsed(sectionStart, sectionLength);
+            assertBufferPosition(sectionStart + sectionLength);
         }
         System.out.println(bb.position());
         System.out.println(Arrays.toString(types));
