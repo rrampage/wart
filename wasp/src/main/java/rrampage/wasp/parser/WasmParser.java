@@ -232,6 +232,24 @@ public class WasmParser implements Parser {
         return tables;
     }
 
+    public void parseElementSection(int numBytes) {
+        int n = (int) Leb128.readUnsigned(bb);
+        System.out.println("Element table size: " + n);
+        // bit 0 = 0 active
+        // bit 1 = if active and bit1, table uses index different from 0. if not active and bit1, declarative
+        // bit 2 = 1 => expressions else index
+        for (int i = 0; i < n; i++) {
+            byte eb = bb.get();
+            boolean isActive = eb % 2 == 0;
+            boolean isExpression = (eb >> 2) % 2 == 1;
+            boolean isNonZeroIndex = isActive && (eb >> 1) % 2 == 1;
+            boolean isDeclarative = !isActive && (eb >> 1) % 2 == 1;
+            boolean isPassive = !isActive && !isDeclarative;
+            System.out.printf("Element is active: %b passive: %b declarative: %b non-zero index: %b expression: %b\n",
+                    isActive, isPassive, isDeclarative, isNonZeroIndex, isExpression);
+        }
+    }
+
     public Module parseModule() {
         bb.rewind();
         // Check magic bytes
@@ -260,7 +278,7 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, GLOBAL, ELEMENT, CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
+                case CUSTOM, GLOBAL, CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
                 case TYPE -> types = parseTypes(sectionLength);
                 case IMPORT -> imports = parseImports(sectionLength);
                 case FUNCTION -> functions = parseFunctionSection(sectionLength);
@@ -268,6 +286,11 @@ public class WasmParser implements Parser {
                 case EXPORT -> exports = parseExports(sectionLength);
                 case START -> startIdx = parseStartIdx();
                 case MEMORY -> memories = parseMemorySection(sectionLength);
+                case ELEMENT -> {
+                    int startPos = bb.position();
+                    // parseElementSection(sectionLength);
+                    bb.position(startPos + sectionLength);
+                }
             }
         }
         System.out.println(bb.position());
@@ -292,7 +315,8 @@ public class WasmParser implements Parser {
         String f3 = "./examples/add_two.wasm";
         String f4 = "./examples/fizzbuzz_manual.wasm";
         String f5 = "./examples/rocket.wasm";
-        String path = Paths.get(f5).toAbsolutePath().normalize().toString();
+        String f6 = "./examples/elem_syntax.wasm";
+        String path = Paths.get(f6).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);
