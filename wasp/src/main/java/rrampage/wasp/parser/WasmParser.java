@@ -59,10 +59,7 @@ public class WasmParser implements Parser {
         return new FunctionType(params, returns);
     }
 
-    private FunctionType[] parseTypes(int numBytes) {
-        if (numBytes <= 0) {
-            return null;
-        }
+    private FunctionType[] parseTypes() {
         int numTypes = (int) Leb128.readUnsigned(bb);
         FunctionType[] types = new FunctionType[numTypes];
         for (int i = 0; i < numTypes; i++) {
@@ -136,10 +133,7 @@ public class WasmParser implements Parser {
         return new ImportMetadata(new String(moduleName, StandardCharsets.UTF_8), new String(name, StandardCharsets.UTF_8), desc);
     }
 
-    private ImportMetadata[] parseImports(int numBytes) {
-        if (numBytes <= 0) {
-            return null;
-        }
+    private ImportMetadata[] parseImports() {
         int numImports = (int) Leb128.readUnsigned(bb);
         ImportMetadata[] imports = new ImportMetadata[numImports];
         for (int i = 0; i < numImports; i++) {
@@ -158,10 +152,7 @@ public class WasmParser implements Parser {
         return new ExportMetadata(exportName, desc);
     }
 
-    private ExportMetadata[] parseExports(int numBytes) {
-        if (numBytes <= 0) {
-            return null;
-        }
+    private ExportMetadata[] parseExports() {
         int n = (int) Leb128.readUnsigned(bb);
         ExportMetadata[] exports = new ExportMetadata[n];
         for (int i = 0; i < n; i++) {
@@ -170,10 +161,7 @@ public class WasmParser implements Parser {
         return exports;
     }
 
-    private int[] parseFunctionSection(int numBytes) {
-        if (numBytes <= 0) {
-            return null;
-        }
+    private int[] parseFunctionSection() {
         int numFunctions = (int) Leb128.readUnsigned(bb);
         int[] functions = new int[numFunctions];
         for (int i = 0; i < numFunctions; i++) {
@@ -200,10 +188,7 @@ public class WasmParser implements Parser {
         return new Memory(min, max);
     }
 
-    private Memory[] parseMemorySection(int numBytes) {
-        if (numBytes <= 0) {
-            return null;
-        }
+    private Memory[] parseMemorySection() {
         int numMem = (int) Leb128.readUnsigned(bb);
         Memory[] memories = new Memory[numMem];
         for (int i = 0; i < numMem; i++) {
@@ -220,10 +205,7 @@ public class WasmParser implements Parser {
         return new Table(min, max, refType);
     }
 
-    private Table[] parseTableSection(int numBytes) {
-        if (numBytes <= 0) {
-            return null;
-        }
+    private Table[] parseTableSection() {
         int n = (int) Leb128.readUnsigned(bb);
         Table[] tables = new Table[n];
         for (int i = 0; i < n; i++) {
@@ -232,7 +214,7 @@ public class WasmParser implements Parser {
         return tables;
     }
 
-    public void parseElementSection(int numBytes) {
+    public void parseElementSection() {
         int n = (int) Leb128.readUnsigned(bb);
         System.out.println("Element table size: " + n);
         // bit 0 = 0 active
@@ -247,7 +229,16 @@ public class WasmParser implements Parser {
             boolean isPassive = !isActive && !isDeclarative;
             System.out.printf("Element is active: %b passive: %b declarative: %b non-zero index: %b expression: %b\n",
                     isActive, isPassive, isDeclarative, isNonZeroIndex, isExpression);
+            // TODO
         }
+    }
+
+    public void parseCodeSection() {
+
+    }
+
+    private void assertSectionParsed(int startPos, int numBytes) {
+        assert bb.position() == startPos + numBytes;
     }
 
     public Module parseModule() {
@@ -275,23 +266,29 @@ public class WasmParser implements Parser {
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
             int sectionLength = (int) Leb128.readUnsigned(bb);
+            int sectionStart = bb.position();
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, GLOBAL, CODE, DATA, DATA_COUNT -> bb.position((bb.position() + sectionLength));
-                case TYPE -> types = parseTypes(sectionLength);
-                case IMPORT -> imports = parseImports(sectionLength);
-                case FUNCTION -> functions = parseFunctionSection(sectionLength);
-                case TABLE -> tables = parseTableSection(sectionLength);
-                case EXPORT -> exports = parseExports(sectionLength);
+                case CUSTOM, GLOBAL, DATA, DATA_COUNT -> bb.position(sectionStart + sectionLength);
+                case TYPE -> types = parseTypes();
+                case IMPORT -> imports = parseImports();
+                case FUNCTION -> functions = parseFunctionSection();
+                case TABLE -> tables = parseTableSection();
+                case EXPORT -> exports = parseExports();
                 case START -> startIdx = parseStartIdx();
-                case MEMORY -> memories = parseMemorySection(sectionLength);
+                case MEMORY -> memories = parseMemorySection();
                 case ELEMENT -> {
-                    int startPos = bb.position();
                     // parseElementSection(sectionLength);
-                    bb.position(startPos + sectionLength);
+                    bb.position(sectionStart + sectionLength);
+                }
+                case CODE -> {
+                    parseCodeSection();
+                    bb.position(sectionStart + sectionLength);
                 }
             }
+            // Check that section is fully consumed
+            assertSectionParsed(sectionStart, sectionLength);
         }
         System.out.println(bb.position());
         System.out.println(Arrays.toString(types));
