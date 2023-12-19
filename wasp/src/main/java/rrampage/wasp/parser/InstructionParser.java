@@ -20,12 +20,54 @@ public class InstructionParser {
                 case CONST_INT, CONST_LONG, CONST_FLOAT, CONST_DOUBLE -> insList.add(parseConstantInstruction(b, in));
                 case GLOBAL_GET, GLOBAL_SET -> insList.add(parseGlobalInstruction(b, in));
                 case LOCAL_GET, LOCAL_SET, LOCAL_TEE, FUNC_CALL, FUNC_CALL_INDIRECT, FUNC_RETURN -> insList.add(parseFunctionInstruction(b, in));
+                case LOAD_I32, LOAD8_I32_S, LOAD8_I32_U, LOAD16_I32_S, LOAD16_I32_U, LOAD_F32, LOAD_F64,
+                        LOAD_I64, LOAD8_I64_S, LOAD8_I64_U, LOAD16_I64_S,
+                        LOAD16_I64_U, LOAD32_I64_S, LOAD32_I64_U -> insList.add(parseLoadInstruction(b, in));
+                case STORE_I32, STORE_I64, STORE_F32, STORE_F64, STORE8_I32, STORE16_I32,
+                        STORE8_I64, STORE16_I64, STORE32_I64 -> insList.add(parseStoreInstruction(b, in));
                 default -> {break loopBody;}
             }
             i += in.position() - startPos;
 
         }
         return insList.toArray(Instruction[]::new);
+    }
+
+    private static StoreInstruction parseStoreInstruction(int byteCode, ByteBuffer in) {
+        System.out.printf("Parsing Store instruction with bytecode 0x%X\n", byteCode);
+        return switch (byteCode) {
+            case STORE_I32 -> new StoreInstruction.I32Store((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE_I64 -> new StoreInstruction.I64Store((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE_F32 -> new StoreInstruction.F32Store((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE_F64 -> new StoreInstruction.F64Store((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE8_I32 -> new StoreInstruction.I32Store8((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE16_I32 -> new StoreInstruction.I32Store16((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE8_I64 -> new StoreInstruction.I64Store8((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE16_I64 -> new StoreInstruction.I64Store16((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case STORE32_I64 -> new StoreInstruction.I64Store32((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            default -> throw new RuntimeException("Unexpected bytecode for store instruction: " + byteCode);
+        };
+    }
+
+    private static LoadInstruction parseLoadInstruction(int byteCode, ByteBuffer in) {
+        System.out.printf("Parsing Load instruction with bytecode 0x%X\n", byteCode);
+        return switch (byteCode) {
+            case LOAD_I32 -> new LoadInstruction.I32Load((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD8_I32_S -> new LoadInstruction.I32Load8S((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD8_I32_U -> new LoadInstruction.I32Load8U((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD16_I32_S -> new LoadInstruction.I32Load16S((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD16_I32_U -> new LoadInstruction.I32Load16U((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD_I64 -> new LoadInstruction.I64Load((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD8_I64_S -> new LoadInstruction.I64Load8S((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD8_I64_U -> new LoadInstruction.I64Load8U((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD16_I64_S -> new LoadInstruction.I64Load16S((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD16_I64_U -> new LoadInstruction.I64Load16U((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD32_I64_S -> new LoadInstruction.I64Load32S((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD32_I64_U -> new LoadInstruction.I64Load32U((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD_F32 -> new LoadInstruction.F32Load((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case LOAD_F64 -> new LoadInstruction.F64Load((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            default -> throw new RuntimeException("Unexpected bytecode for load instruction: " + byteCode);
+        };
     }
 
     private static ConstInstruction parseConstantInstruction(int byteCode, ByteBuffer in) {
