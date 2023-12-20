@@ -194,8 +194,6 @@ public class Machine {
                         case I64_REM_S -> push(l % r);
                         case I64_DIV_U -> push(Long.divideUnsigned(l,r));
                         case I64_REM_U -> push(Long.remainderUnsigned(l,r));
-                        case I64_MAX -> push(Long.max(l,r));
-                        case I64_MIN -> push(Long.min(l,r));
                         case I64_AND -> push(l&r);
                         case I64_OR -> push(l|r);
                         case I64_XOR -> push(l^r);
@@ -228,8 +226,6 @@ public class Machine {
                         case I32_REM_S -> pushInt(l%r);
                         case I32_DIV_U -> pushInt(Integer.divideUnsigned(l,r));
                         case I32_REM_U -> pushInt(Integer.remainderUnsigned(l,r));
-                        case I32_MAX -> pushInt(Integer.max(l,r));
-                        case I32_MIN -> pushInt(Integer.min(l,r));
                         case I32_AND -> pushInt(l&r);
                         case I32_OR -> pushInt(l|r);
                         case I32_XOR -> pushInt(l^r);

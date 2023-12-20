@@ -18,8 +18,6 @@ public enum IntBinaryInstruction implements Instruction {
     I32_LT_U("i32.lt_u"),
     I32_GE_U("i32.ge_u"),
     I32_LE_U("i32.le_u"),
-    I32_MAX("i32.max"),
-    I32_MIN("i32.min"),
     I32_AND("i32.and"),
     I32_OR("i32.or"),
     I32_XOR("i32.xor"),

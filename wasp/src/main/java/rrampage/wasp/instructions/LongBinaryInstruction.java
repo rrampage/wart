@@ -18,8 +18,6 @@ public enum LongBinaryInstruction implements Instruction {
     I64_LT_U("i64.lt_u"),
     I64_GE_U("i64.ge_u"),
     I64_LE_U("i64.le_u"),
-    I64_MAX("i64.max"),
-    I64_MIN("i64.min"),
     I64_AND("i64.and"),
     I64_OR("i64.or"),
     I64_XOR("i64.xor"),
