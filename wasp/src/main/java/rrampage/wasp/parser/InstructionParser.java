@@ -16,7 +16,7 @@ public class InstructionParser {
         while (i < numBytes) {
             int b = Byte.toUnsignedInt(in.get()); // get bytecode of instruction
             switch (b) {
-                // Const instructions
+                case NULL_UNREACHABLE, NULL_NOP, NULL_MEM_SIZE -> insList.add(parseNullaryInstruction(b, in));
                 case CONST_INT, CONST_LONG, CONST_FLOAT, CONST_DOUBLE -> insList.add(parseConstantInstruction(b, in));
                 case GLOBAL_GET, GLOBAL_SET -> insList.add(parseGlobalInstruction(b, in));
                 case LOCAL_GET, LOCAL_SET, LOCAL_TEE, FUNC_CALL, FUNC_CALL_INDIRECT, FUNC_RETURN -> insList.add(parseFunctionInstruction(b, in));
@@ -25,12 +25,23 @@ public class InstructionParser {
                         LOAD16_I64_U, LOAD32_I64_S, LOAD32_I64_U -> insList.add(parseLoadInstruction(b, in));
                 case STORE_I32, STORE_I64, STORE_F32, STORE_F64, STORE8_I32, STORE16_I32,
                         STORE8_I64, STORE16_I64, STORE32_I64 -> insList.add(parseStoreInstruction(b, in));
+                case SELECT -> insList.add(new Select());
                 default -> {break loopBody;}
             }
             i += in.position() - startPos;
 
         }
         return insList.toArray(Instruction[]::new);
+    }
+
+    private static NullaryInstruction parseNullaryInstruction(int byteCode, ByteBuffer in) {
+        System.out.printf("Parsing Nullary instruction with bytecode 0x%X\n", byteCode);
+        return switch (byteCode) {
+            case NULL_UNREACHABLE -> NullaryInstruction.UNREACHABLE;
+            case NULL_NOP -> NullaryInstruction.NOP;
+            case NULL_MEM_SIZE -> NullaryInstruction.MEMORY_SIZE;
+            default -> throw new RuntimeException("Unexpected bytecode for nullary instruction: " + byteCode);
+        };
     }
 
     private static StoreInstruction parseStoreInstruction(int byteCode, ByteBuffer in) {
@@ -100,6 +111,23 @@ public class InstructionParser {
             case GLOBAL_GET -> new GlobalInstruction.GlobalGet((int) Leb128.readUnsigned(in));
             case GLOBAL_SET -> new GlobalInstruction.GlobalSet((int) Leb128.readUnsigned(in));
             default -> throw new RuntimeException("Unexpected bytecode for function instruction: " + byteCode);
+        };
+    }
+
+    private static UnaryInstruction parseUnaryInstruction(int byteCode, ByteBuffer in) {
+        System.out.printf("Parsing unary instruction with bytecode 0x%X\n", byteCode);
+        return switch (byteCode) {
+            case UN_DROP -> UnaryInstruction.DROP;
+            case UN_MEM_GROW -> UnaryInstruction.MEMORY_GROW;
+            case UN_I32_EQZ -> UnaryInstruction.I32_EQZ;
+            case UN_I32_CLZ -> UnaryInstruction.I32_CLZ;
+            case UN_I32_CTZ -> UnaryInstruction.I32_CTZ;
+            case UN_I32_POPCNT -> UnaryInstruction.I32_POPCNT;
+            case UN_I64_EQZ -> UnaryInstruction.I64_EQZ;
+            case UN_I64_CLZ -> UnaryInstruction.I64_CLZ;
+            case UN_I64_CTZ -> UnaryInstruction.I64_CTZ;
+            case UN_I64_POPCNT -> UnaryInstruction.I64_POPCNT;
+            default -> throw new RuntimeException("Unexpected bytecode for unary instruction: " + byteCode);
         };
     }
 }
