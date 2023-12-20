@@ -33,7 +33,12 @@ public class InstructionParser {
                 case UN_DROP, UN_MEM_GROW, UN_I32_EQZ, UN_I64_EQZ, UN_I32_CLZ, UN_I64_CLZ,
                         UN_I32_CTZ, UN_I64_CTZ, UN_I32_POPCNT, UN_I64_POPCNT,
                         UN_F32_ABS, UN_F32_NEG, UN_F32_CEIL, UN_F32_FLOOR, UN_F32_TRUNC, UN_F32_NEAREST, UN_F32_SQRT,
-                        UN_F64_ABS, UN_F64_NEG, UN_F64_CEIL, UN_F64_FLOOR, UN_F64_TRUNC, UN_F64_NEAREST, UN_F64_SQRT
+                        UN_F64_ABS, UN_F64_NEG, UN_F64_CEIL, UN_F64_FLOOR, UN_F64_TRUNC, UN_F64_NEAREST, UN_F64_SQRT,
+                        UN_I32_WRAP_I64, UN_I32_TRUNC_F32_S, UN_I32_TRUNC_F32_U, UN_I32_TRUNC_F64_S, UN_I32_TRUNC_F64_U,
+                        UN_I64_EXTEND_I32_S, UN_I64_EXTEND_I32_U, UN_I64_TRUNC_F32_S, UN_I64_TRUNC_F32_U, UN_I64_TRUNC_F64_S, UN_I64_TRUNC_F64_U,
+                        UN_F32_CONVERT_I32_S, UN_F32_CONVERT_I32_U, UN_F32_CONVERT_I64_S, UN_F32_CONVERT_I64_U, UN_F32_DEMOTE_F64,
+                        UN_F64_CONVERT_I32_S, UN_F64_CONVERT_I32_U, UN_F64_CONVERT_I64_S, UN_F64_CONVERT_I64_U, UN_F64_PROMOTE_F32,
+                        UN_I32_REINTERPRET_F32, UN_I64_REINTERPRET_F64, UN_F32_REINTERPRET_I32, UN_F64_REINTERPRET_I64
                         -> insList.add(parseUnaryInstruction(b, in));
                 case BI_I32_EQ, BI_I32_NE, BI_I32_LT_S, BI_I32_LT_U, BI_I32_GT_S, BI_I32_GT_U,
                         BI_I32_LE_S, BI_I32_LE_U, BI_I32_GE_S, BI_I32_GE_U,
@@ -169,6 +174,31 @@ public class InstructionParser {
             case UN_F64_TRUNC -> UnaryInstruction.F64_TRUNC;
             case UN_F64_NEAREST -> UnaryInstruction.F64_NEAREST;
             case UN_F64_SQRT -> UnaryInstruction.F64_SQRT;
+            case UN_I32_WRAP_I64 -> UnaryInstruction.I32_WRAP_I64;
+            case UN_I32_TRUNC_F32_S -> UnaryInstruction.I32_TRUNC_F32_S;
+            case UN_I32_TRUNC_F32_U -> UnaryInstruction.I32_TRUNC_F32_U;
+            case UN_I32_TRUNC_F64_S -> UnaryInstruction.I32_TRUNC_F64_S;
+            case UN_I32_TRUNC_F64_U -> UnaryInstruction.I32_TRUNC_F64_U;
+            case UN_I64_EXTEND_I32_S -> UnaryInstruction.I64_EXTEND_I32_S;
+            case UN_I64_EXTEND_I32_U -> UnaryInstruction.I64_EXTEND_I32_U;
+            case UN_I64_TRUNC_F32_S -> UnaryInstruction.I64_TRUNC_F32_S;
+            case UN_I64_TRUNC_F32_U -> UnaryInstruction.I64_TRUNC_F32_U;
+            case UN_I64_TRUNC_F64_S -> UnaryInstruction.I64_TRUNC_F64_S;
+            case UN_I64_TRUNC_F64_U -> UnaryInstruction.I64_TRUNC_F64_U;
+            case UN_F32_CONVERT_I32_S -> UnaryInstruction.F32_CONVERT_I32_S;
+            case UN_F32_CONVERT_I32_U -> UnaryInstruction.F32_CONVERT_I32_U;
+            case UN_F32_CONVERT_I64_S -> UnaryInstruction.F32_CONVERT_I64_S;
+            case UN_F32_CONVERT_I64_U -> UnaryInstruction.F32_CONVERT_I64_U;
+            case UN_F32_DEMOTE_F64 -> UnaryInstruction.F32_DEMOTE_F64;
+            case UN_F64_CONVERT_I32_S -> UnaryInstruction.F64_CONVERT_I32_S;
+            case UN_F64_CONVERT_I32_U -> UnaryInstruction.F64_CONVERT_I32_U;
+            case UN_F64_CONVERT_I64_S -> UnaryInstruction.F64_CONVERT_I64_S;
+            case UN_F64_CONVERT_I64_U -> UnaryInstruction.F64_CONVERT_I64_U;
+            case UN_F64_PROMOTE_F32 -> UnaryInstruction.F64_PROMOTE_F32;
+            case UN_I32_REINTERPRET_F32 -> UnaryInstruction.I32_REINTERPRET_F32;
+            case UN_I64_REINTERPRET_F64 -> UnaryInstruction.I64_REINTERPRET_F64;
+            case UN_F32_REINTERPRET_I32 -> UnaryInstruction.F32_REINTERPRET_I32;
+            case UN_F64_REINTERPRET_I64 -> UnaryInstruction.F64_REINTERPRET_I64;
             default -> throw new RuntimeException("Unexpected bytecode for unary instruction: " + byteCode);
         };
     }
