@@ -26,6 +26,10 @@ public class ByteCodeConstants {
     UN_I64_CLZ = 0x79, UN_I64_CTZ = 0x7a, UN_I64_POPCNT = 0x7b,
     BI_I64_ADD = 0x7c, BI_I64_SUB = 0x7d, BI_I64_MUL = 0x7e, BI_I64_DIV_S = 0x7f, BI_I64_DIV_U = 0x80, BI_I64_REM_S = 0x81, BI_I64_REM_U = 0x82, // i64 math
     BI_I64_AND = 0x83, BI_I64_OR = 0x84, BI_I64_XOR = 0x85, BI_I64_SHL = 0x86, BI_I64_SHR_S = 0x87, BI_I64_SHR_U = 0x88, BI_I64_ROTL = 0x89, BI_I64_ROTR = 0x8a, // i64 bitwise
+    UN_F32_ABS = 0x8b, UN_F32_NEG = 0x8c, UN_F32_CEIL = 0x8d, UN_F32_FLOOR = 0x8e, UN_F32_TRUNC = 0x8f, UN_F32_NEAREST = 0x90, UN_F32_SQRT = 0x91, // f32 unary
+    BI_F32_ADD = 0x92, BI_F32_SUB = 0x93, BI_F32_MUL = 0x94, BI_F32_DIV = 0x95, BI_F32_MIN = 0x96, BI_F32_MAX = 0x97, BI_F32_COPYSIGN = 0x98, // f32 math
+    UN_F64_ABS = 0x99, UN_F64_NEG = 0x9a, UN_F64_CEIL = 0x9b, UN_F64_FLOOR = 0x9c, UN_F64_TRUNC = 0x9d, UN_F64_NEAREST = 0x9e, UN_F64_SQRT = 0x9f, // F64 unary
+    BI_F64_ADD = 0xa0, BI_F64_SUB = 0xa1, BI_F64_MUL = 0xa2, BI_F64_DIV = 0xa3, BI_F64_MIN = 0xa4, BI_F64_MAX = 0xa5, BI_F64_COPYSIGN = 0xa6, // F64 math
     DUMMY = -1
     ;
 }
