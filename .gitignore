@@ -2,3 +2,4 @@
 *.iml
 examples
 out/
+.DS_Store

@@ -49,6 +49,9 @@ WASM opcode references:
 #### Machine
 - Exports
 - Block types
+- 128 bit vector (v128) data type and instructions
+- external reference types
+- GC ??
 
 #### WAT Parser
 - Exports
@@ -73,6 +76,23 @@ WASM opcode references:
 - Create support infrastructure to pass multiple imports
   - We do not have to pass imports while parsing. We can create stubbed-out functions using the type signature
   - Later, when instantiating machine, we can replace these stubbed functions with method handles from a HashMap<String, MethodHandle>
+
+#### [Validation](https://webassembly.github.io/spec/core/valid/index.html)
+- Limits must have meaningful bounds
+- Block types must be expressed in one of 2 forms both of which are converted to function types
+  - typeidx: `types[typeidx]` must be defined
+  - valtype : `[] -> [valtype]`
+- Table type limits for `reftype` must be valid within the range `2^32 -1`
+- Memory type limits must be valid within the range `2^16`
+- External types : the corresponding function / table / memory / global types must be valid
+- Import subtyping: When instantiating a module, external values must be provided whose types are matched against the respective external types classifying each import.
+  - Limits: External limits(min1, max1) matches limits(min2. max2) iff min1 >= min2 AND (max2 is empty OR (max1 and max2 are non-empty AND max1 <= max2))
+  - Function types: External functype1 and functype2 are the same
+  - Tables: External reftype table1(limits1, reftype1) matches table2(limits2, reftype2) iff limits1 matches limits2 AND reftype1 and reftype2 are the same
+  - Memories: External memory1(limits1) matches memory2(limits2) iff limits1 matches limits2
+  - Globals: External global1(globaltype1) matches global2(globaltype2) iff globaltype1 and globaltype2 are the same
+- [Instructions](https://webassembly.github.io/spec/core/valid/instructions.html)
+- [Modules](https://webassembly.github.io/spec/core/valid/modules.html)
 
 ## wag - Golang WASM interpreter
 ```bash
