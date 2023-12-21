@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static rrampage.wasp.utils.ConversionUtils.*;
@@ -234,9 +235,10 @@ public class WasmParser implements Parser {
         }
     }
 
-    public void parseCodeSection() {
+    public Function[] parseCodeSection(FunctionType[] types, ImportMetadata[] imports, int[] functions) {
+        int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.FunctionDescriptor).count();
         int n = (int) Leb128.readUnsigned(bb);
-        System.out.printf("%d code items\n", n);
+        System.out.printf("%d code items numFunctionsDeclared: %d numImports: %d\n", n, functions.length, numImports);
         /*
             The encoding of each code entry consists of :
             - the size of the function code in bytes,
@@ -249,21 +251,39 @@ public class WasmParser implements Parser {
             denoting count locals of the same value type.
 
          */
+        Function[] allFuncs = new Function[numImports + functions.length];
         for (int i = 0; i < n; i++) {
             int funSize = (int) Leb128.readUnsigned(bb);
             int funPos = bb.position();
             int lc = (int) Leb128.readUnsigned(bb);
+            ArrayList<ValueType.NumType> locals = new ArrayList<>();
             System.out.printf("Index: %d Function size: %d Local declaration count %d\n", i, funSize, lc);
             for (int j = 0; j < lc; j++) {
                 int numLocal = (int) Leb128.readUnsigned(bb);
                 var type = ValueType.NumType.from(bb.get());
                 System.out.printf("%d Locals of type %s\n", numLocal, type);
+                for (int k = 0; k < numLocal; k++) {
+                    locals.add(type);
+                }
             }
             int bytesToParse = funPos + funSize - bb.position();
-            Instruction[] code = InstructionParser.parse(bb, bytesToParse);
+            Instruction[] code = InstructionParser.parse(bb, bytesToParse, types);
             System.out.println("Code : " + Arrays.toString(code));
+            int funcIdx = i + numImports;
+            String fname = "Function_" + funcIdx;
+            Function f = new Function(fname, types[functions[i]], locals.toArray(ValueType.NumType[]::new), code, Function.getLabelsFromInstructions(code));
+            allFuncs[funcIdx] = f;
             bb.position(funPos + funSize);
         }
+        // create stub functions for import
+        int i = 0;
+        for (ImportMetadata im : imports) {
+            if (im.importDescriptor() instanceof ImportDescriptor.FunctionDescriptor ifun) {
+                i++;
+                allFuncs[i] = Function.createStubFunction(im.module() + "__" + im.name(), types[ifun.idx()]);
+            }
+        }
+        return allFuncs;
     }
 
     private void assertBufferPosition(int expectedPosition) {
@@ -292,6 +312,7 @@ public class WasmParser implements Parser {
         Table[] tables = new Table[0];
         long startIdx = -1;
         int[] functions = new int[0];
+        Function[] allFuncs = new Function[0];
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
             int sectionLength = (int) Leb128.readUnsigned(bb);
@@ -312,7 +333,8 @@ public class WasmParser implements Parser {
                     bb.position(sectionStart + sectionLength);
                 }
                 case CODE -> {
-                    parseCodeSection();
+                    int numFunctions = functions.length;
+                    allFuncs = parseCodeSection(types, imports, functions);
                     bb.position(sectionStart + sectionLength);
                 }
             }
@@ -327,7 +349,7 @@ public class WasmParser implements Parser {
         System.out.println(Arrays.toString(memories));
         System.out.println(Arrays.toString(tables));
         System.out.println("Start Index: " + startIdx);
-        return new Module(1, types, null, tables, exports, imports, memories, startIdx);
+        return new Module(1, types, allFuncs, tables, exports, imports, memories, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {
@@ -342,7 +364,7 @@ public class WasmParser implements Parser {
         String f4 = "./examples/fizzbuzz_manual.wasm";
         String f5 = "./examples/rocket.wasm";
         String f6 = "./examples/elem_syntax.wasm";
-        String path = Paths.get(f6).toAbsolutePath().normalize().toString();
+        String path = Paths.get(f5).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);

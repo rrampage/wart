@@ -41,6 +41,7 @@ WASM opcode references:
   - Function
   - Table
   - Memory
+  - Code
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -66,7 +67,6 @@ WASM opcode references:
   - Custom
   - Global
   - Element
-  - Code
   - Data
   - Data count
 - Module instantiation

@@ -32,6 +32,8 @@ public record Function(String name, FunctionType type, ValueType.NumType[] local
             switch (i) {
                 case ControlFlowInstruction.Loop l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), getMaxLabelFromInstructions(l.code())));
                 case ControlFlowInstruction.Block l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), getMaxLabelFromInstructions(l.code())));
+                case ControlFlowInstruction.If l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), getMaxLabelFromInstructions(l.ifBlock())));
+                case ControlFlowInstruction.IfElse l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), Math.max(getMaxLabelFromInstructions(l.ifBlock()), getMaxLabelFromInstructions(l.elseBlock()))));
                 default -> {}
             }
         }

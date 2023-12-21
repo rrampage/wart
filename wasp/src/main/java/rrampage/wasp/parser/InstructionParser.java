@@ -1,74 +1,139 @@
 package rrampage.wasp.parser;
 
+import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.instructions.*;
 import rrampage.wasp.utils.Leb128;
 import static rrampage.wasp.instructions.ByteCodeConstants.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class InstructionParser {
-    public static Instruction[] parse(ByteBuffer in, int numBytes) {
+    public static Instruction[] parse(ByteBuffer in, int numBytes, FunctionType[] types) {
         int startPos = in.position();
         System.out.printf("PARSE_INSTRUCTION startPos: %d numBytes: %d\n", startPos, numBytes);
-        int i = 0;
         ArrayList<Instruction> insList =  new ArrayList<>(numBytes/2);
         // bytesToParse is numBytes-1 as we are ignoring the last 0xb byte marking function end
         int bytesToParse = numBytes-1;
-        loopBody:
-        while (i < bytesToParse) {
-            int b = Byte.toUnsignedInt(in.get()); // get bytecode of instruction
-            System.out.printf("Parsing bytecode: 0x%x %d out of %d%n", b, i, bytesToParse);
-            switch (b) {
-                case NULL_UNREACHABLE, NULL_NOP, NULL_MEM_SIZE -> insList.add(parseNullaryInstruction(b, in));
-                case CONST_INT, CONST_LONG, CONST_FLOAT, CONST_DOUBLE -> insList.add(parseConstantInstruction(b, in));
-                case GLOBAL_GET, GLOBAL_SET -> insList.add(parseGlobalInstruction(b, in));
-                case LOCAL_GET, LOCAL_SET, LOCAL_TEE, FUNC_CALL, FUNC_CALL_INDIRECT, FUNC_RETURN -> insList.add(parseFunctionInstruction(b, in));
-                case LOAD_I32, LOAD8_I32_S, LOAD8_I32_U, LOAD16_I32_S, LOAD16_I32_U, LOAD_F32, LOAD_F64,
-                        LOAD_I64, LOAD8_I64_S, LOAD8_I64_U, LOAD16_I64_S,
-                        LOAD16_I64_U, LOAD32_I64_S, LOAD32_I64_U -> insList.add(parseLoadInstruction(b, in));
-                case STORE_I32, STORE_I64, STORE_F32, STORE_F64, STORE8_I32, STORE16_I32,
-                        STORE8_I64, STORE16_I64, STORE32_I64 -> insList.add(parseStoreInstruction(b, in));
-                case SELECT -> insList.add(new Select());
-                case UN_DROP, UN_MEM_GROW, UN_I32_EQZ, UN_I64_EQZ, UN_I32_CLZ, UN_I64_CLZ,
-                        UN_I32_CTZ, UN_I64_CTZ, UN_I32_POPCNT, UN_I64_POPCNT,
-                        UN_F32_ABS, UN_F32_NEG, UN_F32_CEIL, UN_F32_FLOOR, UN_F32_TRUNC, UN_F32_NEAREST, UN_F32_SQRT,
-                        UN_F64_ABS, UN_F64_NEG, UN_F64_CEIL, UN_F64_FLOOR, UN_F64_TRUNC, UN_F64_NEAREST, UN_F64_SQRT,
-                        UN_I32_WRAP_I64, UN_I32_TRUNC_F32_S, UN_I32_TRUNC_F32_U, UN_I32_TRUNC_F64_S, UN_I32_TRUNC_F64_U,
-                        UN_I64_EXTEND_I32_S, UN_I64_EXTEND_I32_U, UN_I64_TRUNC_F32_S, UN_I64_TRUNC_F32_U, UN_I64_TRUNC_F64_S, UN_I64_TRUNC_F64_U,
-                        UN_F32_CONVERT_I32_S, UN_F32_CONVERT_I32_U, UN_F32_CONVERT_I64_S, UN_F32_CONVERT_I64_U, UN_F32_DEMOTE_F64,
-                        UN_F64_CONVERT_I32_S, UN_F64_CONVERT_I32_U, UN_F64_CONVERT_I64_S, UN_F64_CONVERT_I64_U, UN_F64_PROMOTE_F32,
-                        UN_I32_REINTERPRET_F32, UN_I64_REINTERPRET_F64, UN_F32_REINTERPRET_I32, UN_F64_REINTERPRET_I64
-                        -> insList.add(parseUnaryInstruction(b, in));
-                case BI_I32_EQ, BI_I32_NE, BI_I32_LT_S, BI_I32_LT_U, BI_I32_GT_S, BI_I32_GT_U,
-                        BI_I32_LE_S, BI_I32_LE_U, BI_I32_GE_S, BI_I32_GE_U,
-                        BI_I32_ADD, BI_I32_SUB, BI_I32_MUL, BI_I32_DIV_S, BI_I32_DIV_U, BI_I32_REM_S, BI_I32_REM_U,
-                        BI_I32_AND, BI_I32_OR, BI_I32_XOR, BI_I32_SHL, BI_I32_SHR_S, BI_I32_SHR_U, BI_I32_ROTL, BI_I32_ROTR
-                        -> insList.add(parseI32BinaryInstruction(b, in));
-                case BI_I64_EQ, BI_I64_NE, BI_I64_LT_S, BI_I64_LT_U, BI_I64_GT_S, BI_I64_GT_U,
-                        BI_I64_LE_S, BI_I64_LE_U, BI_I64_GE_S, BI_I64_GE_U,
-                        BI_I64_ADD, BI_I64_SUB, BI_I64_MUL, BI_I64_DIV_S, BI_I64_DIV_U, BI_I64_REM_S, BI_I64_REM_U,
-                        BI_I64_AND, BI_I64_OR, BI_I64_XOR, BI_I64_SHL, BI_I64_SHR_S, BI_I64_SHR_U, BI_I64_ROTL, BI_I64_ROTR
-                        -> insList.add(parseI64BinaryInstruction(b, in));
-                case BI_F32_EQ, BI_F32_NE, BI_F32_LT, BI_F32_GT, BI_F32_LE, BI_F32_GE,
-                        BI_F32_ADD, BI_F32_SUB, BI_F32_MUL, BI_F32_DIV, BI_F32_MIN, BI_F32_MAX, BI_F32_COPYSIGN
-                        -> insList.add(parseF32BinaryInstruction(b, in));
-                case BI_F64_EQ, BI_F64_NE, BI_F64_LT, BI_F64_GT, BI_F64_LE, BI_F64_GE,
-                        BI_F64_ADD, BI_F64_SUB, BI_F64_MUL, BI_F64_DIV, BI_F64_MIN, BI_F64_MAX, BI_F64_COPYSIGN
-                        -> insList.add(parseF64BinaryInstruction(b, in));
-                default -> {
-                    System.out.println("Unrecognized bytecode: " + b);
-                    break loopBody;
-                }
-            }
-            i = in.position() - startPos;
-            System.out.printf("Parsed bytecode: 0x%x %d out of %d%n", b, i, bytesToParse);
+        AtomicInteger currLabel = new AtomicInteger(-1);
+        while (in.position() - startPos < bytesToParse) {
+            insList.add(parseInstruction(in, startPos, bytesToParse, types, currLabel));
         }
         return insList.toArray(Instruction[]::new);
     }
 
-    private static NullaryInstruction parseNullaryInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing Nullary instruction with bytecode 0x%X\n", byteCode);
+    private static Instruction parseInstruction(ByteBuffer in, int startPos, int bytesToParse, FunctionType[] types, AtomicInteger labelMarker) {
+        if (in.position() - startPos >= bytesToParse) {
+            throw new RuntimeException("Already reached end of code section");
+        }
+        int b = Byte.toUnsignedInt(in.get()); // get bytecode of instruction
+        // System.out.printf("Parsing bytecode: 0x%x %d out of %d%n", b, in.position() - startPos, bytesToParse);
+        return switch (b) {
+            case NULL_UNREACHABLE, NULL_NOP, NULL_MEM_SIZE -> parseNullaryInstruction(b);
+            case CF_BLOCK, CF_LOOP, CF_IF, CF_ELSE, CF_END, CF_BR, CF_BR_IF, CF_BR_TABLE -> parseControlFlowInstruction(b, in, types, startPos, bytesToParse, labelMarker);
+            case CONST_INT, CONST_LONG, CONST_FLOAT, CONST_DOUBLE -> parseConstantInstruction(b, in);
+            case GLOBAL_GET, GLOBAL_SET -> parseGlobalInstruction(b, in);
+            case LOCAL_GET, LOCAL_SET, LOCAL_TEE, FUNC_CALL, FUNC_CALL_INDIRECT, FUNC_RETURN -> parseFunctionInstruction(b, in);
+            case LOAD_I32, LOAD8_I32_S, LOAD8_I32_U, LOAD16_I32_S, LOAD16_I32_U, LOAD_F32, LOAD_F64,
+                    LOAD_I64, LOAD8_I64_S, LOAD8_I64_U, LOAD16_I64_S,
+                    LOAD16_I64_U, LOAD32_I64_S, LOAD32_I64_U -> parseLoadInstruction(b, in);
+            case STORE_I32, STORE_I64, STORE_F32, STORE_F64, STORE8_I32, STORE16_I32,
+                    STORE8_I64, STORE16_I64, STORE32_I64 -> parseStoreInstruction(b, in);
+            case SELECT -> new Select();
+            case UN_DROP, UN_MEM_GROW, UN_I32_EQZ, UN_I64_EQZ, UN_I32_CLZ, UN_I64_CLZ,
+                    UN_I32_CTZ, UN_I64_CTZ, UN_I32_POPCNT, UN_I64_POPCNT,
+                    UN_F32_ABS, UN_F32_NEG, UN_F32_CEIL, UN_F32_FLOOR, UN_F32_TRUNC, UN_F32_NEAREST, UN_F32_SQRT,
+                    UN_F64_ABS, UN_F64_NEG, UN_F64_CEIL, UN_F64_FLOOR, UN_F64_TRUNC, UN_F64_NEAREST, UN_F64_SQRT,
+                    UN_I32_WRAP_I64, UN_I32_TRUNC_F32_S, UN_I32_TRUNC_F32_U, UN_I32_TRUNC_F64_S, UN_I32_TRUNC_F64_U,
+                    UN_I64_EXTEND_I32_S, UN_I64_EXTEND_I32_U, UN_I64_TRUNC_F32_S, UN_I64_TRUNC_F32_U, UN_I64_TRUNC_F64_S, UN_I64_TRUNC_F64_U,
+                    UN_F32_CONVERT_I32_S, UN_F32_CONVERT_I32_U, UN_F32_CONVERT_I64_S, UN_F32_CONVERT_I64_U, UN_F32_DEMOTE_F64,
+                    UN_F64_CONVERT_I32_S, UN_F64_CONVERT_I32_U, UN_F64_CONVERT_I64_S, UN_F64_CONVERT_I64_U, UN_F64_PROMOTE_F32,
+                    UN_I32_REINTERPRET_F32, UN_I64_REINTERPRET_F64, UN_F32_REINTERPRET_I32, UN_F64_REINTERPRET_I64
+                    -> parseUnaryInstruction(b, in);
+            case BI_I32_EQ, BI_I32_NE, BI_I32_LT_S, BI_I32_LT_U, BI_I32_GT_S, BI_I32_GT_U,
+                    BI_I32_LE_S, BI_I32_LE_U, BI_I32_GE_S, BI_I32_GE_U,
+                    BI_I32_ADD, BI_I32_SUB, BI_I32_MUL, BI_I32_DIV_S, BI_I32_DIV_U, BI_I32_REM_S, BI_I32_REM_U,
+                    BI_I32_AND, BI_I32_OR, BI_I32_XOR, BI_I32_SHL, BI_I32_SHR_S, BI_I32_SHR_U, BI_I32_ROTL, BI_I32_ROTR
+                    -> parseI32BinaryInstruction(b, in);
+            case BI_I64_EQ, BI_I64_NE, BI_I64_LT_S, BI_I64_LT_U, BI_I64_GT_S, BI_I64_GT_U,
+                    BI_I64_LE_S, BI_I64_LE_U, BI_I64_GE_S, BI_I64_GE_U,
+                    BI_I64_ADD, BI_I64_SUB, BI_I64_MUL, BI_I64_DIV_S, BI_I64_DIV_U, BI_I64_REM_S, BI_I64_REM_U,
+                    BI_I64_AND, BI_I64_OR, BI_I64_XOR, BI_I64_SHL, BI_I64_SHR_S, BI_I64_SHR_U, BI_I64_ROTL, BI_I64_ROTR
+                    -> parseI64BinaryInstruction(b, in);
+            case BI_F32_EQ, BI_F32_NE, BI_F32_LT, BI_F32_GT, BI_F32_LE, BI_F32_GE,
+                    BI_F32_ADD, BI_F32_SUB, BI_F32_MUL, BI_F32_DIV, BI_F32_MIN, BI_F32_MAX, BI_F32_COPYSIGN
+                    -> parseF32BinaryInstruction(b, in);
+            case BI_F64_EQ, BI_F64_NE, BI_F64_LT, BI_F64_GT, BI_F64_LE, BI_F64_GE,
+                    BI_F64_ADD, BI_F64_SUB, BI_F64_MUL, BI_F64_DIV, BI_F64_MIN, BI_F64_MAX, BI_F64_COPYSIGN
+                    -> parseF64BinaryInstruction(b, in);
+            default -> throw new RuntimeException("Invalid bytecode for instruction: "+ b);
+        };
+    }
+
+    private static ControlFlowInstruction parseControlFlowInstruction(int byteCode, ByteBuffer in, FunctionType[] types, int startPosition, int bytesToParse, AtomicInteger labelMarker) {
+        // System.out.printf("Parsing Control Flow instruction with bytecode 0x%X\n", byteCode);
+        return switch (byteCode) {
+            case CF_BR -> new ControlFlowInstruction.Branch((int) Leb128.readUnsigned(in));
+            case CF_BR_IF -> new ControlFlowInstruction.BranchIf((int) Leb128.readUnsigned(in));
+            case CF_END -> new ControlFlowInstruction.End();
+            case CF_ELSE -> new ControlFlowInstruction.Else();
+            case CF_BR_TABLE -> {
+                int lsize = (int) Leb128.readUnsigned(in);
+                int[] labels = new int[lsize];
+                for (int i = 0; i < lsize; i++) {
+                    labels[i] = (int) Leb128.readUnsigned(in);
+                }
+                int defaultLabel = (int) Leb128.readUnsigned(in);
+                yield new ControlFlowInstruction.BranchTable(labels, defaultLabel);
+            }
+                 /*
+                    TODO
+                    Keep track of loop/block/if's . If you find next END, return block
+                 */
+            case CF_IF, CF_BLOCK, CF_LOOP -> {
+                boolean isIf = byteCode == CF_IF;
+                int blockType = (int) Leb128.readSigned(in);
+                FunctionType ft = (blockType >= 0) ? types[blockType] : FunctionType.getBlockType(blockType);
+                System.out.println("Func: " + ft);
+                int label = labelMarker.incrementAndGet(); // -1 -> 0
+                ArrayList<Instruction> insList = new ArrayList<>();
+                while (in.position() - startPosition < bytesToParse) {
+                    Instruction i = parseInstruction(in, startPosition, bytesToParse, types, labelMarker);
+                    if (i instanceof ControlFlowInstruction.End || i instanceof ControlFlowInstruction.Else) {
+                        if (i instanceof ControlFlowInstruction.Else) {
+                            if (!isIf) {
+                                throw new RuntimeException("Else block found for block/loop");
+                            }
+                            Instruction[] ifCode = insList.toArray(Instruction[]::new);
+                            insList = new ArrayList<>();
+                            // parse to end and return IfElse
+                            while (in.position() - startPosition < bytesToParse) {
+                                Instruction ii = parseInstruction(in, startPosition, bytesToParse, types, labelMarker);
+                                if (ii instanceof ControlFlowInstruction.End) {
+                                    labelMarker.decrementAndGet();
+                                    yield new ControlFlowInstruction.IfElse(label, ft, ifCode, insList.toArray(Instruction[]::new));
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    insList.add(i);
+                }
+                labelMarker.decrementAndGet();
+                //throw new RuntimeException("Unexpected bytecode for control flow instruction: " + byteCode);
+                if (byteCode == CF_IF) {
+                    new ControlFlowInstruction.If(label, ft, insList.toArray(Instruction[]::new));
+                }
+                yield (byteCode == CF_BLOCK) ?
+                        new ControlFlowInstruction.Block(label, ft, insList.toArray(Instruction[]::new)) :
+                        new ControlFlowInstruction.Loop(label, ft, insList.toArray(Instruction[]::new));
+            }
+            default -> throw new RuntimeException("Unexpected bytecode for control flow instruction: " + byteCode);
+        };
+    }
+
+    private static NullaryInstruction parseNullaryInstruction(int byteCode) {
         return switch (byteCode) {
             case NULL_UNREACHABLE -> NullaryInstruction.UNREACHABLE;
             case NULL_NOP -> NullaryInstruction.NOP;
@@ -78,7 +143,7 @@ public class InstructionParser {
     }
 
     private static StoreInstruction parseStoreInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing Store instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing Store instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case STORE_I32 -> new StoreInstruction.I32Store((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
             case STORE_I64 -> new StoreInstruction.I64Store((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
@@ -94,7 +159,7 @@ public class InstructionParser {
     }
 
     private static LoadInstruction parseLoadInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing Load instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing Load instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case LOAD_I32 -> new LoadInstruction.I32Load((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
             case LOAD8_I32_S -> new LoadInstruction.I32Load8S((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
@@ -115,7 +180,7 @@ public class InstructionParser {
     }
 
     private static ConstInstruction parseConstantInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing Constant instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing Constant instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case CONST_INT -> new ConstInstruction.IntConst((int) Leb128.readSigned(in));
             case CONST_LONG -> new ConstInstruction.LongConst(Leb128.readSigned(in));
@@ -126,7 +191,7 @@ public class InstructionParser {
     }
 
     private static FunctionInstruction parseFunctionInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing Function instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing Function instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case LOCAL_GET -> new FunctionInstruction.LocalGet((int) Leb128.readUnsigned(in));
             case LOCAL_SET -> new FunctionInstruction.LocalSet((int) Leb128.readUnsigned(in));
@@ -139,7 +204,7 @@ public class InstructionParser {
     }
 
     private static GlobalInstruction parseGlobalInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing function instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing global instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case GLOBAL_GET -> new GlobalInstruction.GlobalGet((int) Leb128.readUnsigned(in));
             case GLOBAL_SET -> new GlobalInstruction.GlobalSet((int) Leb128.readUnsigned(in));
@@ -148,7 +213,7 @@ public class InstructionParser {
     }
 
     private static UnaryInstruction parseUnaryInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing unary instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing unary instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case UN_DROP -> UnaryInstruction.DROP;
             case UN_MEM_GROW -> UnaryInstruction.MEMORY_GROW;
@@ -204,7 +269,7 @@ public class InstructionParser {
     }
 
     private static IntBinaryInstruction parseI32BinaryInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing i32 binary instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing i32 binary instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case BI_I32_EQ -> IntBinaryInstruction.I32_EQ;
             case BI_I32_NE -> IntBinaryInstruction.I32_NE;
@@ -236,7 +301,7 @@ public class InstructionParser {
     }
 
     private static LongBinaryInstruction parseI64BinaryInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing i64 binary instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing i64 binary instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case BI_I64_EQ -> LongBinaryInstruction.I64_EQ;
             case BI_I64_NE -> LongBinaryInstruction.I64_NE;
@@ -268,7 +333,7 @@ public class InstructionParser {
     }
 
     private static FloatBinaryInstruction parseF32BinaryInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing f32 binary instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing f32 binary instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case BI_F32_EQ -> FloatBinaryInstruction.F32_EQ;
             case BI_F32_NE -> FloatBinaryInstruction.F32_NE;
@@ -288,7 +353,7 @@ public class InstructionParser {
     }
 
     private static DoubleBinaryInstruction parseF64BinaryInstruction(int byteCode, ByteBuffer in) {
-        System.out.printf("Parsing F64 binary instruction with bytecode 0x%X\n", byteCode);
+        // System.out.printf("Parsing F64 binary instruction with bytecode 0x%X\n", byteCode);
         return switch (byteCode) {
             case BI_F64_EQ -> DoubleBinaryInstruction.F64_EQ;
             case BI_F64_NE -> DoubleBinaryInstruction.F64_NE;

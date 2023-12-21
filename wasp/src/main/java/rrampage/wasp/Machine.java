@@ -538,12 +538,14 @@ public class Machine {
                             }
                         }
                         case ControlFlowInstruction.If b -> {
+                            labels[b.label()] = level;
                             int cmp = popInt();
                             if (cmp == 1) {
                                 execute(b.ifBlock(), locals, level);
                             }
                         }
                         case ControlFlowInstruction.IfElse b -> {
+                            labels[b.label()] = level;
                             int cmp = popInt();
                             if (cmp == 1) {
                                 execute(b.ifBlock(), locals, level);
@@ -551,6 +553,8 @@ public class Machine {
                                 execute(b.elseBlock(), locals, level);
                             }
                         }
+                        case ControlFlowInstruction.Else _else -> {} // Do nothing
+                        case ControlFlowInstruction.End _end -> {} // Do nothing
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());

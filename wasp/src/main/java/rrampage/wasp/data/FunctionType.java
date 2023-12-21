@@ -3,7 +3,9 @@ package rrampage.wasp.data;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
 
-public record FunctionType(ValueType.NumType[] paramTypes, ValueType.NumType[] returnTypes) {
+import static rrampage.wasp.data.ValueType.*;
+
+public record FunctionType(NumType[] paramTypes, NumType[] returnTypes) {
     public boolean isVoidReturn() {
         return returnTypes == null || returnTypes.length == 0;
     }
@@ -64,4 +66,24 @@ public record FunctionType(ValueType.NumType[] paramTypes, ValueType.NumType[] r
                 Arrays.stream(ft.paramTypes()).map(FunctionType::getClassFromDataType).toArray(Class<?>[]::new);
         return MethodType.methodType(rtype, ptypes);
     }
+
+    public static FunctionType getBlockType(int blockType) {
+        if (blockType >= 0) {
+            throw new IllegalArgumentException("Non-negative blocktype found: " + blockType);
+        }
+        return switch (blockType) {
+            case -64 -> VOID;
+            case -1 -> I32_RETURN;
+            case -2 -> I64_RETURN;
+            case -3 -> F32_RETURN;
+            case -4 -> F64_RETURN;
+            default -> throw new IllegalArgumentException("Invalid negative blocktype found: " + blockType);
+        };
+    }
+
+    public static final FunctionType VOID = new FunctionType(null, null);
+    public static final FunctionType I32_RETURN = new FunctionType(null, new NumType[]{NumType.I32});
+    public static final FunctionType I64_RETURN = new FunctionType(null, new NumType[]{NumType.I64});
+    public static final FunctionType F32_RETURN = new FunctionType(null, new NumType[]{NumType.F32});
+    public static final FunctionType F64_RETURN = new FunctionType(null, new NumType[]{NumType.F64});
 }

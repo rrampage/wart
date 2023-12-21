@@ -214,7 +214,7 @@ public class MachineTest {
                 new ControlFlowInstruction.BranchIf(1),
         };
         Instruction[] ins = new Instruction[] {
-                new ControlFlowInstruction.Loop(1, loopIns),
+                new ControlFlowInstruction.Loop(1, null, loopIns),
                 new GlobalInstruction.GlobalGet(0),
         };
         Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldLoopGlobal", ins)}, null, globals, MEM_PAGES, 0);
@@ -234,7 +234,7 @@ public class MachineTest {
                 new ControlFlowInstruction.BranchIf(1),
         };
         Instruction[] funIns = new Instruction[] {
-                new ControlFlowInstruction.Loop(1, loopIns),
+                new ControlFlowInstruction.Loop(1, null, loopIns),
                 new FunctionInstruction.LocalGet(0),
         };
         int[] labels = Function.getLabelsFromInstructions(funIns);
