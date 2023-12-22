@@ -16,6 +16,7 @@ public class WasmParserTest {
             new WasmParserTestCase("fizzbuzz_manual.wasm", 326, 4, 1, 6, 0),
             new WasmParserTestCase("import_global.wasm", 104, 2, 5, 0, 0),
             new WasmParserTestCase("walloc.wasm", 2023, 3, 1, 6, 2),
+            new WasmParserTestCase("rocket.wasm", 53067, 17, 9, 125, 8),
     };
 
     record WasmParserTestCase(String fileName, int numBytes, int numTypes, int numImports, int numFunctions, int numExports) {

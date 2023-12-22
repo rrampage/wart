@@ -235,10 +235,7 @@ public class WasmParser implements Parser {
         }
     }
 
-    public Function[] parseCodeSection(FunctionType[] types, ImportMetadata[] imports, int[] functions) {
-        int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.FunctionDescriptor).count();
-        int n = (int) Leb128.readUnsigned(bb);
-        System.out.printf("%d code items numFunctionsDeclared: %d numImports: %d\n", n, functions.length, numImports);
+    private Function parseFunctionCode(int funcIdx, FunctionType[] types, int numImports, int[] functions) {
         /*
             The encoding of each code entry consists of :
             - the size of the function code in bytes,
@@ -249,31 +246,39 @@ public class WasmParser implements Parser {
             - a count,
             - a value type
             denoting count locals of the same value type.
-
          */
+        int funSize = (int) Leb128.readUnsigned(bb);
+        int funPos = bb.position();
+        int lc = (int) Leb128.readUnsigned(bb);
+        ArrayList<ValueType.NumType> locals = new ArrayList<>();
+        System.out.printf("Index: %d Function size: %d Local declaration count %d\n", funcIdx - numImports, funSize, lc);
+        for (int j = 0; j < lc; j++) {
+            int numLocal = (int) Leb128.readUnsigned(bb);
+            var type = ValueType.NumType.from(bb.get());
+            System.out.printf("%d Locals of type %s\n", numLocal, type);
+            for (int k = 0; k < numLocal; k++) {
+                locals.add(type);
+            }
+        }
+        int bytesToParse = funPos + funSize - bb.position();
+        Instruction[] code = InstructionParser.parse(bb, bytesToParse, types);
+        System.out.println("Code : " + Arrays.toString(code));
+        String fname = "Function_" + funcIdx;
+        Function f = new Function(fname, types[functions[funcIdx - numImports]], locals.toArray(ValueType.NumType[]::new), code, Function.getLabelsFromInstructions(code));
+        byte endByte = bb.get();
+        assert endByte == 0xb;
+        assertBufferPosition(funPos + funSize);
+        return f;
+    }
+
+    private Function[] parseCodeSection(FunctionType[] types, ImportMetadata[] imports, int[] functions) {
+        int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.FunctionDescriptor).count();
+        int n = (int) Leb128.readUnsigned(bb);
+        System.out.printf("%d code items numFunctionsDeclared: %d numImports: %d\n", n, functions.length, numImports);
         Function[] allFuncs = new Function[numImports + functions.length];
         for (int i = 0; i < n; i++) {
-            int funSize = (int) Leb128.readUnsigned(bb);
-            int funPos = bb.position();
-            int lc = (int) Leb128.readUnsigned(bb);
-            ArrayList<ValueType.NumType> locals = new ArrayList<>();
-            System.out.printf("Index: %d Function size: %d Local declaration count %d\n", i, funSize, lc);
-            for (int j = 0; j < lc; j++) {
-                int numLocal = (int) Leb128.readUnsigned(bb);
-                var type = ValueType.NumType.from(bb.get());
-                System.out.printf("%d Locals of type %s\n", numLocal, type);
-                for (int k = 0; k < numLocal; k++) {
-                    locals.add(type);
-                }
-            }
-            int bytesToParse = funPos + funSize - bb.position();
-            Instruction[] code = InstructionParser.parse(bb, bytesToParse, types);
-            System.out.println("Code : " + Arrays.toString(code));
-            int funcIdx = i + numImports;
-            String fname = "Function_" + funcIdx;
-            Function f = new Function(fname, types[functions[i]], locals.toArray(ValueType.NumType[]::new), code, Function.getLabelsFromInstructions(code));
-            allFuncs[funcIdx] = f;
-            bb.position(funPos + funSize);
+            Function f = parseFunctionCode(i + numImports, types, numImports, functions);
+            allFuncs[i + numImports] = f;
         }
         // create stub functions for import
         int i = 0;
@@ -286,7 +291,12 @@ public class WasmParser implements Parser {
         return allFuncs;
     }
 
+    public void parseDataSection() {
+
+    }
+
     private void assertBufferPosition(int expectedPosition) {
+        // System.out.printf("ASSERT Current: %d Expected: %d\n", bb.position(), expectedPosition);
         assert bb.position() == expectedPosition;
     }
 
@@ -320,7 +330,7 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, GLOBAL, DATA, DATA_COUNT -> bb.position(sectionStart + sectionLength);
+                case CUSTOM, GLOBAL, DATA_COUNT -> bb.position(sectionStart + sectionLength);
                 case TYPE -> types = parseTypes();
                 case IMPORT -> imports = parseImports();
                 case FUNCTION -> functions = parseFunctionSection();
@@ -332,9 +342,9 @@ public class WasmParser implements Parser {
                     // parseElementSection(sectionLength);
                     bb.position(sectionStart + sectionLength);
                 }
-                case CODE -> {
-                    int numFunctions = functions.length;
-                    allFuncs = parseCodeSection(types, imports, functions);
+                case CODE -> allFuncs = parseCodeSection(types, imports, functions);
+                case DATA -> {
+                    parseDataSection();
                     bb.position(sectionStart + sectionLength);
                 }
             }
