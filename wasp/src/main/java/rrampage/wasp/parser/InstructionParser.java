@@ -67,6 +67,7 @@ public class InstructionParser {
             case BI_F64_EQ, BI_F64_NE, BI_F64_LT, BI_F64_GT, BI_F64_LE, BI_F64_GE,
                     BI_F64_ADD, BI_F64_SUB, BI_F64_MUL, BI_F64_DIV, BI_F64_MIN, BI_F64_MAX, BI_F64_COPYSIGN
                     -> parseF64BinaryInstruction(b, in);
+            case FC_PREFIX -> parseFCPrefixInstruction(in);
             default -> throw new RuntimeException("Invalid bytecode for instruction: "+ b);
         };
     }
@@ -369,6 +370,15 @@ public class InstructionParser {
             case BI_F64_MAX -> DoubleBinaryInstruction.F64_MAX;
             case BI_F64_COPYSIGN -> DoubleBinaryInstruction.F64_COPY_SIGN;
             default -> throw new RuntimeException("Unexpected bytecode for F64 binary instruction: " + byteCode);
+        };
+    }
+
+    private static Instruction parseFCPrefixInstruction(ByteBuffer in) {
+        int byteCode = Byte.toUnsignedInt(in.get());
+        return switch (byteCode) {
+            case FC_MEM_INIT -> new SegmentInstruction.MemoryInit((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case FC_DATA_DROP -> new SegmentInstruction.DataDrop((int) Leb128.readUnsigned(in));
+            default -> throw new RuntimeException("Unexpected bytecode for FC Prefix instruction: " + byteCode);
         };
     }
 }

@@ -22,13 +22,14 @@ public class Machine {
     private final Table[] tables;
     private final Variable[] globals;
     private int[] labels;
+    private final DataSegment[] dataSegments;
     private final long startIdx;
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, long startIdx) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)}, startIdx);
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, long startIdx) {
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, startIdx);
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, long startIdx) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, long startIdx) {
         if (memories == null || memories.length == 0) {
             throw new RuntimeException("Null or zero size memories during init");
         }
@@ -41,6 +42,7 @@ public class Machine {
               this stores level of the label of block
         */
         this.labels = new int[]{0, -1, -1, -1, -1, -1};
+        this.dataSegments = dataSegments;
         this.startIdx = startIdx;
     }
 
@@ -557,6 +559,28 @@ public class Machine {
                         case ControlFlowInstruction.End _end -> {} // Do nothing
                     }
                 }
+                case SegmentInstruction i -> {
+                    switch (i) {
+                        case SegmentInstruction.DataDrop(int segIdx) -> {
+                            this.dataSegments[segIdx] = new DataSegment.PassiveDataSegment(new byte[0]);
+                        }
+                        case SegmentInstruction.MemoryCopy memoryCopy -> {
+                        }
+                        case SegmentInstruction.MemoryFill memoryFill -> {
+                        }
+                        case SegmentInstruction.MemoryInit(int segIdx, int memIdx) -> {
+                            Memory m = memories[memIdx];
+                            DataSegment seg = dataSegments[segIdx];
+                            if (seg instanceof DataSegment.ActiveDataSegment) {
+                                throw new IllegalStateException("Can not load data from active segment at index: " + segIdx);
+                            }
+                            int numBytesToCopy = popInt();
+                            int srcOffset = popInt();
+                            int dstAddr = popInt();
+                            m.store(dstAddr, seg.data(), srcOffset, numBytesToCopy);
+                        }
+                    }
+                }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
         }
@@ -572,14 +596,14 @@ public class Machine {
         }
     }
 
-    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, long startIdx) {
-        Machine m = new Machine(functions, tables, globals, pages, startIdx);
+    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, long startIdx) {
+        Machine m = new Machine(functions, tables, globals, pages, dataSegments, startIdx);
         m.start();
         return m;
     }
 
     public static void main(String[] args) {
-        Machine m = new Machine(null,  null, null, 1, -1);
+        Machine m = new Machine(null,  null, null, 1, null ,-1);
         Instruction[] ins = new Instruction[]{
                 new ConstInstruction.DoubleConst(1.0)
         };

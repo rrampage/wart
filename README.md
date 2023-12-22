@@ -33,6 +33,7 @@ WASM opcode references:
 #### WASM parser
 - Magic bytes and version check
 - Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) decode
+- Read section metadata
 - Read sections
   - Type 
   - Import
@@ -42,6 +43,8 @@ WASM opcode references:
   - Table
   - Memory
   - Code
+  - Data
+  - Data count
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -62,13 +65,10 @@ WASM opcode references:
 
 #### WASM parser
 - Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) encode
-- Read section metadata
 - Read sections
   - Custom
   - Global
   - Element
-  - Data
-  - Data count
 - Module instantiation
 
 #### Interop

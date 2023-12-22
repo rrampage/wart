@@ -52,6 +52,16 @@ public class Memory {
         System.arraycopy(data, 0, memory, addr, data.length);
     }
 
+    public void store(int addr, byte[] data, int srcOffset, int numBytes) {
+        if (addr >= memory.length || addr + numBytes >= memory.length) {
+            throw new RuntimeException("Invalid address passed to memory: " + addr);
+        }
+        if (srcOffset + numBytes >= data.length) {
+            throw new RuntimeException("Can not copy more than source byte array size");
+        }
+        System.arraycopy(data, srcOffset, memory, addr, numBytes);
+    }
+
     public String toString() {
         return String.format("Memory: size %d pages, max size: %d pages", getMemorySize(), maxPages);
     }

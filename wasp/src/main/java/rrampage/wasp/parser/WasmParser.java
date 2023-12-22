@@ -2,6 +2,7 @@ package rrampage.wasp.parser;
 
 import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
+import rrampage.wasp.instructions.ConstInstruction;
 import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.types.*;
 import rrampage.wasp.utils.FileUtils;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static rrampage.wasp.utils.ConversionUtils.*;
 
@@ -291,8 +293,51 @@ public class WasmParser implements Parser {
         return allFuncs;
     }
 
-    public void parseDataSection() {
+    private Optional<Long> parseDataCountSection() {
+        long numSegments = Leb128.readUnsigned(bb);
+        if (numSegments > Integer.MAX_VALUE) {
+            throw new RuntimeException("Invalid number of data segments");
+        }
+        return Optional.of(numSegments);
+    }
 
+    private DataSegment parseDataSegment() {
+        byte b = bb.get();
+        if (b % 2 == 0) {
+            // Active segment
+            int memIdx = 0;
+            if (b == 2) {
+                memIdx = (int) Leb128.readUnsigned(bb);
+            }
+            // Expression parsing
+            // check that next byte is 0x41 which is instruction for int const
+            b = bb.get();
+            assert b == 0x41;
+            int c = (int) Leb128.readSigned(bb);
+            b = bb.get();
+            // Ensure that we read "end" byte for expression body
+            assert b == 0xb;
+            int size = (int) Leb128.readUnsigned(bb);
+            byte[] data = new byte[size];
+            bb.get(data);
+            return new DataSegment.ActiveDataSegment(memIdx, new ConstInstruction.IntConst(c), data);
+        } else {
+            // Passive segment
+            int size = (int) Leb128.readUnsigned(bb);
+            byte[] data = new byte[size];
+            bb.get(data);
+            return new DataSegment.PassiveDataSegment(data);
+        }
+    }
+
+    private DataSegment[] parseDataSection() {
+        int n = (int) Leb128.readUnsigned(bb);
+        System.out.println("Num data sections: " + n);
+        DataSegment[] dataSegments = new DataSegment[n];
+        for (int i = 0; i < n; i++) {
+            dataSegments[i] = parseDataSegment();
+        }
+        return dataSegments;
     }
 
     private void assertBufferPosition(int expectedPosition) {
@@ -323,6 +368,8 @@ public class WasmParser implements Parser {
         long startIdx = -1;
         int[] functions = new int[0];
         Function[] allFuncs = new Function[0];
+        DataSegment[] dataSegments = new DataSegment[0];
+        Optional<Long> dataCount = Optional.empty();
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
             int sectionLength = (int) Leb128.readUnsigned(bb);
@@ -330,7 +377,7 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, GLOBAL, DATA_COUNT -> bb.position(sectionStart + sectionLength);
+                case CUSTOM, GLOBAL -> bb.position(sectionStart + sectionLength);
                 case TYPE -> types = parseTypes();
                 case IMPORT -> imports = parseImports();
                 case FUNCTION -> functions = parseFunctionSection();
@@ -342,11 +389,10 @@ public class WasmParser implements Parser {
                     // parseElementSection(sectionLength);
                     bb.position(sectionStart + sectionLength);
                 }
+                case DATA_COUNT -> // Must be parsed before code to validate mem.init and mem.drop instructions using passive segments
+                        dataCount = parseDataCountSection();
                 case CODE -> allFuncs = parseCodeSection(types, imports, functions);
-                case DATA -> {
-                    parseDataSection();
-                    bb.position(sectionStart + sectionLength);
-                }
+                case DATA -> dataSegments = parseDataSection();
             }
             // Check that section is fully consumed
             assertBufferPosition(sectionStart + sectionLength);
@@ -359,7 +405,9 @@ public class WasmParser implements Parser {
         System.out.println(Arrays.toString(memories));
         System.out.println(Arrays.toString(tables));
         System.out.println("Start Index: " + startIdx);
-        return new Module(1, types, allFuncs, tables, exports, imports, memories, startIdx);
+        System.out.println("Data count: " + dataCount);
+        assert dataCount.isEmpty() || dataSegments.length == dataCount.get();
+        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {
