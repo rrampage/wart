@@ -1,6 +1,9 @@
 ;; From WASM Test Suite: https://github.com/WebAssembly/testsuite/blob/dc27dad3e34e466bdbfea32fe3c73f5e31f88560/elem.wast
 (module
+  (import "module4" "f" (global funcref))
+  (type $out-i32 (func (result i32)))
   (table $t 10 funcref)
+  (table $u funcref (elem (ref.func $f) (ref.null func) (ref.func $g)))
   (func $f)
   (func $g)
 
@@ -17,11 +20,11 @@
 
   ;; Active
   (elem (table $t) (i32.const 0) funcref)
-  (elem (table $t) (i32.const 0) funcref (ref.func $f) (ref.null func))
-  (elem (table $t) (i32.const 0) func)
-  (elem (table $t) (i32.const 0) func $f $g)
-  (elem (table $t) (offset (i32.const 0)) funcref)
-  (elem (table $t) (offset (i32.const 0)) func $f $g)
+  (elem (table $t) (i32.const 1) funcref (ref.func $f) (ref.null func))
+  (elem (table $t) (i32.const 2) func)
+  (elem (table $t) (i32.const 3) func $f $g)
+  (elem (table $t) (offset (i32.const 4)) funcref)
+  (elem (table $t) (offset (i32.const 5)) func $f $g)
   (elem (table 0) (i32.const 0) func)
   (elem (table 0x0) (i32.const 0) func $f $f)
   (elem (table 0x000) (offset (i32.const 0)) func)
@@ -29,7 +32,8 @@
   (elem (table $t) (i32.const 0) func)
   (elem (table $t) (i32.const 0) func $f $f)
   (elem (table $t) (offset (i32.const 0)) func)
-  (elem (table $t) (offset (i32.const 0)) func $f $f)
+  (elem (table $u) (offset (i32.const 1)) func $f $f)
+  (elem (table $t) (offset (i32.const 7)) funcref (global.get 0))
   (elem (offset (i32.const 0)))
   (elem (offset (i32.const 0)) funcref (ref.func $f) (ref.null func))
   (elem (offset (i32.const 0)) func $f $f)
