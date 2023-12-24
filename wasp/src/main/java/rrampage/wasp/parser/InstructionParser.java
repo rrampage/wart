@@ -1,6 +1,7 @@
 package rrampage.wasp.parser;
 
 import rrampage.wasp.data.FunctionType;
+import rrampage.wasp.data.ValueType;
 import rrampage.wasp.instructions.*;
 import rrampage.wasp.utils.Leb128;
 import static rrampage.wasp.instructions.ByteCodeConstants.*;
@@ -67,6 +68,8 @@ public class InstructionParser {
             case BI_F64_EQ, BI_F64_NE, BI_F64_LT, BI_F64_GT, BI_F64_LE, BI_F64_GE,
                     BI_F64_ADD, BI_F64_SUB, BI_F64_MUL, BI_F64_DIV, BI_F64_MIN, BI_F64_MAX, BI_F64_COPYSIGN
                     -> parseF64BinaryInstruction(b, in);
+            // other table instructions will be called using bytecode read by parseFCPrefixInstruction
+            case TABLE_GET, TABLE_SET, REF_NULL, REF_IS_NULL, REF_FUNC -> parseRefTypeInstruction(b, in);
             case FC_PREFIX -> parseFCPrefixInstruction(in);
             default -> throw new RuntimeException("Invalid bytecode for instruction: "+ b);
         };
@@ -378,6 +381,27 @@ public class InstructionParser {
         return switch (byteCode) {
             case FC_MEM_INIT -> new SegmentInstruction.MemoryInit((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
             case FC_DATA_DROP -> new SegmentInstruction.DataDrop((int) Leb128.readUnsigned(in));
+            case FC_MEM_COPY -> new SegmentInstruction.MemoryCopy((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case FC_MEM_FILL -> new SegmentInstruction.MemoryFill((int) Leb128.readUnsigned(in));
+            case FC_TABLE_INIT, FC_ELEM_DROP, FC_TABLE_COPY, FC_TABLE_GROW, FC_TABLE_SIZE, FC_TABLE_FILL -> parseRefTypeInstruction(byteCode, in);
+            default -> throw new RuntimeException("Unexpected bytecode for FC Prefix instruction: " + byteCode);
+        };
+    }
+
+    private static RefTypeInstruction parseRefTypeInstruction(int byteCode, ByteBuffer in) {
+        return switch (byteCode) {
+            case REF_NULL -> new RefTypeInstruction.RefNull(ValueType.RefType.from(in.get()));
+            case REF_IS_NULL -> new RefTypeInstruction.RefIsNull();
+            case REF_FUNC -> new RefTypeInstruction.RefFunc((int) Leb128.readUnsigned(in));
+            case TABLE_GET -> new RefTypeInstruction.TableGet((int) Leb128.readUnsigned(in));
+            case TABLE_SET -> new RefTypeInstruction.TableSet((int) Leb128.readUnsigned(in));
+            // bytes from FC_PREFIX
+            case FC_TABLE_INIT -> new RefTypeInstruction.TableInit((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case FC_TABLE_COPY -> new RefTypeInstruction.TableCopy((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
+            case FC_TABLE_GROW -> new RefTypeInstruction.TableGrow((int) Leb128.readUnsigned(in));
+            case FC_TABLE_SIZE -> new RefTypeInstruction.TableSize((int) Leb128.readUnsigned(in));
+            case FC_TABLE_FILL -> new RefTypeInstruction.TableFill((int) Leb128.readUnsigned(in));
+            case FC_ELEM_DROP -> new RefTypeInstruction.ElemDrop((int) Leb128.readUnsigned(in));
             default -> throw new RuntimeException("Unexpected bytecode for FC Prefix instruction: " + byteCode);
         };
     }
