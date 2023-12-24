@@ -403,6 +403,7 @@ public class WasmParser implements Parser {
         int[] functions = new int[0];
         Function[] allFuncs = new Function[0];
         DataSegment[] dataSegments = new DataSegment[0];
+        ElementSegment[] elementSegments = new ElementSegment[0];
         Optional<Long> dataCount = Optional.empty();
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
@@ -441,7 +442,7 @@ public class WasmParser implements Parser {
         System.out.println("Start Index: " + startIdx);
         System.out.println("Data count: " + dataCount);
         assert dataCount.isEmpty() || dataSegments.length == dataCount.get();
-        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, startIdx);
+        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, elementSegments, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {

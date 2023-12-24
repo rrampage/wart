@@ -14,6 +14,7 @@ public record Module(
         ImportMetadata[] imports,
         Memory[] memories,
         DataSegment[] dataSegments,
+        ElementSegment[] elementSegments,
         long startIdx
 ) {
     /*

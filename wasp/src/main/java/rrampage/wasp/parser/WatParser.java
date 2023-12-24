@@ -128,6 +128,7 @@ public record WatParser(String input) implements Parser {
                 new ImportMetadata[]{},
                 null,
                 null,
+                null,
                 -1
         );
     }

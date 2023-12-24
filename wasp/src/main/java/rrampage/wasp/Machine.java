@@ -23,13 +23,14 @@ public class Machine {
     private final Variable[] globals;
     private int[] labels;
     private final DataSegment[] dataSegments;
+    private final ElementSegment[] elementSegments;
     private final long startIdx;
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, long startIdx) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, startIdx);
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, startIdx);
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, long startIdx) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         if (memories == null || memories.length == 0) {
             throw new RuntimeException("Null or zero size memories during init");
         }
@@ -43,6 +44,7 @@ public class Machine {
         */
         this.labels = new int[]{0, -1, -1, -1, -1, -1};
         this.dataSegments = dataSegments;
+        this.elementSegments = elementSegments;
         this.startIdx = startIdx;
     }
 
@@ -596,18 +598,11 @@ public class Machine {
         }
     }
 
-    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, long startIdx) {
-        Machine m = new Machine(functions, tables, globals, pages, dataSegments, startIdx);
+    public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
+        Machine m = new Machine(functions, tables, globals, pages, dataSegments, elementSegments, startIdx);
         m.start();
         return m;
     }
 
-    public static void main(String[] args) {
-        Machine m = new Machine(null,  null, null, 1, null ,-1);
-        Instruction[] ins = new Instruction[]{
-                new ConstInstruction.DoubleConst(1.0)
-        };
-        m.execute(ins, null, 0);
-        System.out.println(m.popDouble());
-    }
+    public static void main(String[] args) {}
 }

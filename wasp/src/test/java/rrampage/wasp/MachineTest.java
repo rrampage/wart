@@ -33,7 +33,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(1112345345667L),
         };
 
-        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("pushConst", startIns)}, null, null, MEM_PAGES, null, 0);
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("pushConst", startIns)}, null, null, MEM_PAGES, null, null, 0);
         assertEquals(1112345345667L, m.pop());
         assertEquals(4, m.popInt());
         assertEquals(1.0, m.popDouble(), 0.0);
@@ -47,7 +47,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(1112345345667L),
                 UnaryInstruction.DROP,
         };
-        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldDrop", ins)}, null, null, MEM_PAGES, null, 0);
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldDrop", ins)}, null, null, MEM_PAGES, null, null, 0);
         assertEquals(4, m.popInt());
     }
 
@@ -75,7 +75,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(lr),
                 LongBinaryInstruction.I64_ADD,
         };
-        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldAdd", ins)}, null, null, MEM_PAGES, null, 0);
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldAdd", ins)}, null, null, MEM_PAGES, null, null, 0);
         assertEquals(ll+lr, m.pop());
         assertEquals(il+ir, m.popInt());
         assertEquals(0.0f, m.popFloat(), 0.0f);
@@ -118,7 +118,7 @@ public class MachineTest {
                 new ConstInstruction.LongConst(la),
                 LongBinaryInstruction.I64_EQ,
         };
-        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldAddAndCompare", ins)}, null, null, MEM_PAGES, null, 0);
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldAddAndCompare", ins)}, null, null, MEM_PAGES, null, null, 0);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
         assertEquals(m.popInt(), 1);
@@ -163,7 +163,7 @@ public class MachineTest {
                 new ConstInstruction.IntConst(sAddr),
                 new LoadInstruction.I32Load16U(0, 0),
         };
-        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldStoreAndLoad", ins)}, null, null, MEM_PAGES, null, 0);
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldStoreAndLoad", ins)}, null, null, MEM_PAGES, null, null, 0);
         assertEquals(m.popInt(), s%65536);
         assertEquals(m.popInt(), i);
         assertEquals(m.popFloat(), f, 0.0f);
@@ -180,7 +180,7 @@ public class MachineTest {
         Instruction[] ins = new Instruction[] {
           new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallIntConst", ins)}, null, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallIntConst", ins)}, null, null, MEM_PAGES, null, null, 1);
         assertEquals(m.popInt(), i);
     }
 
@@ -196,7 +196,7 @@ public class MachineTest {
                 IntBinaryInstruction.I32_ADD,
                 IntBinaryInstruction.I32_EQ
         };
-        Machine m = Machine.createAndStart(new Function[]{addFunction, Function.createStartFunction("shouldAdd", ins)}, null, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{addFunction, Function.createStartFunction("shouldAdd", ins)}, null, null, MEM_PAGES, null, null, 1);
         assertEquals(m.popInt(), 1);
     }
 
@@ -217,7 +217,7 @@ public class MachineTest {
                 new ControlFlowInstruction.Loop(1, null, loopIns),
                 new GlobalInstruction.GlobalGet(0),
         };
-        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldLoopGlobal", ins)}, null, globals, MEM_PAGES, null, 0);
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldLoopGlobal", ins)}, null, globals, MEM_PAGES, null, null, 0);
         assertEquals(10, m.popInt());
     }
 
@@ -245,7 +245,7 @@ public class MachineTest {
                 new ConstInstruction.IntConst(0),
                 new FunctionInstruction.Call(0),
         };
-        Machine m = Machine.createAndStart(new Function[]{f, Function.createStartFunction("shouldLoop", ins)}, null, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{f, Function.createStartFunction("shouldLoop", ins)}, null, null, MEM_PAGES, null, null, 1);
         assertEquals(10, m.popInt());
     }
 
@@ -288,7 +288,7 @@ public class MachineTest {
                 new ConstInstruction.DoubleConst(a),
                 new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, null, 1);
         double callRes = m.popDouble();
         System.out.printf("Call result: %s%n", callRes);
         assertEquals(callRes, res, 0.0);
@@ -314,7 +314,7 @@ public class MachineTest {
                 new ConstInstruction.DoubleConst(a),
                 new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, null, 1);
         double callRes2 = m.popDouble();
         double callRes1 = m.popDouble();
         System.out.printf("Call result: %s %s%n", callRes1, callRes2);
@@ -338,7 +338,7 @@ public class MachineTest {
         Instruction[] ins = new Instruction[]{
                 new FunctionInstruction.Call(0)
         };
-        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, null, 1);
         int callRes1 = m.popInt();
         long callRes2 = m.pop();
         System.out.printf("Call result: %s %s%n", callRes1, callRes2);
@@ -362,7 +362,7 @@ public class MachineTest {
                 IntBinaryInstruction.I32_ADD,
                 IntBinaryInstruction.I32_EQ
         };
-        Machine m = Machine.createAndStart(new Function[]{addFunction, Function.createStartFunction("shouldCallIndirect", ins)}, new Table[]{t}, null, MEM_PAGES, null, 1);
+        Machine m = Machine.createAndStart(new Function[]{addFunction, Function.createStartFunction("shouldCallIndirect", ins)}, new Table[]{t}, null, MEM_PAGES, null, null, 1);
         assertEquals(m.popInt(), 1);
     }
 
