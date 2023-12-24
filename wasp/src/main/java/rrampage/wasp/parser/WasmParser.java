@@ -220,7 +220,7 @@ public class WasmParser implements Parser {
     private ConstExpression parseConstantExpression() {
         // https://www.w3.org/TR/wasm-core-2/valid/instructions.html#valid-constant
         int b = Byte.toUnsignedInt(bb.get());
-        System.out.println("Parsed Bytecode: " + b);
+        // System.out.printf("Parsed Bytecode: 0x%x\n", b);
         ConstExpression ins = switch (b) {
             case ByteCodeConstants.CONST_INT -> new ConstInstruction.IntConst((int) Leb128.readSigned(bb));
             case ByteCodeConstants.REF_NULL -> new RefTypeInstruction.RefNull(ValueType.RefType.from(bb.get()));
@@ -269,7 +269,6 @@ public class WasmParser implements Parser {
         ValueType.RefType segmentType = (et == 0x0) ? ValueType.RefType.FUNCREF : ValueType.RefType.from(et);
         // initialize either funcIdx or expr vector
         int n = (int) Leb128.readUnsigned(bb);
-        System.out.println("Element index/expr vector size: " + n + " type: " + segmentType + " et: " + et);
         int[] funcIdxVector = (isExpression) ? null : new int[n];
         ConstExpression[] expressionVector = (isExpression) ? new ConstExpression[n] : null;
         for (int i = 0; i < n; i++) {
@@ -293,7 +292,6 @@ public class WasmParser implements Parser {
         ElementSegment[] elementSegments = new ElementSegment[n];
         for (int i = 0; i < n; i++) {
             elementSegments[i] = parseElementSegment();
-            System.out.println("Element Segment Index " + i + ": " + elementSegments[i]);
         }
         return elementSegments;
     }

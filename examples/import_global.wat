@@ -6,4 +6,5 @@
  (import "env" "table" (table 0 funcref))
  (import "env" "tableBase" (global $import$3 i32))
  (import "env" "clear_screen" (func (;1;) (type $1)))
+ (import "env" "f" (global funcref))
 )
