@@ -202,7 +202,7 @@ public class MachineTest {
 
     @Test
     public void shouldLoopUsingGlobal() {
-        Variable[] globals = new Variable[]{Variable.newVariable(ValueType.NumType.I32, 0)};
+        Variable[] globals = new Variable[]{Variable.newMutableVariable(ValueType.NumType.I32, 0)};
         Instruction[] loopIns = new Instruction[] {
                 new GlobalInstruction.GlobalGet(0),
                 new ConstInstruction.IntConst(1),

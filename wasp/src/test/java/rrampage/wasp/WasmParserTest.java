@@ -14,7 +14,7 @@ public class WasmParserTest {
             new WasmParserTestCase("empty_module.wasm", 8, 0, 0,0, 0, 0, 0),
             new WasmParserTestCase("add_two.wasm", 82, 3, 1, 3, 1, 0, 0),
             new WasmParserTestCase("fizzbuzz_manual.wasm", 326, 4, 1, 6, 0, 2, 0),
-            new WasmParserTestCase("import_global.wasm", 104, 2, 5, 0, 0, 0, 0),
+            new WasmParserTestCase("import_global.wasm", 113, 2, 6, 0, 0, 0, 0),
             new WasmParserTestCase("walloc.wasm", 2023, 3, 1, 6, 2, 2, 0),
             new WasmParserTestCase("rocket.wasm", 53067, 17, 9, 125, 8, 198, 1),
             new WasmParserTestCase("data_segment_example.wasm", 88, 1, 1, 1, 0, 2, 0),

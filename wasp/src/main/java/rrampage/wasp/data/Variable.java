@@ -3,53 +3,80 @@ package rrampage.wasp.data;
 import static rrampage.wasp.utils.ConversionUtils.*;
 
 public sealed interface Variable {
-    void setVal(long val);
+    default void setVal(long val) {
+        if (!isMutable()) {
+            throw new IllegalStateException("Can not set immutable variable");
+        }
+        switch (this) {
+            case I32Variable v -> v.setVal(val);
+            case F32Variable v -> v.setVal(val);
+            case F64Variable v -> v.setVal(val);
+            case I64Variable v -> v.setVal(val);
+        }
+    }
+    boolean isMutable();
     final class I32Variable implements Variable {
         private int val;
-        I32Variable(int val) {
+        private final boolean isMutable;
+        I32Variable(int val, boolean isMutable) {
             this.val = val;
+            this.isMutable = isMutable;
         }
-        public ValueType.NumType getType() {return ValueType.NumType.I32;}
         public int getVal() { return val;}
-        public void setVal(long val) { this.val = longToInt(val);}
+        public void setVal(long val) {this.val = longToInt(val);}
+        public boolean isMutable() { return this.isMutable; }
+        public ValueType.NumType getType() {return ValueType.NumType.I32;}
     }
 
     final class I64Variable implements Variable {
         private long val;
-        I64Variable(long val) {
+        private final boolean isMutable;
+        I64Variable(long val, boolean isMutable) {
             this.val = val;
+            this.isMutable = isMutable;
         }
         public long getVal() { return val;}
         public void setVal(long val) { this.val = val;}
+        public boolean isMutable() { return this.isMutable; }
         public ValueType.NumType getType() {return ValueType.NumType.I64;}
     }
 
     final class F32Variable implements Variable {
         private float val;
-        F32Variable(float val) {
+        private final boolean isMutable;
+        F32Variable(float val, boolean isMutable) {
             this.val = val;
+            this.isMutable = isMutable;
         }
         public float getVal() { return val;}
         public void setVal(long val) { this.val = longToFloat(val);}
+        public boolean isMutable() { return this.isMutable; }
         public ValueType.NumType getType() {return ValueType.NumType.F32;}
     }
 
     final class F64Variable implements Variable {
         private double val;
-        F64Variable(double val) {
+        private final boolean isMutable;
+        F64Variable(double val, boolean isMutable) {
             this.val = val;
+            this.isMutable = isMutable;
         }
         public double getVal() { return val;}
         public void setVal(long val) { this.val = longToDouble(val);}
+        public boolean isMutable() { return this.isMutable; }
         public ValueType.NumType getType() {return ValueType.NumType.F64;}
     }
 
-    static Variable newVariable(ValueType.NumType numType, long val) {
+    static Variable newMutableVariable(ValueType.NumType numType, long val) {
+        return newVariable(numType, val, true);
+    }
+
+    static Variable newVariable(ValueType.NumType numType, long val, boolean isMutable) {
         return switch (numType) {
-            case I32 -> new I32Variable(longToInt(val));
-            case I64 -> new I64Variable(val);
-            case F32 -> new F32Variable(longToFloat(val));
-            case F64 -> new F64Variable(longToDouble(val));
+            case I32 -> new I32Variable(longToInt(val), isMutable);
+            case I64 -> new I64Variable(val, isMutable);
+            case F32 -> new F32Variable(longToFloat(val), isMutable);
+            case F64 -> new F64Variable(longToDouble(val), isMutable);
         };
     }
 

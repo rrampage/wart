@@ -105,10 +105,10 @@ public class Machine {
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
         // LIFO for function params as params are pushed to stack and must be popped in reverse order
         for (int i = fun.numParams()-1; i >= 0; i-- ) {
-            locals[i] = Variable.newVariable(fun.type().paramTypes()[i], pop());
+            locals[i] = Variable.newMutableVariable(fun.type().paramTypes()[i], pop());
         }
         for (int i = fun.numParams(); i < locals.length; i++) {
-            locals[i] = Variable.newVariable(fun.locals()[i - fun.numParams()], 0);
+            locals[i] = Variable.newMutableVariable(fun.locals()[i - fun.numParams()], 0);
         }
         int[] oldLabels = Arrays.copyOf(labels, labels.length);
         // Set labels of machine to function labels and reset to original labels once execution is completed
@@ -121,7 +121,7 @@ public class Machine {
         int n = fun.type().returnTypes().length;
         Variable[] returns = new Variable[n];
         for (int i = 0; i < n; i++) {
-            returns[i] = Variable.newVariable(fun.type().returnTypes()[i], pop());
+            returns[i] = Variable.newMutableVariable(fun.type().returnTypes()[i], pop());
         }
         return returns;
     }

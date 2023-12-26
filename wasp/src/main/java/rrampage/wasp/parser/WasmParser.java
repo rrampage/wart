@@ -439,8 +439,7 @@ public class WasmParser implements Parser {
                 case START -> startIdx = parseStartIdx();
                 case MEMORY -> memories = parseMemorySection();
                 case ELEMENT -> elementSegments = parseElementSection();
-                case DATA_COUNT -> // Must be parsed before code to validate mem.init and mem.drop instructions using passive segments
-                        dataCount = parseDataCountSection();
+                case DATA_COUNT -> dataCount = parseDataCountSection(); // Must be parsed before code to validate mem.init and mem.drop instructions using passive segments
                 case CODE -> allFuncs = parseCodeSection(types, imports, functions);
                 case DATA -> dataSegments = parseDataSection();
             }
@@ -451,7 +450,6 @@ public class WasmParser implements Parser {
         System.out.println(Arrays.toString(types));
         System.out.println(Arrays.toString(imports));
         System.out.println(Arrays.toString(exports));
-        System.out.println(Arrays.toString(functions));
         System.out.println(Arrays.toString(memories));
         System.out.println(Arrays.toString(tables));
         System.out.println("Start Index: " + startIdx);
@@ -473,7 +471,8 @@ public class WasmParser implements Parser {
         String f5 = "./examples/rocket.wasm";
         String f6 = "./examples/elem_syntax.wasm";
         String f7 = "./examples/waforth.wasm";
-        String path = Paths.get(f6).toAbsolutePath().normalize().toString();
+        String f8 = "./examples/ruby.wasm";
+        String path = Paths.get(f8).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);
