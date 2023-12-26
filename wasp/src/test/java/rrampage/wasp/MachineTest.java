@@ -366,6 +366,58 @@ public class MachineTest {
         assertEquals(m.popInt(), 1);
     }
 
+    @Test
+    public void shouldSignExtend8I32() {
+        // From https://bugzilla.mozilla.org/attachment.cgi?id=8960898&action=diff#a/js/src/jit-test/tests/wasm/spec/src/extend32.wast_sec2
+        Instruction[] ins = new Instruction[]{
+                new ConstInstruction.IntConst(0x7f),
+                UnaryInstruction.I32_EXTEND8_S,
+                new ConstInstruction.IntConst(0x80),
+                UnaryInstruction.I32_EXTEND8_S,
+                new ConstInstruction.IntConst(0xff),
+                UnaryInstruction.I32_EXTEND8_S,
+                new ConstInstruction.IntConst(0x012345_00),
+                UnaryInstruction.I32_EXTEND8_S,
+                new ConstInstruction.IntConst(0xfedcba_80),
+                UnaryInstruction.I32_EXTEND8_S,
+                new ConstInstruction.IntConst(-1),
+                UnaryInstruction.I32_EXTEND8_S,
+        };
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldSignExtend8I32", ins)}, null, null, MEM_PAGES, null, null, 0);
+        assertEquals(m.popInt(), -1);
+        assertEquals(m.popInt(), -0x80);
+        assertEquals(m.popInt(), 0);
+        assertEquals(m.popInt(), -1);
+        assertEquals(m.popInt(), -128);
+        assertEquals(m.popInt(), 0x7f);
+    }
+
+    @Test
+    public void shouldSignExtend16I32() {
+        // From https://bugzilla.mozilla.org/attachment.cgi?id=8960898&action=diff#a/js/src/jit-test/tests/wasm/spec/src/extend32.wast_sec2
+        Instruction[] ins = new Instruction[]{
+                new ConstInstruction.IntConst(0x7fff),
+                UnaryInstruction.I32_EXTEND16_S,
+                new ConstInstruction.IntConst(0x8000),
+                UnaryInstruction.I32_EXTEND16_S,
+                new ConstInstruction.IntConst(0xffff),
+                UnaryInstruction.I32_EXTEND16_S,
+                new ConstInstruction.IntConst(0x0123_0000),
+                UnaryInstruction.I32_EXTEND16_S,
+                new ConstInstruction.IntConst(0xfedc_8000),
+                UnaryInstruction.I32_EXTEND16_S,
+                new ConstInstruction.IntConst(-1),
+                UnaryInstruction.I32_EXTEND16_S,
+        };
+        Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldSignExtend16I32", ins)}, null, null, MEM_PAGES, null, null, 0);
+        assertEquals(-1, m.popInt());
+        assertEquals(-0x8000, m.popInt());
+        assertEquals(0, m.popInt());
+        assertEquals(-1, m.popInt());
+        assertEquals(Short.MIN_VALUE, m.popInt());
+        assertEquals(Short.MAX_VALUE, m.popInt());
+    }
+
     private static Object[] objArr() {
         return TEST_OBJ_ARR;
     }

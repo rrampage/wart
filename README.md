@@ -21,6 +21,7 @@ WASM opcode references:
   - Labels set/reset during/after function call
 - Bitshift ops
 - Blocks, loops and conditionals
+- [Sign extension operations](https://github.com/WebAssembly/spec/blob/master/proposals/sign-extension-ops/Overview.md)
 - Start
 
 #### WAT Parser

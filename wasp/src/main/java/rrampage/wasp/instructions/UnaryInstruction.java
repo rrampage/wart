@@ -50,6 +50,11 @@ public enum UnaryInstruction implements Instruction {
     F32_REINTERPRET_I32("f32.reinterpret_i32"),
     I64_REINTERPRET_F64("i64.reinterpret_f64"),
     F64_REINTERPRET_I64("f64.reinterpret_i64"),
+    I32_EXTEND8_S("i32.extend8_s"),
+    I32_EXTEND16_S("i32.extend16_s"),
+    I64_EXTEND8_S("i64.extend8_s"),
+    I64_EXTEND16_S("i64.extend16_s"),
+    I64_EXTEND32_S("i64.extend32_s"),
     ;
     private final String opCode;
 

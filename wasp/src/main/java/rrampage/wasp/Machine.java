@@ -338,6 +338,11 @@ public class Machine {
                             }
                             push(BigDecimal.valueOf(d).toBigInteger().longValue());
                         }
+                        case I32_EXTEND8_S -> pushInt((byte) popInt());
+                        case I32_EXTEND16_S -> pushInt((short) popInt());
+                        case I64_EXTEND8_S -> push((byte) pop());
+                        case I64_EXTEND16_S -> push((short) pop());
+                        case I64_EXTEND32_S -> push((int) pop());
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }

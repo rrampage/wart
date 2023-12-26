@@ -1,5 +1,7 @@
 package rrampage.wasp;
 
+import rrampage.wasp.data.Module;
+import rrampage.wasp.instructions.ConstExpression;
 import rrampage.wasp.utils.FileUtils;
 
 import java.io.IOException;
@@ -26,5 +28,10 @@ public class TestUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static ConstExpression invoke(Module module, String functionName, ConstExpression[] expr) {
+        // TODO Invoke an exported function name from a module
+        return null;
     }
 }

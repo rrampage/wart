@@ -471,7 +471,7 @@ public class WasmParser implements Parser {
         String f5 = "./examples/rocket.wasm";
         String f6 = "./examples/elem_syntax.wasm";
         String f7 = "./examples/waforth.wasm";
-        String f8 = "./examples/ruby.wasm";
+        String f8 = "./examples/sqlite3.wasm";
         String path = Paths.get(f8).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
