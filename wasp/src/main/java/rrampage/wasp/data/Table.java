@@ -13,9 +13,9 @@ public class Table {
     private Function[] data;
     private final ValueType.RefType type;
     public Table(int initialSize, int maxSize, ValueType.RefType type) {
-        if (!type.equals(ValueType.RefType.FUNCREF) || initialSize > maxSize) {
+        /*if (!type.equals(ValueType.RefType.FUNCREF) || initialSize > maxSize) {
             throw new RuntimeException("Invalid table init");
-        }
+        }*/
         this.size = initialSize;
         this.max = maxSize;
         this.data = new Function[this.size];

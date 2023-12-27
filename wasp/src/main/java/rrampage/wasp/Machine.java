@@ -446,12 +446,13 @@ public class Machine {
                                 }
                                 if (type.returnTypes().length == 1) {
                                     // push ret to Stack
-                                    ValueType.NumType retType = type.returnTypes()[0];
+                                    ValueType retType = type.returnTypes()[0];
                                     switch (retType) {
-                                        case I32 -> pushInt((int) ret);
-                                        case I64 -> push((long) ret);
-                                        case F32 -> pushFloat((float) ret);
-                                        case F64 -> pushDouble((double) ret);
+                                        case ValueType.NumType.I32 -> pushInt((int) ret);
+                                        case ValueType.NumType.I64 -> push((long) ret);
+                                        case ValueType.NumType.F32 -> pushFloat((float) ret);
+                                        case ValueType.NumType.F64 -> pushDouble((double) ret);
+                                        default -> throw new IllegalStateException(String.format("Invalid value type: %s", retType));
                                     }
                                     continue;
                                 }
@@ -461,10 +462,11 @@ public class Machine {
                                 // Push in reverse order
                                 for (int i = type.returnTypes().length -1; i >= 0; i--) {
                                     switch (type.returnTypes()[i]) {
-                                        case I32 -> pushInt((int) Array.get(ret, i));
-                                        case I64 -> push((long) Array.get(ret, i));
-                                        case F32 -> pushFloat((float) Array.get(ret, i));
-                                        case F64 -> pushDouble((double) Array.get(ret, i));
+                                        case ValueType.NumType.I32 -> pushInt((int) Array.get(ret, i));
+                                        case ValueType.NumType.I64 -> push((long) Array.get(ret, i));
+                                        case ValueType.NumType.F32 -> pushFloat((float) Array.get(ret, i));
+                                        case ValueType.NumType.F64 -> pushDouble((double) Array.get(ret, i));
+                                        default -> throw new IllegalStateException(String.format("Invalid value type: %s", type.returnTypes()[i]));
                                     }
                                 }
                             } catch (Throwable e) {

@@ -67,16 +67,17 @@ public sealed interface Variable {
         public ValueType.NumType getType() {return ValueType.NumType.F64;}
     }
 
-    static Variable newMutableVariable(ValueType.NumType numType, long val) {
-        return newVariable(numType, val, true);
+    static Variable newMutableVariable(ValueType type, long val) {
+        return newVariable(type, val, true);
     }
 
-    static Variable newVariable(ValueType.NumType numType, long val, boolean isMutable) {
-        return switch (numType) {
-            case I32 -> new I32Variable(longToInt(val), isMutable);
-            case I64 -> new I64Variable(val, isMutable);
-            case F32 -> new F32Variable(longToFloat(val), isMutable);
-            case F64 -> new F64Variable(longToDouble(val), isMutable);
+    static Variable newVariable(ValueType type, long val, boolean isMutable) {
+        return switch (type) {
+            case ValueType.NumType.I32 -> new I32Variable(longToInt(val), isMutable);
+            case ValueType.NumType.I64 -> new I64Variable(val, isMutable);
+            case ValueType.NumType.F32 -> new F32Variable(longToFloat(val), isMutable);
+            case ValueType.NumType.F64 -> new F64Variable(longToDouble(val), isMutable);
+            default -> throw new IllegalStateException("Unexpected value: " + type);
         };
     }
 
