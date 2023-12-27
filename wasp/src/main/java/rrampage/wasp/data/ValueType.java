@@ -28,7 +28,7 @@ public sealed interface ValueType {
         public static NumType from(byte b) {
             NumType nt = numTypeMap.get(b);
             if (nt == null) {
-                throw new RuntimeException("Invalid numType for bytecode " + b);
+                throw new RuntimeException(String.format("PARSE_NUM_TYPE: Unexpected bytecode 0x%x", b));
             }
             return nt;
         }

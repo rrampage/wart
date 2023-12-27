@@ -2,8 +2,7 @@ package rrampage.wasp.parser;
 
 import rrampage.wasp.data.*;
 import rrampage.wasp.data.Module;
-import rrampage.wasp.instructions.ConstInstruction;
-import rrampage.wasp.instructions.Instruction;
+import rrampage.wasp.instructions.*;
 import rrampage.wasp.parser.types.*;
 import rrampage.wasp.utils.FileUtils;
 import rrampage.wasp.utils.Leb128;
@@ -218,23 +217,83 @@ public class WasmParser implements Parser {
         return tables;
     }
 
-    public void parseElementSection() {
-        int n = (int) Leb128.readUnsigned(bb);
-        System.out.println("Element table size: " + n);
+    private ConstExpression parseConstantExpression() {
+        // https://www.w3.org/TR/wasm-core-2/valid/instructions.html#valid-constant
+        int b = Byte.toUnsignedInt(bb.get());
+        // System.out.printf("Parsed Bytecode: 0x%x\n", b);
+        ConstExpression ins = switch (b) {
+            case ByteCodeConstants.CONST_INT -> new ConstInstruction.IntConst((int) Leb128.readSigned(bb));
+            case ByteCodeConstants.REF_NULL -> new RefTypeInstruction.RefNull(ValueType.RefType.from(bb.get()));
+            case ByteCodeConstants.REF_FUNC -> new RefTypeInstruction.RefFunc((int) Leb128.readUnsigned(bb));
+            // TODO : Validation logic on type of global ??
+            case ByteCodeConstants.GLOBAL_GET -> new GlobalInstruction.GlobalGet((int) Leb128.readUnsigned(bb));
+            default -> throw new RuntimeException(String.format("PARSE_CONST_EXPR: Unexpected bytecode 0x%x", b));
+        };
+        // Ensure that we read "end" byte for expression body
+        b = bb.get();
+        assert b == 0xb;
+        return ins;
+    }
+
+    private ElementSegment parseElementSegment() {
         // bit 0 = 0 active
         // bit 1 = if active and bit1, table uses index different from 0. if not active and bit1, declarative
         // bit 2 = 1 => expressions else index
-        for (int i = 0; i < n; i++) {
-            byte eb = bb.get();
-            boolean isActive = eb % 2 == 0;
-            boolean isExpression = (eb >> 2) % 2 == 1;
-            boolean isNonZeroIndex = isActive && (eb >> 1) % 2 == 1;
-            boolean isDeclarative = !isActive && (eb >> 1) % 2 == 1;
-            boolean isPassive = !isActive && !isDeclarative;
-            System.out.printf("Element is active: %b passive: %b declarative: %b non-zero index: %b expression: %b\n",
-                    isActive, isPassive, isDeclarative, isNonZeroIndex, isExpression);
-            // TODO
+        /*
+            0x00 ex y*: vec(funcidx)
+            0x01 et: elemtype y*
+            0x02 x: tableIdx ex et y*
+            0x03 et y*
+            0x04 ex el*: vec(expr)
+            0x05 et el*
+            0x06 x ex refType el*
+            0x07 et el*
+         */
+        byte eb = bb.get();
+        boolean isActive = eb % 2 == 0;
+        boolean isExpression = (eb >> 2) % 2 == 1;
+        boolean isNonZeroIndex = isActive && (eb >> 1) % 2 == 1;
+        boolean isDeclarative = !isActive && (eb >> 1) % 2 == 1;
+        boolean isPassive = !isActive && !isDeclarative;
+        System.out.printf("Element is active: %b passive: %b declarative: %b non-zero index: %b expression: %b\n",
+                isActive, isPassive, isDeclarative, isNonZeroIndex, isExpression);
+        int tableIndex = (isNonZeroIndex) ? (int) Leb128.readUnsigned(bb) : 0;
+        ConstExpression expr = null;
+        if (isActive) {
+            expr = parseConstantExpression();
         }
+        byte et = 0x0;
+        if (!isActive || isNonZeroIndex) {
+            et = bb.get();
+        }
+        ValueType.RefType segmentType = (et == 0x0) ? ValueType.RefType.FUNCREF : ValueType.RefType.from(et);
+        // initialize either funcIdx or expr vector
+        int n = (int) Leb128.readUnsigned(bb);
+        int[] funcIdxVector = (isExpression) ? null : new int[n];
+        ConstExpression[] expressionVector = (isExpression) ? new ConstExpression[n] : null;
+        for (int i = 0; i < n; i++) {
+            if (isExpression) {
+                expressionVector[i] = parseConstantExpression();
+            } else {
+                funcIdxVector[i] = (int) Leb128.readSigned(bb);
+            }
+        }
+        if (isActive) {
+            return new ElementSegment.ActiveElementSegment(tableIndex, expr, segmentType, isExpression, funcIdxVector, expressionVector);
+        }
+        return (isDeclarative) ?
+                new ElementSegment.DeclarativeElementSegment(segmentType, isExpression, funcIdxVector, expressionVector) :
+                new ElementSegment.PassiveElementSegment(segmentType, isExpression, funcIdxVector, expressionVector);
+    }
+
+    private ElementSegment[] parseElementSection() {
+        int n = (int) Leb128.readUnsigned(bb);
+        System.out.println("Element table size: " + n);
+        ElementSegment[] elementSegments = new ElementSegment[n];
+        for (int i = 0; i < n; i++) {
+            elementSegments[i] = parseElementSegment();
+        }
+        return elementSegments;
     }
 
     private Function parseFunctionCode(int funcIdx, FunctionType[] types, int numImports, int[] functions) {
@@ -309,18 +368,11 @@ public class WasmParser implements Parser {
             if (b == 2) {
                 memIdx = (int) Leb128.readUnsigned(bb);
             }
-            // Expression parsing
-            // check that next byte is 0x41 which is instruction for int const
-            b = bb.get();
-            assert b == 0x41;
-            int c = (int) Leb128.readSigned(bb);
-            b = bb.get();
-            // Ensure that we read "end" byte for expression body
-            assert b == 0xb;
+            ConstExpression expr = parseConstantExpression();
             int size = (int) Leb128.readUnsigned(bb);
             byte[] data = new byte[size];
             bb.get(data);
-            return new DataSegment.ActiveDataSegment(memIdx, new ConstInstruction.IntConst(c), data);
+            return new DataSegment.ActiveDataSegment(memIdx, expr, data);
         } else {
             // Passive segment
             int size = (int) Leb128.readUnsigned(bb);
@@ -369,6 +421,7 @@ public class WasmParser implements Parser {
         int[] functions = new int[0];
         Function[] allFuncs = new Function[0];
         DataSegment[] dataSegments = new DataSegment[0];
+        ElementSegment[] elementSegments = new ElementSegment[0];
         Optional<Long> dataCount = Optional.empty();
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
@@ -385,12 +438,8 @@ public class WasmParser implements Parser {
                 case EXPORT -> exports = parseExports();
                 case START -> startIdx = parseStartIdx();
                 case MEMORY -> memories = parseMemorySection();
-                case ELEMENT -> {
-                    // parseElementSection(sectionLength);
-                    bb.position(sectionStart + sectionLength);
-                }
-                case DATA_COUNT -> // Must be parsed before code to validate mem.init and mem.drop instructions using passive segments
-                        dataCount = parseDataCountSection();
+                case ELEMENT -> elementSegments = parseElementSection();
+                case DATA_COUNT -> dataCount = parseDataCountSection(); // Must be parsed before code to validate mem.init and mem.drop instructions using passive segments
                 case CODE -> allFuncs = parseCodeSection(types, imports, functions);
                 case DATA -> dataSegments = parseDataSection();
             }
@@ -401,13 +450,12 @@ public class WasmParser implements Parser {
         System.out.println(Arrays.toString(types));
         System.out.println(Arrays.toString(imports));
         System.out.println(Arrays.toString(exports));
-        System.out.println(Arrays.toString(functions));
         System.out.println(Arrays.toString(memories));
         System.out.println(Arrays.toString(tables));
         System.out.println("Start Index: " + startIdx);
         System.out.println("Data count: " + dataCount);
         assert dataCount.isEmpty() || dataSegments.length == dataCount.get();
-        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, startIdx);
+        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, elementSegments, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {
@@ -422,7 +470,9 @@ public class WasmParser implements Parser {
         String f4 = "./examples/fizzbuzz_manual.wasm";
         String f5 = "./examples/rocket.wasm";
         String f6 = "./examples/elem_syntax.wasm";
-        String path = Paths.get(f5).toAbsolutePath().normalize().toString();
+        String f7 = "./examples/waforth.wasm";
+        String f8 = "./examples/sqlite3.wasm";
+        String path = Paths.get(f8).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);

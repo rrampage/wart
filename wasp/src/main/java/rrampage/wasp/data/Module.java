@@ -14,19 +14,9 @@ public record Module(
         ImportMetadata[] imports,
         Memory[] memories,
         DataSegment[] dataSegments,
+        ElementSegment[] elementSegments,
         long startIdx
 ) {
-    /*
-        TODO
-        Module contains:
-        - List of imports
-        - List of types
-        - List of functions
-        - List of exported functions
-        - List of tables
-        - Data segments
-     */
-
     public String toString() {
         return String.format("""
                 Module:
