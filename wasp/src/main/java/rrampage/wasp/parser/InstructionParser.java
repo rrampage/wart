@@ -77,19 +77,36 @@ public class InstructionParser {
     }
 
     private static ControlFlowInstruction parseControlFlowInstruction(int byteCode, ByteBuffer in, FunctionType[] types, int startPosition, int bytesToParse, AtomicInteger labelMarker) {
-        // System.out.printf("Parsing Control Flow instruction with bytecode 0x%X\n", byteCode);
+        /*
+            https://www.w3.org/TR/wasm-core-2/syntax/instructions.html#control-instructions
+
+            The `block`, `loop` and `if` instructions are structured instructions.
+            They bracket nested sequences of instructions, called blocks, terminated with, or separated by, or pseudo-instructions.
+            As the grammar prescribes, they must be well-nested.
+
+            A structured instruction can consume input and produce output on the operand stack according to its annotated block type.
+            It is given either as a type index that refers to a suitable function type,
+            or as an optional value type inline, which is a shorthand for the function type [] -> [valtype].
+
+            Each structured control instruction introduces an implicit label.
+            Labels are targets for branch instructions that reference them with label indices.
+            Unlike with other index spaces, indexing of labels is relative by nesting depth, that is,
+            label refers to the innermost structured control instruction enclosing the referring branch instruction,
+            while increasing indices refer to those farther out
+         */
+        int currentLevel = labelMarker.get();
         return switch (byteCode) {
-            case CF_BR -> new ControlFlowInstruction.Branch((int) Leb128.readUnsigned(in));
-            case CF_BR_IF -> new ControlFlowInstruction.BranchIf((int) Leb128.readUnsigned(in));
+            case CF_BR -> new ControlFlowInstruction.Branch(currentLevel - (int) Leb128.readUnsigned(in));
+            case CF_BR_IF -> new ControlFlowInstruction.BranchIf(currentLevel - (int) Leb128.readUnsigned(in));
             case CF_END -> new ControlFlowInstruction.End();
             case CF_ELSE -> new ControlFlowInstruction.Else();
             case CF_BR_TABLE -> {
                 int lsize = (int) Leb128.readUnsigned(in);
                 int[] labels = new int[lsize];
                 for (int i = 0; i < lsize; i++) {
-                    labels[i] = (int) Leb128.readUnsigned(in);
+                    labels[i] = currentLevel - (int) Leb128.readUnsigned(in);
                 }
-                int defaultLabel = (int) Leb128.readUnsigned(in);
+                int defaultLabel = currentLevel - (int) Leb128.readUnsigned(in);
                 yield new ControlFlowInstruction.BranchTable(labels, defaultLabel);
             }
                  /*
