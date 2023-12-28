@@ -437,6 +437,7 @@ public class Machine {
                                         case Variable.F64Variable x -> x.getVal();
                                         case Variable.I32Variable x -> x.getVal();
                                         case Variable.I64Variable x -> x.getVal();
+                                        case Variable.FuncrefVariable x -> x.getVal();
                                     };
                                     System.out.println("Class for " + i + " is " + args[i].getClass());
                                 }
@@ -602,6 +603,7 @@ public class Machine {
             case Variable.F64Variable v -> pushDouble(v.getVal());
             case Variable.I32Variable v -> pushInt(v.getVal());
             case Variable.I64Variable v -> push(v.getVal());
+            case Variable.FuncrefVariable v -> push(v.getVal());
         }
     }
 

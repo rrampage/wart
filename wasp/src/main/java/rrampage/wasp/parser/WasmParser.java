@@ -217,6 +217,31 @@ public class WasmParser implements Parser {
         return tables;
     }
 
+    private Variable parseGlobal() {
+        var type = ValueType.from(bb.get());
+        boolean isMutable = bb.get() == 0x1;
+        var expr = parseConstantExpression();
+        var val = switch (expr) {
+            case ConstInstruction.IntConst c -> c.val();
+            // TODO
+            case GlobalInstruction.GlobalGet c -> -1L; // Must be deferred to after instantiation of import section
+            case RefTypeInstruction.RefFunc c -> c.functionIndex();
+            case RefTypeInstruction.RefNull c -> -1L;
+        };
+        return Variable.newVariable(type, val, isMutable);
+    }
+
+    private Variable[] parseGlobalSection(ImportMetadata[] imports) {
+        // TODO
+        int n = (int) Leb128.readUnsigned(bb);
+        int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.GlobalDescriptor).count();
+        Variable[] globals = new Variable[n+numImports];
+        for (int i = numImports; i < n+numImports; i++) {
+            globals[i] = parseGlobal();
+        }
+        return globals;
+    }
+
     private ConstExpression parseConstantExpression() {
         // https://www.w3.org/TR/wasm-core-2/valid/instructions.html#valid-constant
         int b = Byte.toUnsignedInt(bb.get());
@@ -423,6 +448,7 @@ public class WasmParser implements Parser {
         DataSegment[] dataSegments = new DataSegment[0];
         ElementSegment[] elementSegments = new ElementSegment[0];
         Optional<Long> dataCount = Optional.empty();
+        Variable[] globals = new Variable[0];
         while (bb.hasRemaining()) {
             SectionType st = getSectionType(bb.get());
             int sectionLength = (int) Leb128.readUnsigned(bb);
@@ -430,11 +456,12 @@ public class WasmParser implements Parser {
             System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
-                case CUSTOM, GLOBAL -> bb.position(sectionStart + sectionLength);
+                case CUSTOM -> bb.position(sectionStart + sectionLength);
                 case TYPE -> types = parseTypes();
                 case IMPORT -> imports = parseImports();
                 case FUNCTION -> functions = parseFunctionSection();
                 case TABLE -> tables = parseTableSection();
+                case GLOBAL -> globals = parseGlobalSection(imports);
                 case EXPORT -> exports = parseExports();
                 case START -> startIdx = parseStartIdx();
                 case MEMORY -> memories = parseMemorySection();
@@ -455,7 +482,7 @@ public class WasmParser implements Parser {
         System.out.println("Start Index: " + startIdx);
         System.out.println("Data count: " + dataCount);
         assert dataCount.isEmpty() || dataSegments.length == dataCount.get();
-        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, elementSegments, startIdx);
+        return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, elementSegments, globals, startIdx);
     }
 
     public static WasmParser fromFile(String path) throws IOException {
@@ -471,8 +498,10 @@ public class WasmParser implements Parser {
         String f5 = "./examples/rocket.wasm";
         String f6 = "./examples/elem_syntax.wasm";
         String f7 = "./examples/waforth.wasm";
-        String f8 = "./examples/ruffle.wasm";
-        String path = Paths.get(f8).toAbsolutePath().normalize().toString();
+        String f8 = "./examples/ruffle.wasm"; // Needs v128 support
+        String f9 = "./examples/ruby.wasm";
+        String f10 = "./examples/sqlite3.wasm";
+        String path = Paths.get(f2).toAbsolutePath().normalize().toString();
         System.out.println("Path: " + path);
         byte[] data = FileUtils.readBinaryFile(path);
         System.out.println("Data read: " + data.length);

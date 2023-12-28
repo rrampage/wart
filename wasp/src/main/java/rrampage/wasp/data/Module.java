@@ -15,6 +15,7 @@ public record Module(
         Memory[] memories,
         DataSegment[] dataSegments,
         ElementSegment[] elementSegments,
+        Variable[] globals,
         long startIdx
 ) {
     public String toString() {
@@ -23,10 +24,12 @@ public record Module(
                     Types: %s
                     Functions: %s
                     Exports: %s
+                    Globals: %s
                     Data segments: %d
                 """, Arrays.toString(types),
                 Arrays.toString(functions),
                 Arrays.toString(exports),
+                Arrays.toString(globals),
                 dataSegments == null ? 0 : dataSegments.length);
     }
 }

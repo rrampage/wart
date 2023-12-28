@@ -8,14 +8,16 @@ public sealed interface Variable {
             throw new IllegalStateException("Can not set immutable variable");
         }
         switch (this) {
-            case I32Variable v -> v.setVal(val);
-            case F32Variable v -> v.setVal(val);
-            case F64Variable v -> v.setVal(val);
-            case I64Variable v -> v.setVal(val);
+            case I32Variable v -> v.val = longToInt(val);
+            case F32Variable v -> v.val = longToFloat(val);
+            case F64Variable v -> v.val = longToDouble(val);
+            case I64Variable v -> v.val = val;
+            case FuncrefVariable v -> v.val = val;
         }
     }
     boolean isMutable();
     final class I32Variable implements Variable {
+        public static final ValueType type = ValueType.NumType.I32;
         private int val;
         private final boolean isMutable;
         I32Variable(int val, boolean isMutable) {
@@ -23,12 +25,11 @@ public sealed interface Variable {
             this.isMutable = isMutable;
         }
         public int getVal() { return val;}
-        public void setVal(long val) {this.val = longToInt(val);}
         public boolean isMutable() { return this.isMutable; }
-        public ValueType.NumType getType() {return ValueType.NumType.I32;}
     }
 
     final class I64Variable implements Variable {
+        public static final ValueType type = ValueType.NumType.I64;
         private long val;
         private final boolean isMutable;
         I64Variable(long val, boolean isMutable) {
@@ -36,12 +37,11 @@ public sealed interface Variable {
             this.isMutable = isMutable;
         }
         public long getVal() { return val;}
-        public void setVal(long val) { this.val = val;}
         public boolean isMutable() { return this.isMutable; }
-        public ValueType.NumType getType() {return ValueType.NumType.I64;}
     }
 
     final class F32Variable implements Variable {
+        public static final ValueType type = ValueType.NumType.F32;
         private float val;
         private final boolean isMutable;
         F32Variable(float val, boolean isMutable) {
@@ -49,12 +49,11 @@ public sealed interface Variable {
             this.isMutable = isMutable;
         }
         public float getVal() { return val;}
-        public void setVal(long val) { this.val = longToFloat(val);}
         public boolean isMutable() { return this.isMutable; }
-        public ValueType.NumType getType() {return ValueType.NumType.F32;}
     }
 
     final class F64Variable implements Variable {
+        public static final ValueType type = ValueType.NumType.F64;
         private double val;
         private final boolean isMutable;
         F64Variable(double val, boolean isMutable) {
@@ -62,9 +61,19 @@ public sealed interface Variable {
             this.isMutable = isMutable;
         }
         public double getVal() { return val;}
-        public void setVal(long val) { this.val = longToDouble(val);}
         public boolean isMutable() { return this.isMutable; }
-        public ValueType.NumType getType() {return ValueType.NumType.F64;}
+    }
+
+    final class FuncrefVariable implements Variable {
+        public static final ValueType type = ValueType.RefType.FUNCREF;
+        private long val;
+        private final boolean isMutable;
+        FuncrefVariable(long val, boolean isMutable) {
+            this.val = val;
+            this.isMutable = isMutable;
+        }
+        public long getVal(){ return val;}
+        public boolean isMutable() { return this.isMutable; }
     }
 
     static Variable newMutableVariable(ValueType type, long val) {
@@ -77,16 +86,18 @@ public sealed interface Variable {
             case ValueType.NumType.I64 -> new I64Variable(val, isMutable);
             case ValueType.NumType.F32 -> new F32Variable(longToFloat(val), isMutable);
             case ValueType.NumType.F64 -> new F64Variable(longToDouble(val), isMutable);
+            case ValueType.RefType.FUNCREF -> new FuncrefVariable(val, isMutable);
             default -> throw new IllegalStateException("Unexpected value: " + type);
         };
     }
 
     static String debug(Variable variable) {
         return switch (variable) {
-            case F32Variable v -> v.getType().toString() + " " + v.getVal();
-            case F64Variable v -> v.getType().toString() + " " + v.getVal();
-            case I32Variable v -> v.getType().toString() + " " + v.getVal();
-            case I64Variable v -> v.getType().toString() + " " + v.getVal();
+            case F32Variable v -> F32Variable.type + " " + v.getVal();
+            case F64Variable v -> F64Variable.type + " " + v.getVal();
+            case I32Variable v -> I32Variable.type + " " + v.getVal();
+            case I64Variable v -> I64Variable.type + " " + v.getVal();
+            case FuncrefVariable v -> FuncrefVariable.type + " " + v.getVal();
         };
     }
 }

@@ -11,17 +11,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import static rrampage.wasp.TestUtils.*;
 public class WasmParserTest {
     private static final WasmParserTestCase[] testCases = new WasmParserTestCase[] {
-            new WasmParserTestCase("empty_module.wasm", 8, 0, 0,0, 0, 0, 0),
-            new WasmParserTestCase("add_two.wasm", 82, 3, 1, 3, 1, 0, 0),
-            new WasmParserTestCase("fizzbuzz_manual.wasm", 326, 4, 1, 6, 0, 2, 0),
-            new WasmParserTestCase("import_global.wasm", 113, 2, 6, 0, 0, 0, 0),
-            new WasmParserTestCase("walloc.wasm", 2023, 3, 1, 6, 2, 2, 0),
-            new WasmParserTestCase("rocket.wasm", 53067, 17, 9, 125, 8, 198, 1),
-            new WasmParserTestCase("data_segment_example.wasm", 88, 1, 1, 1, 0, 2, 0),
-            new WasmParserTestCase("elem_syntax.wasm", 507, 2, 1, 2, 0, 0, 63),
+            new WasmParserTestCase("empty_module.wasm", 8, 0, 0,0, 0, 0, 0, 0),
+            new WasmParserTestCase("add_two.wasm", 82, 3, 1, 3, 1, 0, 0, 0),
+            new WasmParserTestCase("fizzbuzz_manual.wasm", 326, 4, 1, 6, 0, 2, 0, 0),
+            new WasmParserTestCase("import_global.wasm", 142, 2, 6, 0, 0, 0, 0, 8),
+            new WasmParserTestCase("walloc.wasm", 2023, 3, 1, 6, 2, 2, 0, 1),
+            new WasmParserTestCase("rocket.wasm", 53067, 17, 9, 125, 8, 198, 1, 0),
+            new WasmParserTestCase("data_segment_example.wasm", 88, 1, 1, 1, 0, 2, 0, 0),
+            new WasmParserTestCase("elem_syntax.wasm", 507, 2, 1, 2, 0, 0, 63, 0),
     };
 
-    record WasmParserTestCase(String fileName, int numBytes, int numTypes, int numImports, int numFunctions, int numExports, int numDataSegments, int numElementSegments) {
+    record WasmParserTestCase(String fileName, int numBytes, int numTypes, int numImports, int numFunctions, int numExports, int numDataSegments, int numElementSegments, int numGlobals) {
         public void check() {
             byte[] data = readBinaryFile(getFilePath(fileName));
             WasmParser parser = new WasmParser(data);
@@ -32,6 +32,7 @@ public class WasmParserTest {
             var parsedNumFunctions = module == null || module.functions() == null ? 0 : module.functions().length;
             var parsedNumDataSegments = module == null || module.dataSegments() == null ? 0 : module.dataSegments().length;
             var parsedNumElementSegments = module == null || module.elementSegments() == null ? 0 : module.elementSegments().length;
+            var parsedGlobals = module == null || module.globals() == null ? 0 : module.globals().length;
             assertEquals(numBytes, data.length, String.format("test bytes read for %s", fileName));
             assertEquals(numTypes, parsedNumTypes, String.format("test types for %s", fileName));
             assertEquals(numImports, parsedNumImports, String.format("test imports for %s", fileName));
@@ -39,6 +40,7 @@ public class WasmParserTest {
             assertEquals(numFunctions, parsedNumFunctions, String.format("test functions for %s", fileName));
             assertEquals(numDataSegments, parsedNumDataSegments, String.format("test data segments for %s", fileName));
             assertEquals(numElementSegments, parsedNumElementSegments, String.format("test element segments for %s", fileName));
+            assertEquals(numGlobals, parsedGlobals, String.format("test globals for %s", fileName));
         }
     }
 
