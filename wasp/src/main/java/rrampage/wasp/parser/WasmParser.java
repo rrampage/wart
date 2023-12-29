@@ -223,14 +223,7 @@ public class WasmParser implements Parser {
         var type = ValueType.from(bb.get());
         boolean isMutable = bb.get() == 0x1;
         var expr = parseConstantExpression();
-        var val = switch (expr) {
-            case ConstInstruction.IntConst c -> c.val();
-            // TODO
-            case GlobalInstruction.GlobalGet c -> -1L; // Must be deferred to after instantiation of import section
-            case RefTypeInstruction.RefFunc c -> c.functionIndex();
-            case RefTypeInstruction.RefNull c -> -1L;
-        };
-        return Variable.newVariable(type, val, isMutable);
+        return Variable.newVariable(type, expr, isMutable);
     }
 
     private Variable[] parseGlobalSection(ImportMetadata[] imports) {
