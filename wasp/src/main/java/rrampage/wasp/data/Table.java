@@ -32,6 +32,10 @@ public class Table {
         return this.size;
     }
 
+    public ValueType.RefType type() {
+        return type;
+    }
+
     public Function get(int i) {
         return this.data[i];
     }
