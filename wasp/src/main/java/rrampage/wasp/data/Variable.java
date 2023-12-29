@@ -1,5 +1,7 @@
 package rrampage.wasp.data;
 
+import rrampage.wasp.parser.types.ImportDescriptor;
+
 import static rrampage.wasp.utils.ConversionUtils.*;
 
 public sealed interface Variable {
@@ -16,6 +18,17 @@ public sealed interface Variable {
         }
     }
     boolean isMutable();
+
+    default ValueType type() {
+        return switch (this) {
+            case F32Variable v -> F32Variable.type ;
+            case F64Variable v -> F64Variable.type;
+            case I32Variable v -> I32Variable.type;
+            case I64Variable v -> I64Variable.type;
+            case FuncrefVariable v -> FuncrefVariable.type;
+        };
+    }
+
     final class I32Variable implements Variable {
         public static final ValueType type = ValueType.NumType.I32;
         private int val;
@@ -93,11 +106,15 @@ public sealed interface Variable {
 
     static String debug(Variable variable) {
         return switch (variable) {
-            case F32Variable v -> F32Variable.type + " " + v.getVal();
-            case F64Variable v -> F64Variable.type + " " + v.getVal();
-            case I32Variable v -> I32Variable.type + " " + v.getVal();
-            case I64Variable v -> I64Variable.type + " " + v.getVal();
-            case FuncrefVariable v -> FuncrefVariable.type + " " + v.getVal();
+            case F32Variable v -> variable.type() + " " + v.getVal();
+            case F64Variable v -> variable.type() + " " + v.getVal();
+            case I32Variable v -> variable.type() + " " + v.getVal();
+            case I64Variable v -> variable.type() + " " + v.getVal();
+            case FuncrefVariable v -> variable.type() + " " + v.getVal();
         };
+    }
+
+    default boolean matchesDescriptor(ImportDescriptor.GlobalDescriptor d) {
+        return d.valueType().equals(type()) && d.mutable() == isMutable();
     }
 }

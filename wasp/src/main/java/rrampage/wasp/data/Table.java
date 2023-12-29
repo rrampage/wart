@@ -1,5 +1,7 @@
 package rrampage.wasp.data;
 
+import rrampage.wasp.parser.types.ImportDescriptor;
+
 /**
  * Tables currently can store
  * - function references
@@ -42,6 +44,10 @@ public class Table {
             size = max;
         }
         this.data[i] = f;
+    }
+
+    public boolean matchesDescriptor(ImportDescriptor.TableDescriptor d) {
+        return this.size == d.min() && this.max == d.max() && this.type.equals(d.refType());
     }
 
     public String toString() {return String.format("Table Type: %s Size: %d Max Size: %d", type.name(), size, max);}

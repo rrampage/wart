@@ -1,5 +1,7 @@
 package rrampage.wasp.data;
 
+import rrampage.wasp.parser.types.ImportDescriptor;
+
 import java.util.Arrays;
 
 /**
@@ -70,5 +72,10 @@ public class Memory {
 
     public String toString() {
         return String.format("Memory: size %d pages, max size: %d pages, shared: %b", getMemorySize(), maxPages, isShared);
+    }
+
+    public boolean matchesDescriptor(ImportDescriptor.MemoryDescriptor m) {
+        // TODO : Add check for isShared here as well
+        return m.minPages() == getMemorySize() && m.maxPages() == maxPages;
     }
 }
