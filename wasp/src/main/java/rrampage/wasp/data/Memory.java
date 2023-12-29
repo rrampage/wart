@@ -11,16 +11,22 @@ public class Memory {
     public static final int MAX_PAGES = 4096;
     private byte[] memory;
     private final int maxPages;
+    private final boolean isShared; // For later work on WASM threads and atomics
     public Memory(int pages) {
         this(pages, MAX_PAGES);
     }
 
     public Memory(int pages, int maxPages) {
+        this(pages, maxPages, false);
+    }
+
+    public Memory(int pages, int maxPages, boolean isShared) {
         if (pages > MAX_PAGES || maxPages > MAX_PAGES) {
             throw new RuntimeException(String.format("Can not allocate more than %d pages of memory", MAX_PAGES));
         }
         this.maxPages = maxPages;
         this.memory = new byte[pages * MEM_PAGE_SIZE];
+        this.isShared = isShared;
     }
 
     public int getMemorySize() {
@@ -63,6 +69,6 @@ public class Memory {
     }
 
     public String toString() {
-        return String.format("Memory: size %d pages, max size: %d pages", getMemorySize(), maxPages);
+        return String.format("Memory: size %d pages, max size: %d pages, shared: %b", getMemorySize(), maxPages, isShared);
     }
 }
