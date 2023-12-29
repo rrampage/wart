@@ -191,10 +191,11 @@ public class WasmParser implements Parser {
         return new Memory(min, max);
     }
 
-    private Memory[] parseMemorySection() {
-        int numMem = (int) Leb128.readUnsigned(bb);
-        Memory[] memories = new Memory[numMem];
-        for (int i = 0; i < numMem; i++) {
+    private Memory[] parseMemorySection(ImportMetadata[] imports) {
+        int n = (int) Leb128.readUnsigned(bb);
+        int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.MemoryDescriptor).count();
+        Memory[] memories = new Memory[n + numImports];
+        for (int i = numImports; i < n+numImports; i++) {
             memories[i] = parseMemory();
         }
         return memories;
@@ -208,10 +209,11 @@ public class WasmParser implements Parser {
         return new Table(min, max, refType);
     }
 
-    private Table[] parseTableSection() {
+    private Table[] parseTableSection(ImportMetadata[] imports) {
         int n = (int) Leb128.readUnsigned(bb);
-        Table[] tables = new Table[n];
-        for (int i = 0; i < n; i++) {
+        int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.TableDescriptor).count();
+        Table[] tables = new Table[n+numImports];
+        for (int i = numImports; i < n+numImports; i++) {
             tables[i] = parseTable();
         }
         return tables;
@@ -232,7 +234,6 @@ public class WasmParser implements Parser {
     }
 
     private Variable[] parseGlobalSection(ImportMetadata[] imports) {
-        // TODO
         int n = (int) Leb128.readUnsigned(bb);
         int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.GlobalDescriptor).count();
         Variable[] globals = new Variable[n+numImports];
@@ -460,11 +461,11 @@ public class WasmParser implements Parser {
                 case TYPE -> types = parseTypes();
                 case IMPORT -> imports = parseImports();
                 case FUNCTION -> functions = parseFunctionSection();
-                case TABLE -> tables = parseTableSection();
+                case TABLE -> tables = parseTableSection(imports);
                 case GLOBAL -> globals = parseGlobalSection(imports);
                 case EXPORT -> exports = parseExports();
                 case START -> startIdx = parseStartIdx();
-                case MEMORY -> memories = parseMemorySection();
+                case MEMORY -> memories = parseMemorySection(imports);
                 case ELEMENT -> elementSegments = parseElementSection();
                 case DATA_COUNT -> dataCount = parseDataCountSection(); // Must be parsed before code to validate mem.init and mem.drop instructions using passive segments
                 case CODE -> allFuncs = parseCodeSection(types, imports, functions);
