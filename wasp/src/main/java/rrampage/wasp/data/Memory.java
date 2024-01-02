@@ -54,20 +54,24 @@ public class Memory {
     }
 
     public void store(int addr, byte[] data) {
-        if (addr >= memory.length) {
-            throw new RuntimeException("Invalid address passed to memory: " + addr);
-        }
-        System.arraycopy(data, 0, memory, addr, data.length);
+        store(addr, data, 0, data.length);
     }
 
     public void store(int addr, byte[] data, int srcOffset, int numBytes) {
-        if (addr >= memory.length || addr + numBytes >= memory.length) {
+        if (addr >= memory.length || addr + numBytes > memory.length) {
             throw new RuntimeException("Invalid address passed to memory: " + addr);
         }
-        if (srcOffset + numBytes >= data.length) {
+        if (srcOffset + numBytes > data.length) {
             throw new RuntimeException("Can not copy more than source byte array size");
         }
         System.arraycopy(data, srcOffset, memory, addr, numBytes);
+    }
+
+    public void fill(int addr, byte data, int numBytes) {
+        if (addr + numBytes > memory.length) {
+            throw new RuntimeException("the destination offset plus size is greater than the length of the target memory");
+        }
+        Arrays.fill(memory, addr, addr + numBytes, data);
     }
 
     public String toString() {
