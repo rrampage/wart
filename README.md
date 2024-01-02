@@ -47,6 +47,12 @@ WASM opcode references:
   - Data
   - Data count
   - Element
+  - Global
+- Module instantiation
+  - Memory
+  - Imports
+  - Globals
+  - Data Segments
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
@@ -69,8 +75,9 @@ WASM opcode references:
 - Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) encode
 - Read sections
   - Custom
-  - Global
 - Module instantiation
+  - Exports
+  - Element Segments
 
 #### Interop
 - Use exported functions from Java

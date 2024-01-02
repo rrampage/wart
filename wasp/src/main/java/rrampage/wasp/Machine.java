@@ -85,10 +85,13 @@ public class Machine {
         stack.push(doubleToLong(val));
     }
 
+    // Returns the "stack" in FIFO order
+    public long[] inspectStack() {
+        return stack.stream().mapToLong(l -> l).toArray();
+    }
+
     public void printStack() {
-        Long[] arr = new Long[stack.size()];
-        stack.toArray(arr);
-        System.out.println(" Stack: " + Arrays.toString(arr));
+        System.out.println(" Stack: " + Arrays.toString(inspectStack()));
     }
 
     private boolean isAligned(int align, int offset, int addr) {
