@@ -34,6 +34,10 @@ public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
         return Arrays.equals(this.paramTypes, ft.paramTypes) && Arrays.equals(this.returnTypes, ft.returnTypes);
     }
 
+    public MethodType getMethodType() {
+        return getMethodTypeFromFunctionType(this);
+    }
+
     public static Class<?> getClassFromDataType(ValueType d) {
         return switch (d) {
             case null -> void.class;

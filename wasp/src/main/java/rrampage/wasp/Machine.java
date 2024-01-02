@@ -32,7 +32,8 @@ public class Machine {
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         if (memories == null || memories.length == 0) {
-            throw new RuntimeException("Null or zero size memories during init");
+            // Create a 1 page memory if null or zero-length memory is passed
+            memories = new Memory[]{new Memory(1)};
         }
         this.stack = new ArrayDeque<>(8192);
         this.memories = memories;
@@ -571,12 +572,21 @@ public class Machine {
                 }
                 case SegmentInstruction i -> {
                     switch (i) {
-                        case SegmentInstruction.DataDrop(int segIdx) -> {
-                            this.dataSegments[segIdx] = new DataSegment.PassiveDataSegment(new byte[0]);
+                        case SegmentInstruction.DataDrop(int segIdx) -> this.dataSegments[segIdx] = new DataSegment.PassiveDataSegment(new byte[0]);
+                        case SegmentInstruction.MemoryCopy(int srcMemIdx, int dstMemIdx) -> {
+                            Memory srcMem = memories[srcMemIdx], dstMem = memories[dstMemIdx];
+                            int numBytesToCopy = popInt();
+                            int srcAddr = popInt();
+                            int dstAddr = popInt();
+                            // TODO : Implement Copy without intermediate byte[]
+                            byte[] data = srcMem.load(srcAddr, numBytesToCopy);
+                            dstMem.store(dstAddr, data);
                         }
-                        case SegmentInstruction.MemoryCopy memoryCopy -> {
-                        }
-                        case SegmentInstruction.MemoryFill memoryFill -> {
+                        case SegmentInstruction.MemoryFill(int memIdx) -> {
+                            int numBytesToSet = popInt();
+                            byte val = (byte) popInt();
+                            int dstAddr = popInt();
+                            memories[memIdx].fill(dstAddr, val, numBytesToSet);
                         }
                         case SegmentInstruction.MemoryInit(int segIdx, int memIdx) -> {
                             Memory m = memories[memIdx];
@@ -589,6 +599,24 @@ public class Machine {
                             int dstAddr = popInt();
                             m.store(dstAddr, seg.data(), srcOffset, numBytesToCopy);
                         }
+                    }
+                }
+                case RefTypeInstruction i -> {
+                    switch (i) {
+                        case RefTypeInstruction.ElemDrop(int elemIdx) -> {
+                            // TODO : Should we create a zero-byte elem segment here and preserve reftype info ?
+                            this.elementSegments[elemIdx] = null;
+                        }
+                        case RefTypeInstruction.RefFunc r -> {}
+                        case RefTypeInstruction.RefIsNull r -> {}
+                        case RefTypeInstruction.RefNull r -> {}
+                        case RefTypeInstruction.TableCopy r -> {}
+                        case RefTypeInstruction.TableFill r -> {}
+                        case RefTypeInstruction.TableGet r -> {}
+                        case RefTypeInstruction.TableGrow r -> {}
+                        case RefTypeInstruction.TableInit r -> {}
+                        case RefTypeInstruction.TableSet r -> {}
+                        case RefTypeInstruction.TableSize r -> {}
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());

@@ -300,9 +300,10 @@ public class MachineTest {
         double c = a *2, d = b*2;
         FunctionType type = new FunctionType(new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64}, new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64});
         MethodType mt = FunctionType.getMethodTypeFromFunctionType(type);
+        assertEquals(MethodType.methodType(double[].class, double.class, double.class), mt);
         MethodHandle mh;
         try {
-            mh = MethodHandles.lookup().findStatic(MachineTest.class, "doubleArr", MethodType.methodType(double[].class, double.class, double.class));
+            mh = MethodHandles.lookup().findStatic(MachineTest.class, "doubleArr", mt);
         } catch (Exception e) {
             e.printStackTrace();
             Assertions.assertNull(e); // placeholder to fail

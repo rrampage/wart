@@ -67,6 +67,9 @@ public record Module(
          */
         var imap = getImportMap();
         var icount = imports() == null ? 0 : imports().length;
+        if (importMap == null) {
+            throw new RuntimeException("INIT_ERROR: All imports not supplied. Missing " + icount + " imports");
+        }
         var funcIdx = 0;
         var varIdx = 0;
         var memIdx = 0;

@@ -16,7 +16,7 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <!-- To run main class with mvn compile exec:java -->
-    <exec.mainClass>rrampage.wasp.Machine</exec.mainClass>
+    <exec.mainClass>rrampage.wasp.Runner</exec.mainClass>
   </properties>
 
   <dependencyManagement>
