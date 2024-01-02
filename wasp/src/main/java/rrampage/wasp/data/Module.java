@@ -1,6 +1,7 @@
 package rrampage.wasp.data;
 
 import rrampage.wasp.Machine;
+import rrampage.wasp.instructions.ConstExpression;
 import rrampage.wasp.instructions.ConstInstruction;
 import rrampage.wasp.instructions.GlobalInstruction;
 import rrampage.wasp.instructions.RefTypeInstruction;
@@ -133,7 +134,22 @@ public record Module(
         }
     }
 
-    private void processElementSegments() {
+    private int getOffsetFromConstExpr(ConstExpression expr) {
+        return switch (expr) {
+            case ConstInstruction.IntConst e -> e.val();
+            case GlobalInstruction.GlobalGet e -> {
+                var src = globals()[e.val()];
+                if (src.type() != Variable.I32Variable.type) {
+                    throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", src.type()));
+                }
+                yield (int) src.getValAsLong();
+            }
+            case RefTypeInstruction.RefFunc e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
+            case RefTypeInstruction.RefNull e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
+        };
+    }
+
+    private void processActiveElementSegments() {
         for (var ds : elementSegments()) {
             if (!(ds instanceof ElementSegment.ActiveElementSegment aes)) {
                 continue;
@@ -142,18 +158,7 @@ public record Module(
             if (t.type() != aes.type()) {
                 throw new RuntimeException(String.format("INIT_ERROR: Table type %s does not match element type %s", t.type(), aes.type()));
             }
-            int offset = switch (aes.initExpr()) {
-                case ConstInstruction.IntConst e -> e.val();
-                case GlobalInstruction.GlobalGet e -> {
-                    var src = globals()[e.val()];
-                    if (src.type() != Variable.I32Variable.type) {
-                        throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", src.type()));
-                    }
-                    yield (int) src.getValAsLong();
-                }
-                case RefTypeInstruction.RefFunc e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
-                case RefTypeInstruction.RefNull e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
-            };
+            int offset = getOffsetFromConstExpr(aes.initExpr());
             int n = (aes.isExpression()) ? aes.expressionVector().length : aes.functionIndexVector().length;
             if (aes.isExpression()) {
                 // TODO resolve expression vectors
@@ -171,18 +176,7 @@ public record Module(
                 continue;
             }
             Memory m = memories[ads.memoryIndex()];
-            int offset = switch (ads.offset()) {
-                case ConstInstruction.IntConst e -> e.val();
-                case GlobalInstruction.GlobalGet e -> {
-                    var src = globals()[e.val()];
-                    if (src.type() != Variable.I32Variable.type) {
-                        throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", src.type()));
-                    }
-                    yield (int) src.getValAsLong();
-                }
-                case RefTypeInstruction.RefFunc e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
-                case RefTypeInstruction.RefNull e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
-            };
+            int offset = getOffsetFromConstExpr(ads.offset());
             m.store(offset, ads.data(), 0, ads.data().length);
         }
     }
@@ -197,7 +191,9 @@ public record Module(
         processImports(importMap);
         processGlobals();
         processDataSegments();
+        processActiveElementSegments();
         Machine m = new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), startIdx());
+        m.start();
         return m;
     }
 }
