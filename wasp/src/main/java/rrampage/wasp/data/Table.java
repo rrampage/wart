@@ -1,5 +1,7 @@
 package rrampage.wasp.data;
 
+import rrampage.wasp.parser.types.ImportDescriptor;
+
 /**
  * Tables currently can store
  * - function references
@@ -13,9 +15,9 @@ public class Table {
     private Function[] data;
     private final ValueType.RefType type;
     public Table(int initialSize, int maxSize, ValueType.RefType type) {
-        if (!type.equals(ValueType.RefType.FUNCREF) || initialSize > maxSize) {
+        /*if (!type.equals(ValueType.RefType.FUNCREF) || initialSize > maxSize) {
             throw new RuntimeException("Invalid table init");
-        }
+        }*/
         this.size = initialSize;
         this.max = maxSize;
         this.data = new Function[this.size];
@@ -30,6 +32,10 @@ public class Table {
         return this.size;
     }
 
+    public ValueType.RefType type() {
+        return type;
+    }
+
     public Function get(int i) {
         return this.data[i];
     }
@@ -42,6 +48,10 @@ public class Table {
             size = max;
         }
         this.data[i] = f;
+    }
+
+    public boolean matchesDescriptor(ImportDescriptor.TableDescriptor d) {
+        return this.size == d.min() && this.max == d.max() && this.type.equals(d.refType());
     }
 
     public String toString() {return String.format("Table Type: %s Size: %d Max Size: %d", type.name(), size, max);}

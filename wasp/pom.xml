@@ -6,7 +6,7 @@
 
   <groupId>rrampage.wasp.wasm</groupId>
   <artifactId>wasp</artifactId>
-  <version>0.0.9</version>
+  <version>0.0.10</version>
 
   <name>wasp</name>
   <url>http://github.com/rrampage/wart/wasp</url>
@@ -16,7 +16,7 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <!-- To run main class with mvn compile exec:java -->
-    <exec.mainClass>rrampage.wasp.Machine</exec.mainClass>
+    <exec.mainClass>rrampage.wasp.Runner</exec.mainClass>
   </properties>
 
   <dependencyManagement>

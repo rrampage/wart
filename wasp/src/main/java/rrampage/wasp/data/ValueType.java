@@ -12,7 +12,7 @@ public sealed interface ValueType {
         private final byte val;
         VecType(byte val) {this.val = val;}
         public byte byteCode() {return val;}
-        public String toString() {return this.name();}
+        public String toString() {return String.format("ValueType: %s Bytecode: 0x%x", this.name(), this.byteCode());}
     }
 
     enum NumType implements ValueType {
@@ -23,20 +23,8 @@ public sealed interface ValueType {
         private final byte val;
         NumType(byte val) {this.val = val;}
         public byte byteCode() {return val;}
-        public String toString() {return this.name();}
+        public String toString() {return String.format("ValueType: %s Bytecode: 0x%x", this.name(), this.byteCode());}
         private static final Map<Byte, NumType> numTypeMap = ConversionUtils.convertArrayToImmutableMap(NumType.values(), NumType::byteCode);
-        public static NumType from(byte b) {
-            NumType nt = numTypeMap.get(b);
-            if (nt == null) {
-                throw new RuntimeException(String.format("PARSE_NUM_TYPE: Unexpected bytecode 0x%x", b));
-            }
-            return nt;
-        }
-
-        public static Optional<NumType> parse(byte b) {
-            NumType nt = numTypeMap.get(b);
-            return (nt == null) ? Optional.empty() : Optional.of(nt);
-        }
     }
 
     enum RefType implements ValueType {
@@ -45,7 +33,7 @@ public sealed interface ValueType {
         private final byte val;
         RefType(byte val) {this.val = val;}
         public byte byteCode() {return val;}
-        public String toString() {return this.name();}
+        public String toString() {return String.format("ValueType: %s Bytecode: 0x%x", this.name(), this.byteCode());}
         private static final Map<Byte, RefType> typeMap = ConversionUtils.convertArrayToImmutableMap(RefType.values(), RefType::byteCode);
         public static RefType from(byte b) {
             RefType t = typeMap.get(b);
@@ -56,11 +44,22 @@ public sealed interface ValueType {
         }
     }
     byte byteCode();
+    String name();
 
     static ValueType from(byte b) {
-        return typeMap.get(b);
+        ValueType t =  typeMap.get(b);
+        if (t == null) {
+            throw new RuntimeException(String.format("PARSE_VALUE_TYPE: Unexpected bytecode 0x%x", b));
+        }
+        return t;
     }
-    static Map<Byte, ValueType> typeMap = Map.copyOf(generateTypeMap());
+
+    static Optional<ValueType> parse(byte b) {
+        ValueType t = typeMap.get(b);
+        return (t == null) ? Optional.empty() : Optional.of(t);
+    }
+
+    Map<Byte, ValueType> typeMap = Map.copyOf(generateTypeMap());
     private static Map<Byte, ValueType> generateTypeMap() {
         HashMap<Byte, ValueType> typeMap = new HashMap<>(NumType.numTypeMap);
         typeMap.putAll(RefType.typeMap);

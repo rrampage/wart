@@ -1,5 +1,7 @@
 package rrampage.wasp.data;
 
+import rrampage.wasp.parser.types.ImportDescriptor;
+
 import java.util.Arrays;
 
 /**
@@ -11,16 +13,22 @@ public class Memory {
     public static final int MAX_PAGES = 4096;
     private byte[] memory;
     private final int maxPages;
+    private final boolean isShared; // For later work on WASM threads and atomics
     public Memory(int pages) {
         this(pages, MAX_PAGES);
     }
 
     public Memory(int pages, int maxPages) {
+        this(pages, maxPages, false);
+    }
+
+    public Memory(int pages, int maxPages, boolean isShared) {
         if (pages > MAX_PAGES || maxPages > MAX_PAGES) {
             throw new RuntimeException(String.format("Can not allocate more than %d pages of memory", MAX_PAGES));
         }
         this.maxPages = maxPages;
         this.memory = new byte[pages * MEM_PAGE_SIZE];
+        this.isShared = isShared;
     }
 
     public int getMemorySize() {
@@ -46,23 +54,32 @@ public class Memory {
     }
 
     public void store(int addr, byte[] data) {
-        if (addr >= memory.length) {
-            throw new RuntimeException("Invalid address passed to memory: " + addr);
-        }
-        System.arraycopy(data, 0, memory, addr, data.length);
+        store(addr, data, 0, data.length);
     }
 
     public void store(int addr, byte[] data, int srcOffset, int numBytes) {
-        if (addr >= memory.length || addr + numBytes >= memory.length) {
+        if (addr >= memory.length || addr + numBytes > memory.length) {
             throw new RuntimeException("Invalid address passed to memory: " + addr);
         }
-        if (srcOffset + numBytes >= data.length) {
+        if (srcOffset + numBytes > data.length) {
             throw new RuntimeException("Can not copy more than source byte array size");
         }
         System.arraycopy(data, srcOffset, memory, addr, numBytes);
     }
 
+    public void fill(int addr, byte data, int numBytes) {
+        if (addr + numBytes > memory.length) {
+            throw new RuntimeException("the destination offset plus size is greater than the length of the target memory");
+        }
+        Arrays.fill(memory, addr, addr + numBytes, data);
+    }
+
     public String toString() {
-        return String.format("Memory: size %d pages, max size: %d pages", getMemorySize(), maxPages);
+        return String.format("Memory: size %d pages, max size: %d pages, shared: %b", getMemorySize(), maxPages, isShared);
+    }
+
+    public boolean matchesDescriptor(ImportDescriptor.MemoryDescriptor m) {
+        // TODO : Add check for isShared here as well
+        return m.minPages() == getMemorySize() && m.maxPages() == maxPages;
     }
 }

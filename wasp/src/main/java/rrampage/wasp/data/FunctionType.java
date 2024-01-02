@@ -4,8 +4,9 @@ import java.lang.invoke.MethodType;
 import java.util.Arrays;
 
 import static rrampage.wasp.data.ValueType.*;
+import static rrampage.wasp.data.ValueType.NumType.*;
 
-public record FunctionType(NumType[] paramTypes, NumType[] returnTypes) {
+public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
     public boolean isVoidReturn() {
         return returnTypes == null || returnTypes.length == 0;
     }
@@ -33,13 +34,18 @@ public record FunctionType(NumType[] paramTypes, NumType[] returnTypes) {
         return Arrays.equals(this.paramTypes, ft.paramTypes) && Arrays.equals(this.returnTypes, ft.returnTypes);
     }
 
-    public static Class<?> getClassFromDataType(ValueType.NumType d) {
+    public MethodType getMethodType() {
+        return getMethodTypeFromFunctionType(this);
+    }
+
+    public static Class<?> getClassFromDataType(ValueType d) {
         return switch (d) {
             case null -> void.class;
             case I32 -> int.class;
             case I64 -> long.class;
             case F32 -> float.class;
             case F64 -> double.class;
+            default -> throw new IllegalStateException(String.format("Invalid value type: %s", d));
         };
     }
 
@@ -82,8 +88,8 @@ public record FunctionType(NumType[] paramTypes, NumType[] returnTypes) {
     }
 
     public static final FunctionType VOID = new FunctionType(null, null);
-    public static final FunctionType I32_RETURN = new FunctionType(null, new NumType[]{NumType.I32});
-    public static final FunctionType I64_RETURN = new FunctionType(null, new NumType[]{NumType.I64});
-    public static final FunctionType F32_RETURN = new FunctionType(null, new NumType[]{NumType.F32});
+    public static final FunctionType I32_RETURN = new FunctionType(null, new NumType[]{I32});
+    public static final FunctionType I64_RETURN = new FunctionType(null, new NumType[]{I64});
+    public static final FunctionType F32_RETURN = new FunctionType(null, new NumType[]{F32});
     public static final FunctionType F64_RETURN = new FunctionType(null, new NumType[]{NumType.F64});
 }

@@ -23,6 +23,8 @@ WASM opcode references:
 - Blocks, loops and conditionals
 - [Sign extension operations](https://github.com/WebAssembly/spec/blob/master/proposals/sign-extension-ops/Overview.md)
 - Start
+- Exports
+- Invoke exported functions
 
 #### WAT Parser
 - Instructions
@@ -47,13 +49,19 @@ WASM opcode references:
   - Data
   - Data count
   - Element
+  - Global
+- Module instantiation
+  - Memory
+  - Imports
+  - Globals
+  - Exports
+  - Data Segments
 
 #### Interop
 - Import Java functions in WASM using MethodHandle for typesafe invoking
 
 ### TODO
 #### Machine
-- Exports
 - Block types
 - 128 bit vector (v128) data type and instructions
 - external reference types
@@ -69,8 +77,8 @@ WASM opcode references:
 - Implement [LEB128](https://en.wikipedia.org/wiki/LEB128) encode
 - Read sections
   - Custom
-  - Global
 - Module instantiation
+  - Element Segments
 
 #### Interop
 - Use exported functions from Java

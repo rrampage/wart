@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Map;
 
 import static rrampage.wasp.utils.ConversionUtils.*;
 
@@ -24,15 +25,17 @@ public class Machine {
     private int[] labels;
     private final DataSegment[] dataSegments;
     private final ElementSegment[] elementSegments;
+    private final Map<String, Object> exportMap;
     private final long startIdx;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, startIdx);
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx);
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, Map<String, Object> exportMap, long startIdx) {
         if (memories == null || memories.length == 0) {
-            throw new RuntimeException("Null or zero size memories during init");
+            // Create a 1 page memory if null or zero-length memory is passed
+            memories = new Memory[]{new Memory(1)};
         }
         this.stack = new ArrayDeque<>(8192);
         this.memories = memories;
@@ -45,12 +48,15 @@ public class Machine {
         this.labels = new int[]{0, -1, -1, -1, -1, -1};
         this.dataSegments = dataSegments;
         this.elementSegments = elementSegments;
+        this.exportMap = exportMap;
         this.startIdx = startIdx;
     }
 
     public Memory getMainMemory() {
         return this.memories[0];
     }
+
+    public Map<String, Object> exports(){ return this.exportMap;}
 
     public long pop() {
         return stack.pop();
@@ -84,10 +90,13 @@ public class Machine {
         stack.push(doubleToLong(val));
     }
 
+    // Returns the "stack" in FIFO order
+    public long[] inspectStack() {
+        return stack.stream().mapToLong(l -> l).toArray();
+    }
+
     public void printStack() {
-        Long[] arr = new Long[stack.size()];
-        stack.toArray(arr);
-        System.out.println(" Stack: " + Arrays.toString(arr));
+        System.out.println(" Stack: " + Arrays.toString(inspectStack()));
     }
 
     private boolean isAligned(int align, int offset, int addr) {
@@ -437,6 +446,7 @@ public class Machine {
                                         case Variable.F64Variable x -> x.getVal();
                                         case Variable.I32Variable x -> x.getVal();
                                         case Variable.I64Variable x -> x.getVal();
+                                        case Variable.FuncrefVariable x -> x.getVal();
                                     };
                                     System.out.println("Class for " + i + " is " + args[i].getClass());
                                 }
@@ -446,12 +456,13 @@ public class Machine {
                                 }
                                 if (type.returnTypes().length == 1) {
                                     // push ret to Stack
-                                    ValueType.NumType retType = type.returnTypes()[0];
+                                    ValueType retType = type.returnTypes()[0];
                                     switch (retType) {
-                                        case I32 -> pushInt((int) ret);
-                                        case I64 -> push((long) ret);
-                                        case F32 -> pushFloat((float) ret);
-                                        case F64 -> pushDouble((double) ret);
+                                        case ValueType.NumType.I32 -> pushInt((int) ret);
+                                        case ValueType.NumType.I64 -> push((long) ret);
+                                        case ValueType.NumType.F32 -> pushFloat((float) ret);
+                                        case ValueType.NumType.F64 -> pushDouble((double) ret);
+                                        default -> throw new IllegalStateException(String.format("Invalid value type: %s", retType));
                                     }
                                     continue;
                                 }
@@ -461,10 +472,11 @@ public class Machine {
                                 // Push in reverse order
                                 for (int i = type.returnTypes().length -1; i >= 0; i--) {
                                     switch (type.returnTypes()[i]) {
-                                        case I32 -> pushInt((int) Array.get(ret, i));
-                                        case I64 -> push((long) Array.get(ret, i));
-                                        case F32 -> pushFloat((float) Array.get(ret, i));
-                                        case F64 -> pushDouble((double) Array.get(ret, i));
+                                        case ValueType.NumType.I32 -> pushInt((int) Array.get(ret, i));
+                                        case ValueType.NumType.I64 -> push((long) Array.get(ret, i));
+                                        case ValueType.NumType.F32 -> pushFloat((float) Array.get(ret, i));
+                                        case ValueType.NumType.F64 -> pushDouble((double) Array.get(ret, i));
+                                        default -> throw new IllegalStateException(String.format("Invalid value type: %s", type.returnTypes()[i]));
                                     }
                                 }
                             } catch (Throwable e) {
@@ -568,12 +580,21 @@ public class Machine {
                 }
                 case SegmentInstruction i -> {
                     switch (i) {
-                        case SegmentInstruction.DataDrop(int segIdx) -> {
-                            this.dataSegments[segIdx] = new DataSegment.PassiveDataSegment(new byte[0]);
+                        case SegmentInstruction.DataDrop(int segIdx) -> this.dataSegments[segIdx] = new DataSegment.PassiveDataSegment(new byte[0]);
+                        case SegmentInstruction.MemoryCopy(int srcMemIdx, int dstMemIdx) -> {
+                            Memory srcMem = memories[srcMemIdx], dstMem = memories[dstMemIdx];
+                            int numBytesToCopy = popInt();
+                            int srcAddr = popInt();
+                            int dstAddr = popInt();
+                            // TODO : Implement Copy without intermediate byte[]
+                            byte[] data = srcMem.load(srcAddr, numBytesToCopy);
+                            dstMem.store(dstAddr, data);
                         }
-                        case SegmentInstruction.MemoryCopy memoryCopy -> {
-                        }
-                        case SegmentInstruction.MemoryFill memoryFill -> {
+                        case SegmentInstruction.MemoryFill(int memIdx) -> {
+                            int numBytesToSet = popInt();
+                            byte val = (byte) popInt();
+                            int dstAddr = popInt();
+                            memories[memIdx].fill(dstAddr, val, numBytesToSet);
                         }
                         case SegmentInstruction.MemoryInit(int segIdx, int memIdx) -> {
                             Memory m = memories[memIdx];
@@ -588,6 +609,24 @@ public class Machine {
                         }
                     }
                 }
+                case RefTypeInstruction i -> {
+                    switch (i) {
+                        case RefTypeInstruction.ElemDrop(int elemIdx) -> {
+                            // TODO : Should we create a zero-byte elem segment here and preserve reftype info ?
+                            this.elementSegments[elemIdx] = null;
+                        }
+                        case RefTypeInstruction.RefFunc r -> {}
+                        case RefTypeInstruction.RefIsNull r -> {}
+                        case RefTypeInstruction.RefNull r -> {}
+                        case RefTypeInstruction.TableCopy r -> {}
+                        case RefTypeInstruction.TableFill r -> {}
+                        case RefTypeInstruction.TableGet r -> {}
+                        case RefTypeInstruction.TableGrow r -> {}
+                        case RefTypeInstruction.TableInit r -> {}
+                        case RefTypeInstruction.TableSet r -> {}
+                        case RefTypeInstruction.TableSize r -> {}
+                    }
+                }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
         }
@@ -600,7 +639,23 @@ public class Machine {
             case Variable.F64Variable v -> pushDouble(v.getVal());
             case Variable.I32Variable v -> pushInt(v.getVal());
             case Variable.I64Variable v -> push(v.getVal());
+            case Variable.FuncrefVariable v -> push(v.getVal());
         }
+    }
+
+    public void invoke(String function, ConstExpression[] expr) {
+        Object o = exportMap.get(function);
+        if (!(o instanceof Function f)) {
+            throw new RuntimeException("Invalid WASM export called: " + function);
+        }
+        var type = f.type();
+        expr = (expr == null) ? new ConstExpression[]{} : expr;
+        if (type.numParams() != expr.length) {
+            throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
+        }
+        // TODO: type check of const expr??
+        execute(expr, null, 0);
+        call(f, 0);
     }
 
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
@@ -608,6 +663,4 @@ public class Machine {
         m.start();
         return m;
     }
-
-    public static void main(String[] args) {}
 }

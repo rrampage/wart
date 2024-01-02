@@ -7,7 +7,7 @@ import rrampage.wasp.instructions.FunctionInstruction;
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
 
-public record Function(String name, FunctionType type, ValueType.NumType[] locals, Instruction[] code, int[] labels) {
+public record Function(String name, FunctionType type, ValueType[] locals, Instruction[] code, int[] labels) {
     public boolean isVoidReturn() {
         return type().isVoidReturn();
     }
@@ -54,8 +54,7 @@ public record Function(String name, FunctionType type, ValueType.NumType[] local
     public static Function createImportFunction(String name, FunctionType type, MethodHandle func) {
         // Defined type signature must match
         if (!func.type().equals(FunctionType.getMethodTypeFromFunctionType(type))) {
-            // Can throw RuntimeException here??
-            return null;
+            throw new RuntimeException(String.format("CREATE_IMPORT_FUNCTION: Invalid type %s supplied. Required type: %s", func.type() ,type));
         }
         return new Function(name, type, null, new Instruction[]{new FunctionInstruction.CallJava(type, func)}, null);
     }
