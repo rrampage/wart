@@ -12,12 +12,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static rrampage.wasp.TestUtils.*;
 public class WasmRunnerTest {
     private static final long[] EMPTY_STACK = new long[]{};
+
+    private Module parseModule(String fileName) {
+        return new WasmParser(readBinaryFile(getFilePath(fileName))).parseModule();
+    }
+
+    @Test
+    public void shouldRunEmptyModule() {
+        var module = parseModule("./empty_module.wasm");
+        var machine = module.instantiate(null);
+        assertArrayEquals(machine.inspectStack(), EMPTY_STACK);
+    }
     @Test
     public void shouldRunAddModule() {
-        String fileName = "./add_two.wasm";
-        byte[] data = readBinaryFile(getFilePath(fileName));
-        WasmParser parser = new WasmParser(data);
-        Module module = parser.parseModule();
+        var module = parseModule("./add_two.wasm");
         try {
             var machine = module.instantiate(Map.of("host", Map.of("print", ImportUtils.generateLoggerHandle(new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32}, new ValueType.NumType[]{ValueType.NumType.I32})))));
             assertArrayEquals(machine.inspectStack(), EMPTY_STACK);
