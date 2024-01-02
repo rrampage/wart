@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Map;
 
 import static rrampage.wasp.utils.ConversionUtils.*;
 
@@ -24,13 +25,14 @@ public class Machine {
     private int[] labels;
     private final DataSegment[] dataSegments;
     private final ElementSegment[] elementSegments;
+    private final Map<String, Object> exportMap;
     private final long startIdx;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, startIdx);
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx);
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, Map<String, Object> exportMap, long startIdx) {
         if (memories == null || memories.length == 0) {
             // Create a 1 page memory if null or zero-length memory is passed
             memories = new Memory[]{new Memory(1)};
@@ -46,12 +48,15 @@ public class Machine {
         this.labels = new int[]{0, -1, -1, -1, -1, -1};
         this.dataSegments = dataSegments;
         this.elementSegments = elementSegments;
+        this.exportMap = exportMap;
         this.startIdx = startIdx;
     }
 
     public Memory getMainMemory() {
         return this.memories[0];
     }
+
+    public Map<String, Object> exports(){ return this.exportMap;}
 
     public long pop() {
         return stack.pop();
@@ -638,11 +643,24 @@ public class Machine {
         }
     }
 
+    public void invoke(String function, ConstExpression[] expr) {
+        Object o = exportMap.get(function);
+        if (!(o instanceof Function f)) {
+            throw new RuntimeException("Invalid WASM export called: " + function);
+        }
+        var type = f.type();
+        expr = (expr == null) ? new ConstExpression[]{} : expr;
+        if (type.numParams() != expr.length) {
+            throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
+        }
+        // TODO: type check of const expr??
+        execute(expr, null, 0);
+        call(f, 0);
+    }
+
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         Machine m = new Machine(functions, tables, globals, pages, dataSegments, elementSegments, startIdx);
         m.start();
         return m;
     }
-
-    public static void main(String[] args) {}
 }

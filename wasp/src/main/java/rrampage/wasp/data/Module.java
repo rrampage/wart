@@ -9,6 +9,7 @@ import rrampage.wasp.parser.types.*;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -187,6 +188,19 @@ public record Module(
         }
     }
 
+    private Map<String, Object> processExports() {
+        Map<String, Object> exportMap = new HashMap<>();
+        for (var e : exports()) {
+            switch (e.descriptor()) {
+                case ExportDescriptor.FunctionDescriptor(int idx) -> exportMap.put(e.name(), functions()[idx]);
+                case ExportDescriptor.GlobalDescriptor(int idx) -> exportMap.put(e.name(), globals()[idx]);
+                case ExportDescriptor.MemoryDescriptor(int idx) -> exportMap.put(e.name(), memories()[idx]);
+                case ExportDescriptor.TableDescriptor(int idx) -> exportMap.put(e.name(), tables()[idx]);
+            }
+        }
+        return Collections.unmodifiableMap(exportMap);
+    }
+
     public Machine instantiate(Map<String, Map<String, Object>> importMap) {
         /*
             https://www.w3.org/TR/wasm-core-2/exec/modules.html#exec-instantiation
@@ -198,7 +212,8 @@ public record Module(
         processGlobals();
         processDataSegments();
         processActiveElementSegments();
-        Machine m = new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), startIdx());
+        var exportMap = processExports();
+        Machine m = new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), exportMap, startIdx());
         m.start();
         return m;
     }
