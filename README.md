@@ -23,6 +23,8 @@ WASM opcode references:
 - Blocks, loops and conditionals
 - [Sign extension operations](https://github.com/WebAssembly/spec/blob/master/proposals/sign-extension-ops/Overview.md)
 - Start
+- Exports
+- Invoke exported functions
 
 #### WAT Parser
 - Instructions
@@ -52,6 +54,7 @@ WASM opcode references:
   - Memory
   - Imports
   - Globals
+  - Exports
   - Data Segments
 
 #### Interop
@@ -59,7 +62,6 @@ WASM opcode references:
 
 ### TODO
 #### Machine
-- Exports
 - Block types
 - 128 bit vector (v128) data type and instructions
 - external reference types
@@ -76,7 +78,6 @@ WASM opcode references:
 - Read sections
   - Custom
 - Module instantiation
-  - Exports
   - Element Segments
 
 #### Interop
