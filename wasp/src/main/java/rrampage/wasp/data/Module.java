@@ -89,12 +89,12 @@ public record Module(
                 }
                 Object o =  map.get(e.getKey());
                 switch (e.getValue()) {
-                    case ImportDescriptor.FunctionDescriptor d -> {
-                        if (!(o instanceof MethodHandle mh)) {
-                            throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", e.getKey(), d, moduleEntry.getKey()));
-                        }
-                        functions()[funcIdx++] = Function.createImportFunction(e.getKey(), types()[d.idx()], mh);
-                    }
+                    case ImportDescriptor.FunctionDescriptor d -> functions()[funcIdx++] = switch (o) {
+                        case MethodHandle mh -> Function.createImportFunction(e.getKey(), types()[d.idx()], mh);
+                        case Function f -> f;
+                        default -> throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import",
+                                e.getKey(), d, moduleEntry.getKey()));
+                    };
                     case ImportDescriptor.GlobalDescriptor d -> {
                         if (!(o instanceof Variable v) || !v.matchesDescriptor(d)) {
                             throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", e.getKey(), d, moduleEntry.getKey()));
@@ -169,8 +169,23 @@ public record Module(
             int n = (aes.isExpression()) ? aes.expressionVector().length : aes.functionIndexVector().length;
             if (aes.isExpression()) {
                 // TODO resolve expression vectors
+                for (var e : aes.expressionVector()) {
+                    System.out.println(e.opCode());
+                    switch (e) {
+                        case ConstInstruction.IntConst intConst -> {
+                        }
+                        case GlobalInstruction.GlobalGet globalGet -> {
+                        }
+                        case RefTypeInstruction.RefFunc refFunc -> {
+                        }
+                        case RefTypeInstruction.RefNull refNull -> {
+                        }
+                    }
+                }
             } else {
-                // TODO resolve funcIdx
+                for (int i = 0; i < n; i++) {
+                    t.set(offset+i, functions()[i]);
+                }
             }
             // m.store(offset, ads.data(), 0, ads.data().length);
             // TODO: drop element after copy
@@ -205,8 +220,7 @@ public record Module(
         /*
             https://www.w3.org/TR/wasm-core-2/exec/modules.html#exec-instantiation
             TODO:
-            4. Tables
-            5. Exports
+            4. Tables - Element segments
          */
         processImports(importMap);
         processGlobals();

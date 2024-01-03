@@ -62,10 +62,11 @@ WASM opcode references:
 
 ### TODO
 #### Machine
-- Block types
+- Multi-valued Block types
 - 128 bit vector (v128) data type and instructions
 - external reference types
 - GC ??
+- Stack frames
 
 #### WAT Parser
 - Exports
