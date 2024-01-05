@@ -148,6 +148,7 @@ public class Machine {
     }
 
     public int execute(Instruction[] instructions, Variable[] locals, int level) {
+        int currLevel = level;
         for (Instruction ins : instructions) {
             System.out.println("Instruction: " + ins.opCode());
             printStack();
@@ -531,7 +532,6 @@ public class Machine {
                             level = execute(b.code(), locals, level+1);
                         }
                         case ControlFlowInstruction.Loop b -> {
-                            int currLevel = level;
                             labels[b.label()] = level;
                             do {
                                 System.out.println("Level:" + level + ", currLevel: " + currLevel);
@@ -562,7 +562,7 @@ public class Machine {
                             labels[b.label()] = level;
                             int cmp = popInt();
                             if (cmp == 1) {
-                                execute(b.ifBlock(), locals, level);
+                                level = execute(b.ifBlock(), locals, level+1);
                             }
                         }
                         case ControlFlowInstruction.IfElse b -> {
@@ -570,10 +570,10 @@ public class Machine {
                             int cmp = popInt();
                             if (cmp == 1) {
                                 System.out.println("IF_ELSE IF_BLOCK");
-                                execute(b.ifBlock(), locals, level);
+                                level = execute(b.ifBlock(), locals, level+1);
                             } else {
                                 System.out.println("IF_ELSE ELSE_BLOCK");
-                                execute(b.elseBlock(), locals, level);
+                                level = execute(b.elseBlock(), locals, level+1);
                             }
                         }
                         case ControlFlowInstruction.Else _else -> {} // Do nothing
@@ -631,6 +631,9 @@ public class Machine {
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
+            if (level < currLevel) {
+                break;
+            }
         }
         return level;
     }
@@ -645,13 +648,13 @@ public class Machine {
         }
     }
 
-    public void invoke(String function, ConstExpression[] expr) {
+    public void invoke(String function, ConstInstruction[] expr) {
         Object o = exportMap.get(function);
         if (!(o instanceof Function f)) {
             throw new RuntimeException("Invalid WASM export called: " + function);
         }
         var type = f.type();
-        expr = (expr == null) ? new ConstExpression[]{} : expr;
+        expr = (expr == null) ? new ConstInstruction[]{} : expr;
         if (type.numParams() != expr.length) {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
