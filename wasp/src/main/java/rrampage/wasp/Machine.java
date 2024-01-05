@@ -569,8 +569,10 @@ public class Machine {
                             labels[b.label()] = level;
                             int cmp = popInt();
                             if (cmp == 1) {
+                                System.out.println("IF_ELSE IF_BLOCK");
                                 execute(b.ifBlock(), locals, level);
                             } else {
+                                System.out.println("IF_ELSE ELSE_BLOCK");
                                 execute(b.elseBlock(), locals, level);
                             }
                         }
@@ -655,7 +657,13 @@ public class Machine {
         }
         // TODO: type check of const expr??
         execute(expr, null, 0);
-        call(f, 0);
+        var res = call(f, 0);
+        if (!f.isVoidReturn()) {
+            // Push in reverse order
+            for (int i = res.length -1; i >= 0; i--) {
+                pushVariable(res[i]);
+            }
+        }
     }
 
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
