@@ -92,4 +92,14 @@ public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
     public static final FunctionType I64_RETURN = new FunctionType(null, new NumType[]{I64});
     public static final FunctionType F32_RETURN = new FunctionType(null, new NumType[]{F32});
     public static final FunctionType F64_RETURN = new FunctionType(null, new NumType[]{NumType.F64});
+
+    public static final FunctionType I32_CONSUME = new FunctionType(new NumType[]{I32}, null);
+    public static final FunctionType I64_CONSUME = new FunctionType(new NumType[]{I64}, null);
+    public static final FunctionType F32_CONSUME = new FunctionType(new NumType[]{F32}, null);
+    public static final FunctionType F64_CONSUME = new FunctionType(new NumType[]{NumType.F64}, null);
+
+    public static final FunctionType I32_UNARY = new FunctionType(new NumType[]{I32}, new NumType[]{I32});
+    public static final FunctionType I64_UNARY = new FunctionType(new NumType[]{I64}, new NumType[]{I64});
+    public static final FunctionType F32_UNARY = new FunctionType(new NumType[]{F32}, new NumType[]{F32});
+    public static final FunctionType F64_UNARY = new FunctionType(new NumType[]{NumType.F64}, new NumType[]{NumType.F64});
 }
