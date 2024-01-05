@@ -54,7 +54,7 @@ public record Function(String name, FunctionType type, ValueType[] locals, Instr
     public static Function createImportFunction(String name, FunctionType type, MethodHandle func) {
         // Defined type signature must match
         if (!func.type().equals(FunctionType.getMethodTypeFromFunctionType(type))) {
-            throw new RuntimeException(String.format("CREATE_IMPORT_FUNCTION: Invalid type %s supplied. Required type: %s", func.type() ,type));
+            throw new RuntimeException(String.format("CREATE_IMPORT_FUNCTION: Invalid type %s supplied for Function %s. Required type: %s", func.type(), name, type));
         }
         return new Function(name, type, null, new Instruction[]{new FunctionInstruction.CallJava(type, func)}, null);
     }

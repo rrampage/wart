@@ -136,6 +136,7 @@ public class InstructionParser {
                                     labelMarker.decrementAndGet();
                                     yield new ControlFlowInstruction.IfElse(label, ft, ifCode, insList.toArray(Instruction[]::new));
                                 }
+                                insList.add(ii);
                             }
                         }
                         break;
