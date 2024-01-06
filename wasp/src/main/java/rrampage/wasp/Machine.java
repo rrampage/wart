@@ -481,7 +481,7 @@ public class Machine {
                             }
                         }
                         case FunctionInstruction.Return() -> {
-                            return level-1;
+                            return -1;
                         }
                         case FunctionInstruction.LocalGet l -> {
                             Variable var = locals[l.val()];
@@ -519,7 +519,6 @@ public class Machine {
                     push((cmp == 0) ? t1 : t2);
                 }
                 case ControlFlowInstruction i -> {
-                    // TODO - Verify block instruction
                     var currLevel = level;
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
@@ -530,9 +529,9 @@ public class Machine {
                         }
                         case ControlFlowInstruction.Loop b -> {
                             do {
-                                System.out.println("Level:" + level + ", currLevel: " + b.label());
+                                System.out.println("Level:" + level + ", label: " + b.label());
                                 level = execute(b.code(), locals, b.label());
-                                System.out.println("Level:" + level + ", currLevel: " + b.label());
+                                System.out.println("Level:" + level + ", label: " + b.label());
                             } while (level == b.label());
                         }
                         case ControlFlowInstruction.Branch b -> {
