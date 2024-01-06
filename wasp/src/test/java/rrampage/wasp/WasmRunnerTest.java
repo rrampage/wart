@@ -3,7 +3,10 @@ import org.junit.jupiter.api.Test;
 import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.data.ValueType;
+import rrampage.wasp.data.Variable;
 import rrampage.wasp.instructions.ConstInstruction;
+import rrampage.wasp.instructions.ControlFlowInstruction;
+import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.WasmParser;
 import rrampage.wasp.utils.ImportUtils;
 
@@ -55,8 +58,10 @@ public class WasmRunnerTest {
     public void shouldRunFactorial() {
         var module = parseModule("./testsuite/fac.0.wasm");
         var machine = module.instantiate(null);
-        /*machine.invoke("fac-iter", ConstInstruction.of(new ConstInstruction.LongConst(3)));
-        assertEquals(6L, machine.pop());*/
+        machine.invoke("fac-iter", ConstInstruction.of(new ConstInstruction.LongConst(25)));
+        assertEquals(7034535277573963776L, machine.pop());
+        machine.invoke("fac-iter-named", ConstInstruction.of(new ConstInstruction.LongConst(25)));
+        assertEquals(7034535277573963776L, machine.pop());
         machine.invoke("fac-rec", ConstInstruction.of(new ConstInstruction.LongConst(25)));
         assertEquals(7034535277573963776L, machine.pop());
         machine.invoke("fac-rec-named", ConstInstruction.of(new ConstInstruction.LongConst(25)));
