@@ -22,7 +22,6 @@ public class Machine {
     private final Function[] functions;
     private final Table[] tables;
     private final Variable[] globals;
-    private int[] labels;
     private final DataSegment[] dataSegments;
     private final ElementSegment[] elementSegments;
     private final Map<String, Object> exportMap;
@@ -45,7 +44,6 @@ public class Machine {
        /*
               this stores level of the label of block
         */
-        this.labels = new int[]{0, -1, -1, -1, -1, -1};
         this.dataSegments = dataSegments;
         this.elementSegments = elementSegments;
         this.exportMap = exportMap;
@@ -109,7 +107,7 @@ public class Machine {
         return effectiveAddr%(1<<align) == 0;
     }
 
-    public Variable[] call(Function fun, int level) {
+    public Variable[] call(Function fun) {
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
         // LIFO for function params as params are pushed to stack and must be popped in reverse order
@@ -119,11 +117,8 @@ public class Machine {
         for (int i = fun.numParams(); i < locals.length; i++) {
             locals[i] = Variable.newMutableVariable(fun.locals()[i - fun.numParams()], 0);
         }
-        int[] oldLabels = Arrays.copyOf(labels, labels.length);
         // Set labels of machine to function labels and reset to original labels once execution is completed
-        this.labels = fun.labels();
-        execute(fun.code(), locals, level);
-        this.labels = oldLabels;
+        execute(fun.code(), locals, -1);
         if (fun.isVoidReturn()) {
             return null;
         }
@@ -144,11 +139,10 @@ public class Machine {
         if (!startFun.isVoidReturn() && startFun.numParams() > 0) {
             return;
         }
-        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, 0);
+        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, -1);
     }
 
     public int execute(Instruction[] instructions, Variable[] locals, int level) {
-        int currLevel = level;
         for (Instruction ins : instructions) {
             System.out.println("Instruction: " + ins.opCode());
             printStack();
@@ -411,7 +405,7 @@ public class Machine {
                     switch (f) {
                         case FunctionInstruction.Call l -> {
                             Function fun = functions[l.val()];
-                            Variable[] res = call(fun, level);
+                            Variable[] res = call(fun);
                             if (!fun.isVoidReturn()) {
                                 // Push in reverse order
                                 for (int i = res.length -1; i >= 0; i--) {
@@ -429,7 +423,7 @@ public class Machine {
                             if (fun == null) {
                                 throw new RuntimeException("Function Type mismatch in indirect call");
                             }
-                            Variable[] res = call(fun, level);
+                            Variable[] res = call(fun);
                             if (!fun.isVoidReturn()) {
                                 // Push in reverse order
                                 for (int i = res.length -1; i >= 0; i--) {
@@ -487,7 +481,7 @@ public class Machine {
                             }
                         }
                         case FunctionInstruction.Return() -> {
-                            return level;
+                            return level-1;
                         }
                         case FunctionInstruction.LocalGet l -> {
                             Variable var = locals[l.val()];
@@ -526,54 +520,56 @@ public class Machine {
                 }
                 case ControlFlowInstruction i -> {
                     // TODO - Verify block instruction
+                    var currLevel = level;
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
-                            labels[b.label()] = level;
-                            level = execute(b.code(), locals, level+1);
+                            level = execute(b.code(), locals, b.label());
+                            if (level == b.label()) {
+                                return level-1;
+                            }
                         }
                         case ControlFlowInstruction.Loop b -> {
-                            labels[b.label()] = level;
                             do {
-                                System.out.println("Level:" + level + ", currLevel: " + currLevel);
-                                level = execute(b.code(), locals, currLevel+1);
-                                System.out.println("Level:" + level + ", currLevel: " + currLevel);
-                            } while (level != currLevel + 1);
+                                System.out.println("Level:" + level + ", currLevel: " + b.label());
+                                level = execute(b.code(), locals, b.label());
+                                System.out.println("Level:" + level + ", currLevel: " + b.label());
+                            } while (level == b.label());
                         }
                         case ControlFlowInstruction.Branch b -> {
                             // it has to jump to level pointed by the label
-                            return labels[b.label()];
+                            return b.label();
                         }
                         case ControlFlowInstruction.BranchIf b -> {
                             int cmp = popInt();
                             System.out.println("Branch If - " + (cmp == 1));
                             if (cmp == 1) {
-                                return labels[b.label()];
+                                return b.label();
                             }
                         }
                         case ControlFlowInstruction.BranchTable b -> {
                             int jmpIdx = popInt();
-                            if (jmpIdx < b.labels().length) {
-                                return labels[b.labels()[jmpIdx]];
-                            } else {
-                                return labels[b.defaultLabel()];
-                            }
+                            return (jmpIdx < b.labels().length) ? b.labels()[jmpIdx] : b.defaultLabel();
                         }
                         case ControlFlowInstruction.If b -> {
-                            labels[b.label()] = level;
                             int cmp = popInt();
                             if (cmp == 1) {
-                                level = execute(b.ifBlock(), locals, level+1);
+                                level = execute(b.ifBlock(), locals, b.label());
+                            }
+                            if (currLevel != level) {
+                                return level;
                             }
                         }
                         case ControlFlowInstruction.IfElse b -> {
-                            labels[b.label()] = level;
                             int cmp = popInt();
                             if (cmp == 1) {
                                 System.out.println("IF_ELSE IF_BLOCK");
-                                level = execute(b.ifBlock(), locals, level+1);
+                                level = execute(b.ifBlock(), locals, b.label());
                             } else {
                                 System.out.println("IF_ELSE ELSE_BLOCK");
-                                level = execute(b.elseBlock(), locals, level+1);
+                                level = execute(b.elseBlock(), locals, b.label());
+                            }
+                            if (currLevel != level) {
+                                return level;
                             }
                         }
                         case ControlFlowInstruction.Else _else -> {} // Do nothing
@@ -631,11 +627,8 @@ public class Machine {
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
-            if (level < currLevel) {
-                break;
-            }
         }
-        return level;
+        return level-1;
     }
 
     private void pushVariable(Variable var) {
@@ -659,8 +652,8 @@ public class Machine {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
         // TODO: type check of const expr??
-        execute(expr, null, 0);
-        var res = call(f, 0);
+        execute(expr, null, -1);
+        var res = call(f);
         if (!f.isVoidReturn()) {
             // Push in reverse order
             for (int i = res.length -1; i >= 0; i--) {

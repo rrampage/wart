@@ -344,7 +344,7 @@ public class WasmParser implements Parser {
         Instruction[] code = InstructionParser.parse(bb, bytesToParse, types);
         System.out.println("Code : " + Arrays.toString(code));
         String fname = "Function_" + funcIdx;
-        Function f = new Function(fname, types[functions[funcIdx - numImports]], locals.toArray(ValueType[]::new), code, Function.getLabelsFromInstructions(code));
+        Function f = new Function(fname, types[functions[funcIdx - numImports]], locals.toArray(ValueType[]::new), code);
         byte endByte = bb.get();
         assert endByte == 0xb;
         assertBufferPosition(funPos + funSize);

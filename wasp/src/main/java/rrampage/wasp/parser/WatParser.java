@@ -275,7 +275,7 @@ public record WatParser(String input) implements Parser {
             throw new RuntimeException("Type index in module does not match" + ft + " " + type);
         }
         // TODO Fill labels correctly from block/loop instructions
-        return new Function(funcName, type, locals.toArray(new ValueType.NumType[]{}), code, null);
+        return new Function(funcName, type, locals.toArray(new ValueType.NumType[]{}), code);
     }
 
     private List<ValueType.NumType> parseDataTypes(String term, ConsList cl) {

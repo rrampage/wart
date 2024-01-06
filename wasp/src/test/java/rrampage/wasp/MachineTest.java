@@ -22,7 +22,7 @@ public class MachineTest {
                     new FunctionInstruction.LocalGet(0),
                     new FunctionInstruction.LocalGet(1),
                     IntBinaryInstruction.I32_ADD
-            }, null);
+            });
 
     @Test
     public void shouldPushConst() {
@@ -176,7 +176,7 @@ public class MachineTest {
     @Test
     public void shouldCallIntConstFunction() {
         int i = 42;
-        Function fun = new Function("const", new FunctionType(null, new ValueType.NumType[]{ValueType.NumType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)}, null);
+        Function fun = new Function("const", new FunctionType(null, new ValueType.NumType[]{ValueType.NumType.I32}), null, new Instruction[]{new ConstInstruction.IntConst(i)});
         Instruction[] ins = new Instruction[] {
           new FunctionInstruction.Call(0)
         };
@@ -211,10 +211,10 @@ public class MachineTest {
                 new GlobalInstruction.GlobalGet(0),
                 new ConstInstruction.IntConst(10),
                 IntBinaryInstruction.I32_LT_S,
-                new ControlFlowInstruction.BranchIf(1),
+                new ControlFlowInstruction.BranchIf(0),
         };
         Instruction[] ins = new Instruction[] {
-                new ControlFlowInstruction.Loop(1, null, loopIns),
+                new ControlFlowInstruction.Loop(0, null, loopIns),
                 new GlobalInstruction.GlobalGet(0),
         };
         Machine m = Machine.createAndStart(new Function[]{Function.createStartFunction("shouldLoopGlobal", ins)}, null, globals, MEM_PAGES, null, null, 0);
@@ -240,7 +240,7 @@ public class MachineTest {
         int[] labels = Function.getLabelsFromInstructions(funIns);
         assertArrayEquals(new int[]{-1, -1}, labels);
         Function f = new Function("loop_check", new FunctionType(null, null),
-                new ValueType.NumType[]{ValueType.NumType.I32}, funIns, labels);
+                new ValueType.NumType[]{ValueType.NumType.I32}, funIns);
         Instruction[] ins = new Instruction[] {
                 new ConstInstruction.IntConst(0),
                 new FunctionInstruction.Call(0),
@@ -282,7 +282,7 @@ public class MachineTest {
         Instruction[] funIns = new Instruction[]{
                 new FunctionInstruction.CallJava(type, mh),
         };
-        Function fun = new Function("pow", type, null, funIns, null);
+        Function fun = new Function("pow", type, null, funIns);
         Instruction[] ins = new Instruction[]{
                 new ConstInstruction.DoubleConst(b),
                 new ConstInstruction.DoubleConst(a),
