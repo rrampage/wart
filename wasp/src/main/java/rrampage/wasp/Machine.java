@@ -6,9 +6,7 @@ import rrampage.wasp.instructions.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 
 import static rrampage.wasp.utils.ConversionUtils.*;
 
@@ -650,9 +648,6 @@ public class Machine {
         if (type.numParams() != expr.length) {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
-        while (!stack.isEmpty()) {
-            stack.pop();
-        }
         execute(expr, null, -1);
         var res = call(f);
         int n = res.length;
@@ -662,6 +657,28 @@ public class Machine {
                 pushVariable(res[i]);
             }
         }
+    }
+
+    public boolean compareStack(ConstInstruction[] expected) {
+        if (expected == null || expected.length == 0) {
+            return true;
+        }
+        int n = expected.length;
+        for (int i =0; i < n; i++) {
+            var c = expected[n-i-1];
+            Instruction eq = switch (c) {
+                case ConstInstruction.DoubleConst cc -> DoubleBinaryInstruction.F64_EQ;
+                case ConstInstruction.FloatConst cc -> FloatBinaryInstruction.F32_EQ;
+                case ConstInstruction.IntConst cc -> IntBinaryInstruction.I32_EQ;
+                case ConstInstruction.LongConst cc -> LongBinaryInstruction.I64_EQ;
+            };
+            var checkFun = new Function("c"+i, FunctionType.VOID, null, Instruction.of(c, eq));
+            call(checkFun);
+            if (popInt() != 1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
