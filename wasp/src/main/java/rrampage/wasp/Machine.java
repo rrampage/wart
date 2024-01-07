@@ -90,7 +90,7 @@ public class Machine {
 
     // Returns the "stack" in FIFO order
     public long[] inspectStack() {
-        return stack.stream().mapToLong(l -> l).toArray();
+        return stack.reversed().stream().mapToLong(l -> l).toArray();
     }
 
     public void printStack() {
@@ -650,12 +650,15 @@ public class Machine {
         if (type.numParams() != expr.length) {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
-        // TODO: type check of const expr??
+        while (!stack.isEmpty()) {
+            stack.pop();
+        }
         execute(expr, null, -1);
         var res = call(f);
+        int n = res.length;
         if (!f.isVoidReturn()) {
             // Push in reverse order
-            for (int i = res.length -1; i >= 0; i--) {
+            for (int i = n -1; i >= 0; i--) {
                 pushVariable(res[i]);
             }
         }

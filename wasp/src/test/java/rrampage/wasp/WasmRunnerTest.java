@@ -1,6 +1,6 @@
 package rrampage.wasp;
 
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.data.Module;
@@ -14,6 +14,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static rrampage.wasp.TestUtils.getFilePath;
 import static rrampage.wasp.TestUtils.readBinaryFile;
+
 public class WasmRunnerTest {
     private static final long[] EMPTY_STACK = new long[]{};
 
@@ -71,12 +72,22 @@ public class WasmRunnerTest {
         assertEquals(7034535277573963776L, machine.pop());
     }
 
-    @Disabled
     @Test()
+    @Tag("high-resource")
     public void shouldRunFactorialAndThrowStackOverflowException() {
         // Following has been tested. Disabling to prevent CI mem limit errors
         var module = parseModule("./testsuite/fac.0.wasm");
         var machine = module.instantiate(null);
         assertThrows(StackOverflowError.class, () -> machine.invoke("fac-rec", ConstInstruction.of(new ConstInstruction.LongConst(1073741824))));
+    }
+
+    @Test
+    public void shouldHandleMultipleReturn() {
+        var module = parseModule("./reduced_loop.wasm");
+        var machine = module.instantiate(null);
+        machine.invoke("break-br_if-num-num", ConstInstruction.of(new ConstInstruction.IntConst(0)));
+        assertArrayEquals(new long[]{51, 52}, machine.inspectStack());
+        machine.invoke("break-br_if-num-num", ConstInstruction.of(new ConstInstruction.IntConst(1)));
+        assertArrayEquals(new long[]{50, 51}, machine.inspectStack());
     }
 }
