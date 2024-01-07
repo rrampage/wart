@@ -86,7 +86,6 @@ public class Machine {
         stack.push(doubleToLong(val));
     }
 
-    // Returns the "stack" in FIFO order
     public long[] inspectStack() {
         return stack.reversed().stream().mapToLong(l -> l).toArray();
     }
@@ -527,9 +526,7 @@ public class Machine {
                         }
                         case ControlFlowInstruction.Loop b -> {
                             do {
-                                System.out.println("Level:" + level + ", label: " + b.label());
                                 level = execute(b.code(), locals, b.label());
-                                System.out.println("Level:" + level + ", label: " + b.label());
                             } while (level == b.label());
                         }
                         case ControlFlowInstruction.Branch b -> {
@@ -559,10 +556,8 @@ public class Machine {
                         case ControlFlowInstruction.IfElse b -> {
                             int cmp = popInt();
                             if (cmp == 1) {
-                                System.out.println("IF_ELSE IF_BLOCK");
                                 level = execute(b.ifBlock(), locals, b.label());
                             } else {
-                                System.out.println("IF_ELSE ELSE_BLOCK");
                                 level = execute(b.elseBlock(), locals, b.label());
                             }
                             if (currLevel != level) {
