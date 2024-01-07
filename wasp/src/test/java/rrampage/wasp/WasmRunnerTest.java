@@ -1,20 +1,19 @@
 package rrampage.wasp;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.data.ValueType;
-import rrampage.wasp.data.Variable;
 import rrampage.wasp.instructions.ConstInstruction;
-import rrampage.wasp.instructions.ControlFlowInstruction;
-import rrampage.wasp.instructions.Instruction;
 import rrampage.wasp.parser.WasmParser;
 import rrampage.wasp.utils.ImportUtils;
 
 import java.util.Map;
-import java.util.function.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static rrampage.wasp.TestUtils.*;
+import static rrampage.wasp.TestUtils.getFilePath;
+import static rrampage.wasp.TestUtils.readBinaryFile;
 public class WasmRunnerTest {
     private static final long[] EMPTY_STACK = new long[]{};
 
@@ -70,5 +69,14 @@ public class WasmRunnerTest {
         assertEquals(7034535277573963776L, machine.pop());
         machine.invoke("fac-ssa", ConstInstruction.of(new ConstInstruction.LongConst(25)));
         assertEquals(7034535277573963776L, machine.pop());
+    }
+
+    @Disabled
+    @Test()
+    public void shouldRunFactorialAndThrowStackOverflowException() {
+        // Following has been tested. Disabling to prevent CI mem limit errors
+        var module = parseModule("./testsuite/fac.0.wasm");
+        var machine = module.instantiate(null);
+        assertThrows(StackOverflowError.class, () -> machine.invoke("fac-rec", ConstInstruction.of(new ConstInstruction.LongConst(1073741824))));
     }
 }
