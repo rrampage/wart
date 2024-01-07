@@ -48,5 +48,4 @@ public class WasmParserTest {
     public Stream<DynamicTest> testWasmParser() {
         return DynamicTest.stream(Stream.of(testCases), WasmParserTestCase::fileName, WasmParserTestCase::check);
     }
-
 }

@@ -1,5 +1,7 @@
 package rrampage.wasp.utils;
 
+import rrampage.wasp.instructions.ConstInstruction;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -102,4 +104,9 @@ public class ConversionUtils {
     public static <K, V> Map<K, V> convertArrayToImmutableMap(V[] arr, Function<V, K> func) {
          return Map.copyOf(Arrays.stream(arr).collect(Collectors.toMap(func::apply, v -> v)));
     }
+
+    public static ConstInstruction.IntConst constOf(int val) {return new ConstInstruction.IntConst(val);}
+    public static ConstInstruction.LongConst constOf(long val) {return new ConstInstruction.LongConst(val);}
+    public static ConstInstruction.FloatConst constOf(float val) {return new ConstInstruction.FloatConst(val);}
+    public static ConstInstruction.DoubleConst constOf(double val) {return new ConstInstruction.DoubleConst(val);}
 }
