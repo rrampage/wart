@@ -16,7 +16,7 @@ public class Machine {
 
     // TODO : Keep in mind proposal for multiple memories:
     //  https://github.com/WebAssembly/multi-memory/blob/main/proposals/multi-memory/Overview.md
-    private Memory[] memories;
+    private final Memory[] memories;
     private final Function[] functions;
     private final Table[] tables;
     private final Variable[] globals;
@@ -24,12 +24,13 @@ public class Machine {
     private final ElementSegment[] elementSegments;
     private final Map<String, Object> exportMap;
     private final long startIdx;
+    private final MachineVisitor machineVisitor;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx);
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx, MachineVisitors.instructionCountVisitor());
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, Map<String, Object> exportMap, long startIdx) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, Map<String, Object> exportMap, long startIdx, MachineVisitor machineVisitor) {
         if (memories == null || memories.length == 0) {
             // Create a 1 page memory if null or zero-length memory is passed
             memories = new Memory[]{new Memory(1)};
@@ -46,6 +47,7 @@ public class Machine {
         this.elementSegments = elementSegments;
         this.exportMap = exportMap;
         this.startIdx = startIdx;
+        this.machineVisitor = machineVisitor;
     }
 
     public Memory getMainMemory() {
@@ -141,6 +143,7 @@ public class Machine {
 
     public int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
+            machineVisitor.visitPreInstruction(ins);
             System.out.println("Instruction: " + ins.opCode());
             printStack();
             switch (ins) {
@@ -478,6 +481,7 @@ public class Machine {
                             }
                         }
                         case FunctionInstruction.Return() -> {
+                            machineVisitor.visitPostInstruction(ins);
                             return -1;
                         }
                         case FunctionInstruction.LocalGet l -> {
@@ -521,6 +525,7 @@ public class Machine {
                         case ControlFlowInstruction.Block b -> {
                             level = execute(b.code(), locals, b.label());
                             if (level == b.label()) {
+                                machineVisitor.visitPostInstruction(ins);
                                 return level-1;
                             }
                         }
@@ -531,17 +536,20 @@ public class Machine {
                         }
                         case ControlFlowInstruction.Branch b -> {
                             // it has to jump to level pointed by the label
+                            machineVisitor.visitPostInstruction(ins);
                             return b.label();
                         }
                         case ControlFlowInstruction.BranchIf b -> {
                             int cmp = popInt();
                             System.out.println("Branch If - " + (cmp == 1));
                             if (cmp == 1) {
+                                machineVisitor.visitPostInstruction(ins);
                                 return b.label();
                             }
                         }
                         case ControlFlowInstruction.BranchTable b -> {
                             int jmpIdx = popInt();
+                            machineVisitor.visitPostInstruction(ins);
                             return (jmpIdx < b.labels().length) ? b.labels()[jmpIdx] : b.defaultLabel();
                         }
                         case ControlFlowInstruction.If b -> {
@@ -550,6 +558,7 @@ public class Machine {
                                 level = execute(b.ifBlock(), locals, b.label());
                             }
                             if (currLevel != level) {
+                                machineVisitor.visitPostInstruction(ins);
                                 return level;
                             }
                         }
@@ -561,6 +570,7 @@ public class Machine {
                                 level = execute(b.elseBlock(), locals, b.label());
                             }
                             if (currLevel != level) {
+                                machineVisitor.visitPostInstruction(ins);
                                 return level;
                             }
                         }
@@ -619,6 +629,7 @@ public class Machine {
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
             }
+            machineVisitor.visitPostInstruction(ins);
         }
         return level-1;
     }
@@ -643,6 +654,7 @@ public class Machine {
         if (type.numParams() != expr.length) {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
+        machineVisitor.start();
         execute(expr, null, -1);
         var res = call(f);
         int n = res.length;
@@ -652,6 +664,7 @@ public class Machine {
                 pushVariable(res[i]);
             }
         }
+        machineVisitor.end();
     }
 
     public boolean compareStack(ConstInstruction... expected) {
@@ -679,6 +692,7 @@ public class Machine {
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         Machine m = new Machine(functions, tables, globals, pages, dataSegments, elementSegments, startIdx);
         m.start();
+        m.machineVisitor.end();
         return m;
     }
 }
