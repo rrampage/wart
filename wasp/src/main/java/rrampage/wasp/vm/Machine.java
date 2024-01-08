@@ -1,4 +1,4 @@
-package rrampage.wasp;
+package rrampage.wasp.vm;
 
 import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;

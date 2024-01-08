@@ -4,6 +4,7 @@ import rrampage.wasp.data.Module;
 import rrampage.wasp.instructions.ConstInstruction;
 import rrampage.wasp.parser.WasmParser;
 import rrampage.wasp.utils.FileUtils;
+import rrampage.wasp.vm.Machine;
 
 import java.io.IOException;
 import java.nio.file.Paths;

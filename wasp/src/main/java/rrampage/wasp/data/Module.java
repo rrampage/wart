@@ -1,6 +1,6 @@
 package rrampage.wasp.data;
 
-import rrampage.wasp.Machine;
+import rrampage.wasp.vm.Machine;
 import rrampage.wasp.instructions.ConstExpression;
 import rrampage.wasp.instructions.ConstInstruction;
 import rrampage.wasp.instructions.GlobalInstruction;
