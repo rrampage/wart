@@ -633,7 +633,7 @@ public class Machine {
         }
     }
 
-    public void invoke(String function, ConstInstruction[] expr) {
+    public void invoke(String function, ConstInstruction... expr) {
         Object o = exportMap.get(function);
         if (!(o instanceof Function f)) {
             throw new RuntimeException("Invalid WASM export called: " + function);
@@ -654,7 +654,7 @@ public class Machine {
         }
     }
 
-    public boolean compareStack(ConstInstruction[] expected) {
+    public boolean compareStack(ConstInstruction... expected) {
         if (expected == null || expected.length == 0) {
             return true;
         }

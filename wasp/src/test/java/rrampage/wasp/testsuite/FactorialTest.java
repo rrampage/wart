@@ -1,6 +1,7 @@
-package rrampage.wasp;
+package rrampage.wasp.testsuite;
 
 import org.junit.jupiter.api.*;
+import rrampage.wasp.Machine;
 import rrampage.wasp.data.AssertReturn;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.instructions.*;
