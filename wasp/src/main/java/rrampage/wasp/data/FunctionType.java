@@ -87,6 +87,49 @@ public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
         };
     }
 
+    public static ValueType getDataTypeFromClass(Class<?> clazz) {
+        if (clazz == void.class || clazz == Void.class) {
+            return null;
+        }
+        if (clazz == int.class || clazz == Integer.class ||
+                clazz == byte.class || clazz == Byte.class ||
+                clazz == short.class || clazz == Short.class ||
+                clazz == char.class || clazz == Character.class ||
+                clazz == boolean.class || clazz == Boolean.class
+        ) {
+            return I32;
+        }
+        if (clazz == float.class || clazz == Float.class) {
+            return F32;
+        }
+        if (clazz == long.class || clazz == Long.class) {
+            return I64;
+        }
+        if (clazz == double.class || clazz == Double.class) {
+            return F64;
+        }
+        // TODO : Check for Wrapper classes as well
+        if (clazz.isArray()) {
+            // we can't translate an Object[] or primitive [] to correct number of elements
+            var c = clazz.arrayType();
+        }
+        // TODO : RefType , VecType
+        return null;
+    }
+
+    public static FunctionType getFunctionTypeFromMethodType(MethodType mt) {
+        var rc = mt.returnType();
+        ValueType rt = getDataTypeFromClass(rc);
+        ValueType[] params = new ValueType[mt.parameterCount()];
+        var rps = mt.parameterArray();
+        for (int i = 0; i < params.length; i++) {
+            params[i] = getDataTypeFromClass(rps[i]);
+        }
+        return new FunctionType(params, new ValueType[]{rt});
+    }
+
+    // Constants for less boilerplate when creating function types
+
     public static final FunctionType VOID = new FunctionType(null, null);
     public static final FunctionType I32_RETURN = new FunctionType(null, new NumType[]{I32});
     public static final FunctionType I64_RETURN = new FunctionType(null, new NumType[]{I64});
