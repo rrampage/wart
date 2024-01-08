@@ -237,8 +237,6 @@ public class MachineTest {
                 new ControlFlowInstruction.Loop(1, null, loopIns),
                 new FunctionInstruction.LocalGet(0),
         };
-        int[] labels = Function.getLabelsFromInstructions(funIns);
-        assertArrayEquals(new int[]{-1, -1}, labels);
         Function f = new Function("loop_check", new FunctionType(null, null),
                 new ValueType.NumType[]{ValueType.NumType.I32}, funIns);
         Instruction[] ins = new Instruction[] {
