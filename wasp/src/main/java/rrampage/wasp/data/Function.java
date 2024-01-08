@@ -23,30 +23,6 @@ public record Function(String name, FunctionType type, ValueType[] locals, Instr
         return String.format("Function: %s Type: %s", name, type);
     }
 
-    public static int getMaxLabelFromInstructions(Instruction[] code) {
-        if (code == null || code.length == 0) {
-            return 0;
-        }
-        int maxLabel = 0;
-        for (Instruction i : code) {
-            switch (i) {
-                case ControlFlowInstruction.Loop l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), getMaxLabelFromInstructions(l.code())));
-                case ControlFlowInstruction.Block l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), getMaxLabelFromInstructions(l.code())));
-                case ControlFlowInstruction.If l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), getMaxLabelFromInstructions(l.ifBlock())));
-                case ControlFlowInstruction.IfElse l -> maxLabel = Math.max(maxLabel, Math.max(l.label(), Math.max(getMaxLabelFromInstructions(l.ifBlock()), getMaxLabelFromInstructions(l.elseBlock()))));
-                default -> {}
-            }
-        }
-        return maxLabel;
-    }
-
-    public static int[] getLabelsFromInstructions(Instruction[] code) {
-        int maxLabel = getMaxLabelFromInstructions(code);
-        int[] labels = new int[maxLabel+1];
-        Arrays.fill(labels, -1);
-        return labels;
-    }
-
     public static Function createStubFunction(String name, FunctionType type) {
         return new Function(name, type, null, new Instruction[]{});
     }
