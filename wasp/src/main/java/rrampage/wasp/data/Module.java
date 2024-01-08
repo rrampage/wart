@@ -1,11 +1,13 @@
 package rrampage.wasp.data;
 
-import rrampage.wasp.Machine;
+import rrampage.wasp.vm.Machine;
 import rrampage.wasp.instructions.ConstExpression;
 import rrampage.wasp.instructions.ConstInstruction;
 import rrampage.wasp.instructions.GlobalInstruction;
 import rrampage.wasp.instructions.RefTypeInstruction;
 import rrampage.wasp.parser.types.*;
+import rrampage.wasp.vm.MachineVisitor;
+import rrampage.wasp.vm.MachineVisitors;
 
 import java.lang.invoke.MethodHandle;
 import java.util.Arrays;
@@ -217,6 +219,10 @@ public record Module(
     }
 
     public Machine instantiate(Map<String, Map<String, Object>> importMap) {
+        return instantiate(importMap, MachineVisitors.NULL_VISITOR);
+    }
+
+    public Machine instantiate(Map<String, Map<String, Object>> importMap, MachineVisitor visitor) {
         /*
             https://www.w3.org/TR/wasm-core-2/exec/modules.html#exec-instantiation
             TODO:
@@ -227,7 +233,7 @@ public record Module(
         processDataSegments();
         processActiveElementSegments();
         var exportMap = processExports();
-        Machine m = new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), exportMap, startIdx());
+        Machine m = new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), exportMap, startIdx(), visitor);
         m.start();
         return m;
     }

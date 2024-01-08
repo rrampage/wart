@@ -1,10 +1,11 @@
 package rrampage.wasp.testsuite;
 
 import org.junit.jupiter.api.*;
-import rrampage.wasp.Machine;
+import rrampage.wasp.vm.Machine;
 import rrampage.wasp.data.AssertReturn;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.instructions.*;
+import rrampage.wasp.vm.MachineVisitors;
 
 import java.util.stream.Stream;
 
@@ -22,7 +23,7 @@ public class FactorialTest {
             new AssertReturn("fac-ssa", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
     };
     Module module = parseModule("./testsuite/fac.0.wasm");
-    Machine machine = module.instantiate(null);
+    Machine machine = module.instantiate(null, MachineVisitors.instructionCountVisitor());
 
     public void check(AssertReturn test) {
         assertTrue(invokeAndCheckStack(machine, test.function(), test.args(), test.expected()));

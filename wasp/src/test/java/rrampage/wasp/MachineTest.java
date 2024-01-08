@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;
+import rrampage.wasp.vm.Machine;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
