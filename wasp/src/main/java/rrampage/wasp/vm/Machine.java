@@ -13,6 +13,7 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 
 public class Machine {
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
+    private final SequencedCollection<Long> stackView;
 
     // TODO : Keep in mind proposal for multiple memories:
     //  https://github.com/WebAssembly/multi-memory/blob/main/proposals/multi-memory/Overview.md
@@ -36,6 +37,7 @@ public class Machine {
             memories = new Memory[]{new Memory(1)};
         }
         this.stack = new ArrayDeque<>(8192);
+        this.stackView = Collections.unmodifiableSequencedCollection(this.stack.reversed());
         this.memories = memories;
         this.functions = functions;
         this.tables = tables;
@@ -57,43 +59,47 @@ public class Machine {
     public Map<String, Object> exports(){ return this.exportMap;}
 
     public long pop() {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_LONG, stackView); }
         return stack.pop();
     }
 
     public int popInt() {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_INT, stackView); }
         return longToInt(stack.pop());
     }
 
     public float popFloat() {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_FLOAT, stackView); }
         return longToFloat(stack.pop());
     }
 
     public double popDouble() {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_DOUBLE, stackView); }
         return longToDouble(stack.pop());
     }
 
     public void push(long val) {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushLong(val), stackView); }
         stack.push(val);
     }
 
     public void pushInt(int val) {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushInt(val), stackView); }
         stack.push(intToLong(val));
     }
 
     public void pushFloat(float val) {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushFloat(val), stackView); }
         stack.push(floatToLong(val));
     }
 
     public void pushDouble(double val) {
+        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushDouble(val), stackView); }
         stack.push(doubleToLong(val));
     }
 
-    public long[] inspectStack() {
-        return stack.reversed().stream().mapToLong(l -> l).toArray();
-    }
-
-    public void printStack() {
-        System.out.println(" Stack: " + Arrays.toString(inspectStack()));
+    public SequencedCollection<Long> stackView() {
+        return stackView;
     }
 
     private boolean isAligned(int align, int offset, int addr) {
@@ -107,6 +113,7 @@ public class Machine {
     }
 
     public Variable[] call(Function fun) {
+        if (machineVisitor.hasPreFunctionVisitor) {machineVisitor.visitPreFunction(fun);}
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
         // LIFO for function params as params are pushed to stack and must be popped in reverse order
@@ -126,6 +133,7 @@ public class Machine {
         for (int i = 0; i < n; i++) {
             returns[i] = Variable.newMutableVariable(fun.type().returnTypes()[i], pop());
         }
+        if (machineVisitor.hasPostFunctionVisitor) {machineVisitor.visitPostFunction(fun);}
         return returns;
     }
 
@@ -144,8 +152,6 @@ public class Machine {
     public int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
             machineVisitor.visitPreInstruction(ins);
-            System.out.println("Instruction: " + ins.opCode());
-            printStack();
             switch (ins) {
                 case ConstInstruction.DoubleConst c -> pushDouble(c.val());
                 case ConstInstruction.FloatConst c -> pushFloat(c.val());
@@ -476,7 +482,6 @@ public class Machine {
                                 }
                             } catch (Throwable e) {
                                 System.err.println(e.getMessage());
-                                e.printStackTrace();
                                 throw new RuntimeException("InvokeError " + e.getMessage());
                             }
                         }
@@ -541,7 +546,6 @@ public class Machine {
                         }
                         case ControlFlowInstruction.BranchIf b -> {
                             int cmp = popInt();
-                            System.out.println("Branch If - " + (cmp == 1));
                             if (cmp == 1) {
                                 machineVisitor.visitPostInstruction(ins);
                                 return b.label();
@@ -680,7 +684,7 @@ public class Machine {
                 case ConstInstruction.IntConst cc -> IntBinaryInstruction.I32_EQ;
                 case ConstInstruction.LongConst cc -> LongBinaryInstruction.I64_EQ;
             };
-            var checkFun = new Function("c"+i, FunctionType.VOID, null, Instruction.of(c, eq));
+            var checkFun = new Function("__check_"+i, FunctionType.VOID, null, Instruction.of(c, eq));
             call(checkFun);
             if (popInt() != 1) {
                 return false;

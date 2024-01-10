@@ -13,23 +13,22 @@ import static rrampage.wasp.TestUtils.*;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
 public class WasmRunnerTest {
-    private static final long[] EMPTY_STACK = new long[]{};
 
     @Test
     public void shouldRunEmptyModule() {
         var module = parseModule("./empty_module.wasm");
         var machine = module.instantiate(null);
-        assertArrayEquals(machine.inspectStack(), EMPTY_STACK);
+        assertTrue(machine.stackView().isEmpty());
     }
     @Test
     public void shouldRunAddModule() {
         var module = parseModule("./add_two.wasm");
         try {
             var machine = module.instantiate(Map.of("host", Map.of("print", ImportUtils.generateLoggerHandle(new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32}, new ValueType.NumType[]{ValueType.NumType.I32})))));
-            assertArrayEquals(machine.inspectStack(), EMPTY_STACK);
+            assertTrue(machine.stackView().isEmpty());
             // Run "start" again and assert that stack is empty
             machine.start();
-            assertArrayEquals(machine.inspectStack(), EMPTY_STACK);
+            assertTrue(machine.stackView().isEmpty());
         } catch (Exception e) {
             fail("Got exception: " + e.getMessage());
         }

@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 /**
  * Memory - Supports size, grow, load and store
- * This implementation has max limit of 256 pages i.e 1024 * 64 KiB = 64 MiB
+ * This implementation has max limit of 4096 pages i.e 4096 * 64 KiB = 256 MiB
  */
 public class Memory {
     private static final int MEM_PAGE_SIZE = 65536;
