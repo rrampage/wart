@@ -50,6 +50,7 @@ public class Machine {
         this.exportMap = exportMap;
         this.startIdx = startIdx;
         this.machineVisitor = machineVisitor;
+        this.start();
     }
 
     public Memory getMainMemory() {
@@ -112,7 +113,7 @@ public class Machine {
         return effectiveAddr%(1<<align) == 0;
     }
 
-    public Variable[] call(Function fun) {
+    private Variable[] call(Function fun) {
         if (machineVisitor.hasPreFunctionVisitor) {machineVisitor.visitPreFunction(fun);}
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
@@ -137,7 +138,7 @@ public class Machine {
         return returns;
     }
 
-    public void start() {
+    private void start() {
         if (startIdx < 0 || startIdx >= functions.length) {
             return;
         }
@@ -149,7 +150,7 @@ public class Machine {
         execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, -1);
     }
 
-    public int execute(Instruction[] instructions, Variable[] locals, int level) {
+    private int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
             machineVisitor.visitPreInstruction(ins);
             switch (ins) {
@@ -695,7 +696,6 @@ public class Machine {
 
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         Machine m = new Machine(functions, tables, globals, pages, dataSegments, elementSegments, startIdx);
-        m.start();
         m.machineVisitor.end();
         return m;
     }

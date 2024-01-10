@@ -26,9 +26,6 @@ public class WasmRunnerTest {
         try {
             var machine = module.instantiate(Map.of("host", Map.of("print", ImportUtils.generateLoggerHandle(new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32}, new ValueType.NumType[]{ValueType.NumType.I32})))));
             assertTrue(machine.stackView().isEmpty());
-            // Run "start" again and assert that stack is empty
-            machine.start();
-            assertTrue(machine.stackView().isEmpty());
         } catch (Exception e) {
             fail("Got exception: " + e.getMessage());
         }
