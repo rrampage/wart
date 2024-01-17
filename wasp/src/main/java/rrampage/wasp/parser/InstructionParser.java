@@ -158,7 +158,7 @@ public class InstructionParser {
                 labelMarker.decrementAndGet();
                 //throw new RuntimeException("Unexpected bytecode for control flow instruction: " + byteCode);
                 if (byteCode == CF_IF) {
-                    new ControlFlowInstruction.If(label, ft, insList.toArray(Instruction[]::new));
+                    yield new ControlFlowInstruction.If(label, ft, insList.toArray(Instruction[]::new));
                 }
                 yield (byteCode == CF_BLOCK) ?
                         new ControlFlowInstruction.Block(label, ft, insList.toArray(Instruction[]::new)) :

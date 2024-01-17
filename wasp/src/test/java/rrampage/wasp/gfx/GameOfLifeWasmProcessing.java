@@ -6,9 +6,6 @@ import rrampage.wasp.vm.Machine;
 import rrampage.wasp.vm.MachineVisitor;
 import rrampage.wasp.vm.MachineVisitors;
 
-import java.util.ArrayList;
-import java.util.Map;
-
 import static rrampage.wasp.TestUtils.parseModule;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
@@ -21,7 +18,6 @@ public class GameOfLifeWasmProcessing extends PApplet {
     int aliveColor = color(0, 200, 0);
     int deadColor = color(0);
     int iter = 0;
-    ArrayList<ProcessingMachine.FunctionBox> functionBoxes = new ArrayList<>();
 
     GameOfLifeWasmProcessing(MachineVisitor visitor) {
         module = parseModule("../wart/examples/game_of_life_unopt.wasm");
@@ -40,23 +36,16 @@ public class GameOfLifeWasmProcessing extends PApplet {
         initialize(width, height);
         // stroke(48);
         drawBoard();
-        noLoop();
+        // noLoop();
     }
 
     public void draw() {
-        System.out.println("DRAW_START");
-        drawBoard();
-        System.out.println("DRAW_END");
-        /*background(0);
-        drawBoard();
+        long timeStart = System.nanoTime();
         machine.invoke("tick");
-        iter++;*/
-        /*try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        */
+        drawBoard();
+        iter++;
+        var timeTakenMs = (System.nanoTime() - timeStart)/1_000_000;
+        System.out.printf("DRAW_END iteration: %d timeTaken: %d\n", iter, timeTakenMs);
     }
 
     public void run() {
@@ -85,9 +74,6 @@ public class GameOfLifeWasmProcessing extends PApplet {
                 var i = machine.popInt();
                 // System.out.println("IIII " + i);
                 boolean alive = i != 0;
-                if (alive) {
-                    System.out.println("ALIVE!! " + iter);
-                }
                 fill(alive ? aliveColor : deadColor);
                 var x = column * pixelSize;
                 var y = row * pixelSize;

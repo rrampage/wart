@@ -12,6 +12,8 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 
 
 public class Machine {
+    private static final int FUNC_LEVEL = -1;
+    private static final int RETURN_LEVEL = -2;
     private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
     private final SequencedCollection<Long> stackView;
 
@@ -125,7 +127,7 @@ public class Machine {
             locals[i] = Variable.newMutableVariable(fun.locals()[i - fun.numParams()], 0);
         }
         // Set labels of machine to function labels and reset to original labels once execution is completed
-        execute(fun.code(), locals, -1);
+        execute(fun.code(), locals, FUNC_LEVEL);
         if (fun.isVoidReturn()) {
             return null;
         }
@@ -147,7 +149,7 @@ public class Machine {
         if (!startFun.isVoidReturn() && startFun.numParams() > 0) {
             return;
         }
-        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, -1);
+        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, FUNC_LEVEL);
     }
 
     private int execute(Instruction[] instructions, Variable[] locals, int level) {
@@ -233,6 +235,7 @@ public class Machine {
                 case IntBinaryInstruction b -> {
                     int r = popInt();
                     int l = popInt();
+                    // System.out.printf("Ins: %s l : %d r : %d\n", b, l ,r);
                     switch (b) {
                         case I32_ADD -> pushInt(l+r);
                         case I32_SUB -> pushInt(l-r);
@@ -379,10 +382,10 @@ public class Machine {
                     int addr = popInt();
                     int effectiveAddr = addr + s.offset();
                     if (isAligned(s.align(), s.offset(), effectiveAddr)) {
-                        System.out.println("Aligned write for " + s.align() + " " + s.opCode());
+                        // System.out.println("Aligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(effectiveAddr, data);
                     } else {
-                        System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
+                        // System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(addr, data);
                     }
                 }
@@ -488,7 +491,7 @@ public class Machine {
                         }
                         case FunctionInstruction.Return() -> {
                             machineVisitor.visitPostInstruction(ins);
-                            return -1;
+                            return RETURN_LEVEL;
                         }
                         case FunctionInstruction.LocalGet l -> {
                             Variable var = locals[l.val()];
@@ -515,7 +518,7 @@ public class Machine {
                         case GlobalInstruction.GlobalSet g -> {
                             Variable var = globals[g.val()];
                             var.setVal(pop());
-                            System.out.println(Variable.debug(globals[g.val()]));
+                            // System.out.println(Variable.debug(globals[g.val()]));
                         }
                     }
                 }
@@ -660,7 +663,7 @@ public class Machine {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
         machineVisitor.start();
-        execute(expr, null, -1);
+        execute(expr, null, FUNC_LEVEL);
         var res = call(f);
         int n = (res == null) ? 0 : res.length;
         if (!f.isVoidReturn()) {
