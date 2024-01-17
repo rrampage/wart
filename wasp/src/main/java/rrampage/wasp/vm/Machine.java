@@ -662,7 +662,7 @@ public class Machine {
         machineVisitor.start();
         execute(expr, null, -1);
         var res = call(f);
-        int n = res.length;
+        int n = (res == null) ? 0 : res.length;
         if (!f.isVoidReturn()) {
             // Push in reverse order
             for (int i = n -1; i >= 0; i--) {

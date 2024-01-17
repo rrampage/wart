@@ -31,7 +31,13 @@ public class InstructionParser {
         int b = Byte.toUnsignedInt(in.get()); // get bytecode of instruction
         // System.out.printf("Parsing bytecode: 0x%x %d out of %d%n", b, in.position() - startPos, bytesToParse);
         return switch (b) {
-            case NULL_UNREACHABLE, NULL_NOP, NULL_MEM_SIZE -> parseNullaryInstruction(b);
+            case NULL_UNREACHABLE, NULL_NOP -> parseNullaryInstruction(b);
+            case NULL_MEM_SIZE -> {
+                var ins = parseNullaryInstruction(b);
+                // TODO : Use this when implementing Multiple memories proposal
+                var i = (int) Leb128.readUnsigned(in);
+                yield ins;
+            }
             case CF_BLOCK, CF_LOOP, CF_IF, CF_ELSE, CF_END, CF_BR, CF_BR_IF, CF_BR_TABLE -> parseControlFlowInstruction(b, in, types, startPos, bytesToParse, labelMarker);
             case CONST_INT, CONST_LONG, CONST_FLOAT, CONST_DOUBLE -> parseConstantInstruction(b, in);
             case GLOBAL_GET, GLOBAL_SET -> parseGlobalInstruction(b, in);
@@ -42,7 +48,7 @@ public class InstructionParser {
             case STORE_I32, STORE_I64, STORE_F32, STORE_F64, STORE8_I32, STORE16_I32,
                     STORE8_I64, STORE16_I64, STORE32_I64 -> parseStoreInstruction(b, in);
             case SELECT -> new Select();
-            case UN_DROP, UN_MEM_GROW, UN_I32_EQZ, UN_I64_EQZ, UN_I32_CLZ, UN_I64_CLZ,
+            case UN_DROP, UN_I32_EQZ, UN_I64_EQZ, UN_I32_CLZ, UN_I64_CLZ,
                     UN_I32_CTZ, UN_I64_CTZ, UN_I32_POPCNT, UN_I64_POPCNT,
                     UN_F32_ABS, UN_F32_NEG, UN_F32_CEIL, UN_F32_FLOOR, UN_F32_TRUNC, UN_F32_NEAREST, UN_F32_SQRT,
                     UN_F64_ABS, UN_F64_NEG, UN_F64_CEIL, UN_F64_FLOOR, UN_F64_TRUNC, UN_F64_NEAREST, UN_F64_SQRT,
@@ -53,6 +59,12 @@ public class InstructionParser {
                     UN_I32_REINTERPRET_F32, UN_I64_REINTERPRET_F64, UN_F32_REINTERPRET_I32, UN_F64_REINTERPRET_I64,
                     UN_I32_EXTEND8_S, UN_I32_EXTEND16_S, UN_I64_EXTEND8_S, UN_I64_EXTEND16_S, UN_I64_EXTEND32_S
                     -> parseUnaryInstruction(b, in);
+            case UN_MEM_GROW -> {
+                var ins = parseUnaryInstruction(b, in);
+                // TODO : Use this when implementing Multiple memories proposal
+                var i = (int) Leb128.readUnsigned(in);
+                yield ins;
+            }
             case BI_I32_EQ, BI_I32_NE, BI_I32_LT_S, BI_I32_LT_U, BI_I32_GT_S, BI_I32_GT_U,
                     BI_I32_LE_S, BI_I32_LE_U, BI_I32_GE_S, BI_I32_GE_U,
                     BI_I32_ADD, BI_I32_SUB, BI_I32_MUL, BI_I32_DIV_S, BI_I32_DIV_U, BI_I32_REM_S, BI_I32_REM_U,
