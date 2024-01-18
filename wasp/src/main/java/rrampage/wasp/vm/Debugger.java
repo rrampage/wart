@@ -40,10 +40,16 @@ public class Debugger {
      */
     private static final String helpCommands = """
             s:  Step through next instruction
-            r:  Run till next breakpoint
+            b:  Set breakpoint at function index and instruction index.
+                    e.g `b 0 3` will set a breakpoint at function 0 and instruction number 3.
+                    Use `pf` to see correct instruction index for function.
+            w:  Set watch point on a variable or memory address.
+                    e.g `w g 0` will watch the global variable at index 0 for changes and stop execution if it changes
+            r:  Run till next breakpoint/watch point
             pc: Print callStack
             ps: Print machine stack
             pf: Print function
+            pv: Print variable
             ?:  Print (this) help message
             """;
     private Scanner scanner = new Scanner(System.in);
@@ -123,8 +129,8 @@ public class Debugger {
         int functionIndex = callStack == null || callStack.isEmpty() ? -1 : getFunctionIndex(callStack.peek());
         var bp = new BreakPoint(functionIndex, instructionIndex);
         var isBreakPoint = breakPoints.contains(bp);
-        System.out.printf("Ins: %s IsBreakPoint: %b IsRunning %b Curr: %s BreakPoints: %s InsPtrs: %s\n",
-                ins.opCode(), isBreakPoint, isRunning, bp, breakPoints, instructionPointers);
+        /*System.out.printf("Ins: %s IsBreakPoint: %b IsRunning %b Curr: %s BreakPoints: %s InsPtrs: %s\n",
+                ins.opCode(), isBreakPoint, isRunning, bp, breakPoints, instructionPointers);*/
 
         if (isRunning && !isBreakPoint) {
             return;

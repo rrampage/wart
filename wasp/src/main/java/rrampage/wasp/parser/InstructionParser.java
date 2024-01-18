@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InstructionParser {
     public static Instruction[] parse(ByteBuffer in, int numBytes, FunctionType[] types) {
         int startPos = in.position();
-        System.out.printf("PARSE_INSTRUCTION startPos: %d numBytes: %d\n", startPos, numBytes);
+        // System.out.printf("PARSE_INSTRUCTION startPos: %d numBytes: %d\n", startPos, numBytes);
         ArrayList<Instruction> insList =  new ArrayList<>(numBytes/2);
         // bytesToParse is numBytes-1 as we are ignoring the last 0xb byte marking function end
         int bytesToParse = numBytes-1;
@@ -129,7 +129,6 @@ public class InstructionParser {
                 boolean isIf = byteCode == CF_IF;
                 int blockType = (int) Leb128.readSigned(in);
                 FunctionType ft = (blockType >= 0) ? types[blockType] : FunctionType.getBlockType(blockType);
-                System.out.println("Func: " + ft);
                 int label = labelMarker.incrementAndGet(); // -1 -> 0
                 ArrayList<Instruction> insList = new ArrayList<>();
                 while (in.position() - startPosition < bytesToParse) {

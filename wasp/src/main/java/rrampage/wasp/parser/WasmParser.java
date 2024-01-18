@@ -150,7 +150,7 @@ public class WasmParser implements Parser {
         byte[] name = new byte[fl];
         bb.get(name);
         String exportName = new String(name, StandardCharsets.UTF_8);
-        System.out.printf("Export name: %s size: %d\n", exportName, fl);
+        // System.out.printf("Export name: %s size: %d\n", exportName, fl);
         ExportDescriptor desc = parseExportDescriptor();
         return new ExportMetadata(exportName, desc);
     }
@@ -274,8 +274,8 @@ public class WasmParser implements Parser {
         boolean isNonZeroIndex = isActive && (eb >> 1) % 2 == 1;
         boolean isDeclarative = !isActive && (eb >> 1) % 2 == 1;
         boolean isPassive = !isActive && !isDeclarative;
-        System.out.printf("Element is active: %b passive: %b declarative: %b non-zero index: %b expression: %b\n",
-                isActive, isPassive, isDeclarative, isNonZeroIndex, isExpression);
+        // System.out.printf("Element is active: %b passive: %b declarative: %b non-zero index: %b expression: %b\n",
+        //        isActive, isPassive, isDeclarative, isNonZeroIndex, isExpression);
         int tableIndex = (isNonZeroIndex) ? (int) Leb128.readUnsigned(bb) : 0;
         ConstExpression expr = null;
         if (isActive) {
@@ -307,7 +307,7 @@ public class WasmParser implements Parser {
 
     private ElementSegment[] parseElementSection() {
         int n = (int) Leb128.readUnsigned(bb);
-        System.out.println("Element table size: " + n);
+        // System.out.println("Element table size: " + n);
         ElementSegment[] elementSegments = new ElementSegment[n];
         for (int i = 0; i < n; i++) {
             elementSegments[i] = parseElementSegment();
@@ -331,18 +331,18 @@ public class WasmParser implements Parser {
         int funPos = bb.position();
         int lc = (int) Leb128.readUnsigned(bb);
         ArrayList<ValueType> locals = new ArrayList<>();
-        System.out.printf("Index: %d Function size: %d Local declaration count %d\n", funcIdx - numImports, funSize, lc);
+        // System.out.printf("Index: %d Function size: %d Local declaration count %d\n", funcIdx - numImports, funSize, lc);
         for (int j = 0; j < lc; j++) {
             int numLocal = (int) Leb128.readUnsigned(bb);
             var type = ValueType.from(bb.get());
-            System.out.printf("%d Locals of type %s\n", numLocal, type);
+            // System.out.printf("%d Locals of type %s\n", numLocal, type);
             for (int k = 0; k < numLocal; k++) {
                 locals.add(type);
             }
         }
         int bytesToParse = funPos + funSize - bb.position();
         Instruction[] code = InstructionParser.parse(bb, bytesToParse, types);
-        System.out.println("Code : " + Arrays.toString(code));
+        // System.out.println("Code : " + Arrays.toString(code));
         String fname = "Function_" + funcIdx;
         Function f = new Function(fname, types[functions[funcIdx - numImports]], locals.toArray(ValueType[]::new), code);
         byte endByte = bb.get();
@@ -354,7 +354,7 @@ public class WasmParser implements Parser {
     private Function[] parseCodeSection(FunctionType[] types, ImportMetadata[] imports, int[] functions) {
         int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.FunctionDescriptor).count();
         int n = (int) Leb128.readUnsigned(bb);
-        System.out.printf("%d code items numFunctionsDeclared: %d numImports: %d\n", n, functions.length, numImports);
+        // System.out.printf("%d code items numFunctionsDeclared: %d numImports: %d\n", n, functions.length, numImports);
         Function[] allFuncs = new Function[numImports + functions.length];
         for (int i = 0; i < n; i++) {
             Function f = parseFunctionCode(i + numImports, types, numImports, functions);
@@ -403,7 +403,7 @@ public class WasmParser implements Parser {
 
     private DataSegment[] parseDataSection() {
         int n = (int) Leb128.readUnsigned(bb);
-        System.out.println("Num data sections: " + n);
+        // System.out.println("Num data sections: " + n);
         DataSegment[] dataSegments = new DataSegment[n];
         for (int i = 0; i < n; i++) {
             dataSegments[i] = parseDataSegment();
@@ -447,7 +447,7 @@ public class WasmParser implements Parser {
             SectionType st = getSectionType(bb.get());
             int sectionLength = (int) Leb128.readUnsigned(bb);
             int sectionStart = bb.position();
-            System.out.printf("Section: %s Length: %d\n", st, sectionLength);
+            // System.out.printf("Section: %s Length: %d\n", st, sectionLength);
             // Just skipping for now
             switch (st) {
                 case CUSTOM -> bb.position(sectionStart + sectionLength);
@@ -467,14 +467,6 @@ public class WasmParser implements Parser {
             // Check that section is fully consumed
             assertBufferPosition(sectionStart + sectionLength);
         }
-        System.out.println(bb.position());
-        System.out.println(Arrays.toString(types));
-        System.out.println(Arrays.toString(imports));
-        System.out.println(Arrays.toString(exports));
-        System.out.println(Arrays.toString(memories));
-        System.out.println(Arrays.toString(tables));
-        System.out.println("Start Index: " + startIdx);
-        System.out.println("Data count: " + dataCount);
         assert dataCount.isEmpty() || dataSegments.length == dataCount.get();
         return new Module(1, types, allFuncs, tables, exports, imports, memories, dataSegments, elementSegments, globals, startIdx);
     }
