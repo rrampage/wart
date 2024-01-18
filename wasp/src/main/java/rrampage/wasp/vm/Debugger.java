@@ -287,7 +287,7 @@ public class Debugger {
         // machine.invoke("fac-iter", constOf(21L));
     }
 
-    private class BreakPoint{
+    private static class BreakPoint{
         int funcIndex;
         int[] instructionIndex;
         public BreakPoint(int funcIndex, int... instructionIndex) {
