@@ -33,7 +33,8 @@ public class Machine {
        this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx, MachineVisitors.instructionCountVisitor());
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, Map<String, Object> exportMap, long startIdx, MachineVisitor machineVisitor) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments,
+                   Map<String, Object> exportMap, long startIdx, MachineVisitor machineVisitor) {
         if (memories == null || memories.length == 0) {
             // Create a 1 page memory if null or zero-length memory is passed
             memories = new Memory[]{new Memory(1)};
@@ -53,6 +54,7 @@ public class Machine {
         this.startIdx = startIdx;
         this.machineVisitor = machineVisitor;
         this.start();
+        this.machineVisitor.start(this);
     }
 
     public Memory getMainMemory() {
@@ -60,6 +62,10 @@ public class Machine {
     }
 
     public Map<String, Object> exports(){ return this.exportMap;}
+
+    public Variable[] globals() { return this.globals;}
+
+    public Function[] functions() { return this.functions;}
 
     public long pop() {
         if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_LONG, stackView); }
@@ -662,7 +668,7 @@ public class Machine {
         if (type.numParams() != expr.length) {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
-        machineVisitor.start();
+        // machineVisitor.start(this);
         execute(expr, null, FUNC_LEVEL);
         var res = call(f);
         int n = (res == null) ? 0 : res.length;
@@ -672,7 +678,7 @@ public class Machine {
                 pushVariable(res[i]);
             }
         }
-        machineVisitor.end();
+        machineVisitor.end(this);
     }
 
     public boolean compareStack(ConstInstruction... expected) {
@@ -699,7 +705,7 @@ public class Machine {
 
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         Machine m = new Machine(functions, tables, globals, pages, dataSegments, elementSegments, startIdx);
-        m.machineVisitor.end();
+        m.machineVisitor.end(m);
         return m;
     }
 }

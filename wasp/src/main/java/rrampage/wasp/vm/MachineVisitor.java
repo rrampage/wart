@@ -1,18 +1,22 @@
 package rrampage.wasp.vm;
 
 import rrampage.wasp.data.Function;
+import rrampage.wasp.data.Variable;
 import rrampage.wasp.instructions.Instruction;
 
+import java.util.Objects;
 import java.util.SequencedCollection;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class MachineVisitor {
-    final InstructionConsumer[] preInstructionVisitors;
-    final InstructionConsumer[] postInstructionVisitors;
-    final FunctionConsumer[] preFunctionVisitors;
-    final FunctionConsumer[] postFunctionVisitors;
-    final Runnable[] startVisitors;
-    final Runnable[] endVisitors;
-    final StackConsumer[] stackVisitors;
+    final Consumer<Instruction> preInstructionVisitor;
+    final Consumer<Instruction> postInstructionVisitor;
+    final Consumer<Function> preFunctionVisitor;
+    final Consumer<Function> postFunctionVisitor;
+    final Consumer<Machine> startVisitor;
+    final Consumer<Machine> endVisitor;
+    final BiConsumer<StackOp, SequencedCollection<Long>> stackVisitor;
     final boolean hasPreInstructionVisitor;
     final boolean hasPostInstructionVisitor;
     final boolean hasPreFunctionVisitor;
@@ -22,65 +26,68 @@ public class MachineVisitor {
     final boolean hasStackVisitor;
 
     private MachineVisitor(VisitorBuilder builder) {
-        this.preInstructionVisitors = builder.preInstructionVisitors;
-        this.postInstructionVisitors = builder.postInstructionVisitors;
-        this.preFunctionVisitors = builder.preFunctionVisitors;
-        this.postFunctionVisitors = builder.postFunctionVisitors;
-        this.startVisitors = builder.startVisitors;
-        this.endVisitors = builder.endVisitors;
-        this.stackVisitors = builder.stackVisitors;
-        this.hasPreInstructionVisitor = this.preInstructionVisitors != null && this.preInstructionVisitors.length > 0;
-        this.hasPostInstructionVisitor = this.postInstructionVisitors != null && this.postInstructionVisitors.length > 0;
-        this.hasPreFunctionVisitor = this.preFunctionVisitors != null && this.preFunctionVisitors.length > 0;
-        this.hasPostFunctionVisitor = this.postFunctionVisitors != null && this.postFunctionVisitors.length > 0;
-        this.hasStartVisitor = this.startVisitors != null && this.startVisitors.length > 0;
-        this.hasEndVisitor = this.endVisitors != null && this.endVisitors.length > 0;
-        this.hasStackVisitor = this.stackVisitors != null && this.stackVisitors.length > 0;
+        this.preInstructionVisitor = builder.preInstructionVisitor;
+        this.postInstructionVisitor = builder.postInstructionVisitor;
+        this.preFunctionVisitor = builder.preFunctionVisitor;
+        this.postFunctionVisitor = builder.postFunctionVisitor;
+        this.startVisitor = builder.startVisitor;
+        this.endVisitor = builder.endVisitor;
+        this.stackVisitor = builder.stackVisitor;
+        this.hasPreInstructionVisitor = this.preInstructionVisitor != null;
+        this.hasPostInstructionVisitor = this.postInstructionVisitor != null;
+        this.hasPreFunctionVisitor = this.preFunctionVisitor != null;
+        this.hasPostFunctionVisitor = this.postFunctionVisitor != null;
+        this.hasStartVisitor = this.startVisitor != null;
+        this.hasEndVisitor = this.endVisitor != null;
+        this.hasStackVisitor = this.stackVisitor != null;
     }
 
     public void visitPreFunction(Function f) {
         if (!hasPreFunctionVisitor) {return;}
-        for (var c : preFunctionVisitors) { c.accept(f);}
+        preFunctionVisitor.accept(f);
     }
 
     public void visitPostFunction(Function f) {
         if (!hasPostFunctionVisitor) {return;}
-        for (var c : postFunctionVisitors) { c.accept(f);}
+        postFunctionVisitor.accept(f);
     }
 
     public void visitPreInstruction(Instruction i) {
         if (!hasPreInstructionVisitor) {return;}
-        for (var c : preInstructionVisitors) { c.accept(i);}
+        preInstructionVisitor.accept(i);
     }
 
     public void visitPostInstruction(Instruction i) {
         if (!hasPostInstructionVisitor) {return;}
-        for (var c : postInstructionVisitors) { c.accept(i);}
+        postInstructionVisitor.accept(i);
     }
 
-    public void start() {
+    public void start(Machine m) {
+        System.out.println("START_CALLED");
         if (!hasStartVisitor) {return;}
-        for (var r : startVisitors) { r.run();}
+        startVisitor.accept(m);
     }
 
-    public void end() {
+    public void end(Machine m) {
         if (!hasEndVisitor) {return;}
-        for (var r : endVisitors) { r.run();}
+        endVisitor.accept(m);
     }
 
     public void visitStack(StackOp op, SequencedCollection<Long> stack) {
         if (!hasStackVisitor) {return;}
-        for (var r : stackVisitors) { r.accept(op, stack);}
+        stackVisitor.accept(op, stack);
     }
 
     public static class VisitorBuilder {
-        InstructionConsumer[] preInstructionVisitors;
-        InstructionConsumer[] postInstructionVisitors;
-        FunctionConsumer[] preFunctionVisitors;
-        FunctionConsumer[] postFunctionVisitors;
-        StackConsumer[] stackVisitors;
-        Runnable[] startVisitors;
-        Runnable[] endVisitors;
+        Consumer<Instruction> preInstructionVisitor;
+        Consumer<Instruction> postInstructionVisitor;
+        Consumer<Function> preFunctionVisitor;
+        Consumer<Function> postFunctionVisitor;
+        BiConsumer<StackOp, SequencedCollection<Long>> stackVisitor;
+        Consumer<Machine> startVisitor;
+        Consumer<Machine> endVisitor;
+        Consumer<Variable> globalVisitor;
+        Consumer<Variable> localVisitor;
 
         private VisitorBuilder() {}
 
@@ -88,55 +95,95 @@ public class MachineVisitor {
             return new VisitorBuilder();
         }
 
-        public final VisitorBuilder preInstruction(InstructionConsumer... visitors) {
-            this.preInstructionVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder preInstruction(Consumer<Instruction>... visitors) {
+            this.preInstructionVisitor = compose(visitors);
             return this;
         }
 
-        public final VisitorBuilder postInstruction(InstructionConsumer... visitors) {
-            this.postInstructionVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder postInstruction(Consumer<Instruction>... visitors) {
+            this.postInstructionVisitor = compose(visitors);
             return this;
         }
 
-        public final VisitorBuilder preFunction(FunctionConsumer... visitors) {
-            this.preFunctionVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder preFunction(Consumer<Function>... visitors) {
+            this.preFunctionVisitor = compose(visitors);
             return this;
         }
 
-        public final VisitorBuilder postFunction(FunctionConsumer... visitors) {
-            this.postFunctionVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder postFunction(Consumer<Function>... visitors) {
+            this.postFunctionVisitor = compose(visitors);
             return this;
         }
 
-        public final VisitorBuilder start(Runnable... visitors) {
-            this.startVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder start(Consumer<Machine>... visitors) {
+            this.startVisitor = compose(visitors);
             return this;
         }
 
-        public final VisitorBuilder end(Runnable... visitors) {
-            this.endVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder end(Consumer<Machine>... visitors) {
+            this.endVisitor = compose(visitors);
             return this;
         }
 
-        public final VisitorBuilder stack(StackConsumer ... visitors) {
-            this.stackVisitors = visitors;
+        @SafeVarargs
+        public final VisitorBuilder stack(final BiConsumer<StackOp, SequencedCollection<Long>>... visitors) {
+            this.stackVisitor = compose(visitors);
             return this;
         }
 
-        public MachineVisitor build() {
+        @SafeVarargs
+        public final VisitorBuilder global(final Consumer<Variable>... visitors) {
+            this.globalVisitor = compose(visitors);
+            return this;
+        }
+
+
+        @SafeVarargs
+        public final VisitorBuilder local(final Consumer<Variable>... visitors) {
+            this.localVisitor = compose(visitors);
+            return this;
+        }
+
+        public final MachineVisitor build() {
             return new MachineVisitor(this);
         }
-    }
 
-    public interface InstructionConsumer {
-        void accept(final Instruction instruction);
-    }
+        @SafeVarargs
+        private static <T> Consumer<T> compose(final Consumer<T>... visitors) {
+            if (visitors == null || visitors.length == 0) { return null; }
+            return (t) -> {
+                for (var c : visitors) {
+                    Objects.requireNonNull(c);
+                    c.accept(t);
+                }
+            };
+        }
 
-    public interface FunctionConsumer {
-        void accept(final Function function);
-    }
+        @SafeVarargs
+        private static <T, U> BiConsumer<T, U> compose(final BiConsumer<T, U>... visitors) {
+            if (visitors == null || visitors.length == 0) { return null; }
+            return (t, u) -> {
+                for (var c : visitors) {
+                    Objects.requireNonNull(c);
+                    c.accept(t, u);
+                }
+            };
+        }
 
-    public interface StackConsumer {
-        void accept(StackOp op, SequencedCollection<Long> stack);
+        private static Runnable compose(final Runnable... visitors) {
+            if (visitors == null || visitors.length == 0) { return null; }
+            return () -> {
+                for (var r : visitors) {
+                    Objects.requireNonNull(r);
+                    r.run();
+                }
+            };
+        }
     }
 }
