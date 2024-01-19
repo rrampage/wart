@@ -1,3 +1,7 @@
+/*
+    Game of Life written in pure WASM
+    From https://ashen.earth/wasm-game-of-life-1
+ */
 let gameState = {
     running: false,
     pixelSize: 0,

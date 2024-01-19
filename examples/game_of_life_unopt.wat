@@ -1,3 +1,7 @@
+(;
+    Game of Life written in pure WASM
+    From https://ashen.earth/wasm-game-of-life-1
+;)
 (module
   (type (;0;) (func (param i32 i32)))
   (type (;1;) (func (result i32)))
