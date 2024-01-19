@@ -12,9 +12,9 @@ import static rrampage.wasp.utils.ConversionUtils.constOf;
 public class GameOfLifeWasmProcessing extends PApplet {
     final Module module;
     final Machine machine;
-    int width = 640;
-    int height = 360;
-    int pixelSize = 5;
+    int width = 160;
+    int height = 160;
+    int pixelSize = 4;
     int aliveColor = color(0, 200, 0);
     int deadColor = color(0);
     int iter = 0;
@@ -25,7 +25,7 @@ public class GameOfLifeWasmProcessing extends PApplet {
     }
 
     public void settings() {
-        size(width, height, P2D);
+        size(width*pixelSize, height*pixelSize, P2D);
         noSmooth();
     }
 
@@ -41,10 +41,12 @@ public class GameOfLifeWasmProcessing extends PApplet {
 
     public void draw() {
         long timeStart = System.nanoTime();
-        machine.invoke("tick");
-        drawBoard();
         iter++;
+        machine.invoke("tick");
         var timeTakenMs = (System.nanoTime() - timeStart)/1_000_000;
+        System.out.printf("TICK_END iteration: %d timeTaken: %d\n", iter, timeTakenMs);
+        drawBoard();
+        timeTakenMs = (System.nanoTime() - timeStart)/1_000_000;
         System.out.printf("DRAW_END iteration: %d timeTaken: %d\n", iter, timeTakenMs);
     }
 
@@ -66,7 +68,7 @@ public class GameOfLifeWasmProcessing extends PApplet {
 
     void drawBoard() {
         //const { gameExports, width, height, pixelSize, ctx, canvas } = gameState;
-        rect(0, 0, width, height);
+        rect(0, 0, width*pixelSize, height*pixelSize);
         //beginShape();
         for (int row = 0; row < height; row++) {
             for (int column = 0; column < width; column++) {
