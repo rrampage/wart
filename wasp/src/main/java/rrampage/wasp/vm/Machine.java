@@ -121,7 +121,7 @@ public class Machine {
         return effectiveAddr%(1<<align) == 0;
     }
 
-    private Variable[] call(Function fun) {
+    private void call(Function fun) {
         if (machineVisitor.hasPreFunctionVisitor) {machineVisitor.visitPreFunction(fun);}
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
@@ -135,15 +135,10 @@ public class Machine {
         // Set labels of machine to function labels and reset to original labels once execution is completed
         execute(fun.code(), locals, FUNC_LEVEL);
         if (fun.isVoidReturn()) {
-            return null;
+            return;
         }
         int n = fun.type().returnTypes().length;
-        Variable[] returns = new Variable[n];
-        for (int i = 0; i < n; i++) {
-            returns[i] = Variable.newMutableVariable(fun.type().returnTypes()[i], pop());
-        }
         if (machineVisitor.hasPostFunctionVisitor) {machineVisitor.visitPostFunction(fun);}
-        return returns;
     }
 
     private void start() {
@@ -419,16 +414,7 @@ public class Machine {
                 }
                 case FunctionInstruction f -> {
                     switch (f) {
-                        case FunctionInstruction.Call l -> {
-                            Function fun = functions[l.val()];
-                            Variable[] res = call(fun);
-                            if (!fun.isVoidReturn()) {
-                                // Push in reverse order
-                                for (int i = res.length -1; i >= 0; i--) {
-                                    pushVariable(res[i]);
-                                }
-                            }
-                        }
+                        case FunctionInstruction.Call l -> call(functions[l.val()]);
                         case FunctionInstruction.CallIndirect l -> {
                             int tblOffset = popInt();
                             int tblIdx = l.idx();
@@ -439,13 +425,7 @@ public class Machine {
                             if (fun == null) {
                                 throw new RuntimeException("Function Type mismatch in indirect call");
                             }
-                            Variable[] res = call(fun);
-                            if (!fun.isVoidReturn()) {
-                                // Push in reverse order
-                                for (int i = res.length -1; i >= 0; i--) {
-                                    pushVariable(res[i]);
-                                }
-                            }
+                            call(fun);
                         }
                         case FunctionInstruction.CallJava(FunctionType type, MethodHandle function) -> {
                             try {
@@ -670,14 +650,7 @@ public class Machine {
         }
         // machineVisitor.start(this);
         execute(expr, null, FUNC_LEVEL);
-        var res = call(f);
-        int n = (res == null) ? 0 : res.length;
-        if (!f.isVoidReturn()) {
-            // Push in reverse order
-            for (int i = n -1; i >= 0; i--) {
-                pushVariable(res[i]);
-            }
-        }
+        call(f);
         machineVisitor.end(this);
     }
 
