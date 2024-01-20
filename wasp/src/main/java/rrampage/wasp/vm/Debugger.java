@@ -52,14 +52,14 @@ public class Debugger {
             pv: Print variable
             ?:  Print (this) help message
             """;
-    private Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner = new Scanner(System.in);
     private boolean isRunning = false;
-    private ArrayDeque<String> callStack = new ArrayDeque<>();
+    private final ArrayDeque<String> callStack = new ArrayDeque<>();
     private Machine machine;
     private Function function;
-    private ArrayDeque<Integer> instructionPointers = new ArrayDeque<>();
-    private HashSet<BreakPoint> breakPoints = new HashSet<>();
-    private HashMap<Integer, WatchGlobal> globalWatchPoints = new HashMap<>();
+    private final ArrayDeque<Integer> instructionPointers = new ArrayDeque<>();
+    private final HashSet<BreakPoint> breakPoints = new HashSet<>();
+    private final HashMap<Integer, WatchGlobal> globalWatchPoints = new HashMap<>();
 
     public Debugger() {}
 
@@ -107,7 +107,7 @@ public class Debugger {
     }
 
     private void end(Machine machine) {
-        System.out.println(machine.stackView());
+        System.out.println(machine.inspectStack());
     }
 
     private void preFunction(Function f) {
@@ -126,7 +126,7 @@ public class Debugger {
 
     private void preInstruction(Instruction ins) {
         int instructionIndex = instructionPointers.isEmpty() ? -1 : instructionPointers.peek();
-        int functionIndex = callStack == null || callStack.isEmpty() ? -1 : getFunctionIndex(callStack.peek());
+        int functionIndex = callStack.isEmpty() ? -1 : getFunctionIndex(callStack.peek());
         var bp = new BreakPoint(functionIndex, instructionIndex);
         var isBreakPoint = breakPoints.contains(bp);
         /*System.out.printf("Ins: %s IsBreakPoint: %b IsRunning %b Curr: %s BreakPoints: %s InsPtrs: %s\n",
@@ -157,7 +157,7 @@ public class Debugger {
                     return;
                 }
                 case "pc" -> System.out.println("Call Stack: " + this.callStack);
-                case "ps" -> System.out.println("Machine Stack: " + this.machine.stackView());
+                case "ps" -> System.out.println("Machine Stack: " + this.machine.inspectStack());
                 case "pf" -> {
                     if (this.function == null) {
                         System.out.println("Not in a function....");

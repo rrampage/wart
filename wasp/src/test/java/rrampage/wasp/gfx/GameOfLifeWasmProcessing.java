@@ -12,8 +12,8 @@ import static rrampage.wasp.utils.ConversionUtils.constOf;
 public class GameOfLifeWasmProcessing extends PApplet {
     final Module module;
     final Machine machine;
-    int width = 256;
-    int height = 256;
+    int width = 800;
+    int height = 600;
     int pixelSize = 2;
     int aliveColor = color(0, 200, 0);
     int deadColor = color(0);

@@ -16,14 +16,12 @@ public class MachineVisitor {
     final Consumer<Function> postFunctionVisitor;
     final Consumer<Machine> startVisitor;
     final Consumer<Machine> endVisitor;
-    final BiConsumer<StackOp, SequencedCollection<Long>> stackVisitor;
     final boolean hasPreInstructionVisitor;
     final boolean hasPostInstructionVisitor;
     final boolean hasPreFunctionVisitor;
     final boolean hasPostFunctionVisitor;
     final boolean hasStartVisitor;
     final boolean hasEndVisitor;
-    final boolean hasStackVisitor;
 
     private MachineVisitor(VisitorBuilder builder) {
         this.preInstructionVisitor = builder.preInstructionVisitor;
@@ -32,14 +30,12 @@ public class MachineVisitor {
         this.postFunctionVisitor = builder.postFunctionVisitor;
         this.startVisitor = builder.startVisitor;
         this.endVisitor = builder.endVisitor;
-        this.stackVisitor = builder.stackVisitor;
         this.hasPreInstructionVisitor = this.preInstructionVisitor != null;
         this.hasPostInstructionVisitor = this.postInstructionVisitor != null;
         this.hasPreFunctionVisitor = this.preFunctionVisitor != null;
         this.hasPostFunctionVisitor = this.postFunctionVisitor != null;
         this.hasStartVisitor = this.startVisitor != null;
         this.hasEndVisitor = this.endVisitor != null;
-        this.hasStackVisitor = this.stackVisitor != null;
     }
 
     public void visitPreFunction(Function f) {
@@ -71,11 +67,6 @@ public class MachineVisitor {
     public void end(Machine m) {
         if (!hasEndVisitor) {return;}
         endVisitor.accept(m);
-    }
-
-    public void visitStack(StackOp op, SequencedCollection<Long> stack) {
-        if (!hasStackVisitor) {return;}
-        stackVisitor.accept(op, stack);
     }
 
     public static class VisitorBuilder {

@@ -18,14 +18,14 @@ public class WasmRunnerTest {
     public void shouldRunEmptyModule() {
         var module = parseModule("./empty_module.wasm");
         var machine = module.instantiate(null);
-        assertTrue(machine.stackView().isEmpty());
+        assertTrue(machine.isStackEmpty());
     }
     @Test
     public void shouldRunAddModule() {
         var module = parseModule("./add_two.wasm");
         try {
             var machine = module.instantiate(Map.of("host", Map.of("print", ImportUtils.generateLoggerHandle(new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32}, new ValueType.NumType[]{ValueType.NumType.I32})))));
-            assertTrue(machine.stackView().isEmpty());
+            assertTrue(machine.isStackEmpty());
         } catch (Exception e) {
             fail("Got exception: " + e.getMessage());
         }

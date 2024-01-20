@@ -14,8 +14,7 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 public class Machine {
     private static final int FUNC_LEVEL = -1;
     private static final int RETURN_LEVEL = -2;
-    private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
-    private final SequencedCollection<Long> stackView;
+    private final MachineStack stack; // Store everything as long. Convert to type as per instruction
 
     // TODO : Keep in mind proposal for multiple memories:
     //  https://github.com/WebAssembly/multi-memory/blob/main/proposals/multi-memory/Overview.md
@@ -39,8 +38,7 @@ public class Machine {
             // Create a 1 page memory if null or zero-length memory is passed
             memories = new Memory[]{new Memory(1)};
         }
-        this.stack = new ArrayDeque<>(8192);
-        this.stackView = Collections.unmodifiableSequencedCollection(this.stack.reversed());
+        this.stack = new MachineStack();
         this.memories = memories;
         this.functions = functions;
         this.tables = tables;
@@ -68,47 +66,43 @@ public class Machine {
     public Function[] functions() { return this.functions;}
 
     public long pop() {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_LONG, stackView); }
         return stack.pop();
     }
 
     public int popInt() {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_INT, stackView); }
         return longToInt(stack.pop());
     }
 
     public float popFloat() {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_FLOAT, stackView); }
         return longToFloat(stack.pop());
     }
 
     public double popDouble() {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(StackOp.Pop.POP_DOUBLE, stackView); }
         return longToDouble(stack.pop());
     }
 
     public void push(long val) {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushLong(val), stackView); }
         stack.push(val);
     }
 
     public void pushInt(int val) {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushInt(val), stackView); }
         stack.push(intToLong(val));
     }
 
     public void pushFloat(float val) {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushFloat(val), stackView); }
         stack.push(floatToLong(val));
     }
 
     public void pushDouble(double val) {
-        if (machineVisitor.hasStackVisitor) { machineVisitor.visitStack(new StackOp.PushDouble(val), stackView); }
         stack.push(doubleToLong(val));
     }
 
-    public SequencedCollection<Long> stackView() {
-        return stackView;
+    public boolean isStackEmpty() {
+        return stack.isEmpty();
+    }
+
+    public String inspectStack() {
+        return stack.inspect();
     }
 
     private boolean isAligned(int align, int offset, int addr) {
