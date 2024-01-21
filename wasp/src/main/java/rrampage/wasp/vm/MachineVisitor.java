@@ -5,7 +5,6 @@ import rrampage.wasp.data.Variable;
 import rrampage.wasp.instructions.Instruction;
 
 import java.util.Objects;
-import java.util.SequencedCollection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -74,7 +73,6 @@ public class MachineVisitor {
         Consumer<Instruction> postInstructionVisitor;
         Consumer<Function> preFunctionVisitor;
         Consumer<Function> postFunctionVisitor;
-        BiConsumer<StackOp, SequencedCollection<Long>> stackVisitor;
         Consumer<Machine> startVisitor;
         Consumer<Machine> endVisitor;
         Consumer<Variable> globalVisitor;
@@ -119,12 +117,6 @@ public class MachineVisitor {
         @SafeVarargs
         public final VisitorBuilder end(Consumer<Machine>... visitors) {
             this.endVisitor = compose(visitors);
-            return this;
-        }
-
-        @SafeVarargs
-        public final VisitorBuilder stack(final BiConsumer<StackOp, SequencedCollection<Long>>... visitors) {
-            this.stackVisitor = compose(visitors);
             return this;
         }
 

@@ -21,10 +21,10 @@ public class GameOfLifePureProcessing extends PApplet {
     int dead = color(0);
 
     // Array of cells
-    int[][] cells;
+    byte[][] cells;
     // Buffer to record the state of the cells and use this
     // while changing the others in the interations
-    int[][] cellsBuffer;
+    byte[][] cellsBuffer;
 
     // Pause
     boolean pause = false;
@@ -37,8 +37,8 @@ public class GameOfLifePureProcessing extends PApplet {
     public void setup() {
 
         // Instantiate arrays
-        cells = new int[width / cellSize][height / cellSize];
-        cellsBuffer = new int[width / cellSize][height / cellSize];
+        cells = new byte[width / cellSize][height / cellSize];
+        cellsBuffer = new byte[width / cellSize][height / cellSize];
 
         // This stroke will draw the background grid
         stroke(48);
@@ -47,7 +47,7 @@ public class GameOfLifePureProcessing extends PApplet {
         for (int x = 0; x < width / cellSize; x++) {
             for (int y = 0; y < height / cellSize; y++) {
                 float state = random(100);
-                cells[x][y] = (state > probabilityOfAliveAtStart) ? 0 : 1;
+                cells[x][y] = (byte) ((state > probabilityOfAliveAtStart) ? 0 : 1);
             }
         }
         // Fill in black in case cells don't cover all the windows
@@ -142,7 +142,7 @@ public class GameOfLifePureProcessing extends PApplet {
             for (int x = 0; x < width / cellSize; x++) {
                 for (int y = 0; y < height / cellSize; y++) {
                     float state = random(100);
-                    cells[x][y] = (state > probabilityOfAliveAtStart) ? 0 : 1;
+                    cells[x][y] = (byte) ((state > probabilityOfAliveAtStart) ? 0 : 1);
                 }
             }
         }
