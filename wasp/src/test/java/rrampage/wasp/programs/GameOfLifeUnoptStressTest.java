@@ -11,7 +11,6 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static rrampage.wasp.TestUtils.parseModule;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
@@ -34,13 +33,13 @@ public class GameOfLifeUnoptStressTest {
                     machine.invoke("setValueAtPosition", constOf(row), constOf(column), constOf(filled));
                 }
             }
+            long start = System.nanoTime();
             for (int i = 0; i < iterations*10; i++) {
-                long start = System.nanoTime();
                 GameOfLifeUtils.calculateGameOfLife(board);
-                System.out.println("TICK_JAVA Time taken: " + (System.nanoTime() - start)/1000 + "us");
             }
+            System.out.println("TICK_JAVA Average Time taken: " + (System.nanoTime() - start)/(1000* 10L *iterations) + "us");
             for (int i = 0; i < iterations; i++) {
-                long start = System.nanoTime();
+                start = System.nanoTime();
                 machine.invoke("tick");
                 System.out.println("TICK_WASM Time taken: " + (System.nanoTime() - start)/1000 + "us");
             }
