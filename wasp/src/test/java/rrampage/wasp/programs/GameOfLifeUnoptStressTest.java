@@ -33,11 +33,12 @@ public class GameOfLifeUnoptStressTest {
                     machine.invoke("setValueAtPosition", constOf(row), constOf(column), constOf(filled));
                 }
             }
+            int javaIters = 1000;
             long start = System.nanoTime();
-            for (int i = 0; i < iterations*10; i++) {
+            for (int i = 0; i < javaIters; i++) {
                 GameOfLifeUtils.calculateGameOfLife(board);
             }
-            System.out.println("TICK_JAVA Average Time taken: " + (System.nanoTime() - start)/(1000* 10L *iterations) + "us");
+            System.out.println("TICK_JAVA Average Time taken: " + (System.nanoTime() - start)/(1000* javaIters) + "us");
             for (int i = 0; i < iterations; i++) {
                 start = System.nanoTime();
                 machine.invoke("tick");
