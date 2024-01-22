@@ -34,7 +34,7 @@ public class GameOfLifeUnoptStressTest {
                     machine.invoke("setValueAtPosition", constOf(row), constOf(column), constOf(filled));
                 }
             }
-            for (int i = 0; i < iterations; i++) {
+            for (int i = 0; i < iterations*10; i++) {
                 long start = System.nanoTime();
                 GameOfLifeUtils.calculateGameOfLife(board);
                 System.out.println("TICK_JAVA Time taken: " + (System.nanoTime() - start)/1000 + "us");
