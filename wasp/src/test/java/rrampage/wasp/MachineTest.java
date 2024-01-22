@@ -289,7 +289,6 @@ public class MachineTest {
         };
         Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, null, 1);
         double callRes = m.popDouble();
-        System.out.printf("Call result: %s%n", callRes);
         assertEquals(callRes, res, 0.0);
     }
 
@@ -317,7 +316,6 @@ public class MachineTest {
         Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, null, 1);
         double callRes2 = m.popDouble();
         double callRes1 = m.popDouble();
-        System.out.printf("Call result: %s %s%n", callRes1, callRes2);
         assertEquals(callRes1, c, 0.0);
         assertEquals(callRes2, d, 0.0);
     }
@@ -341,7 +339,6 @@ public class MachineTest {
         Machine m = Machine.createAndStart(new Function[]{fun, Function.createStartFunction("shouldCallJava", ins)}, null, null, MEM_PAGES, null, null, 1);
         int callRes1 = m.popInt();
         long callRes2 = m.pop();
-        System.out.printf("Call result: %s %s%n", callRes1, callRes2);
         assertEquals(callRes1, TEST_OBJ_ARR[0]);
         assertEquals(callRes2, TEST_OBJ_ARR[1]);
     }

@@ -12,7 +12,9 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 
 
 public class Machine {
-    private final ArrayDeque<Long> stack; // Store everything as long. Convert to type as per instruction
+    private static final int FUNC_LEVEL = -1;
+    private static final int RETURN_LEVEL = -2;
+    private final MachineStack stack; // Store everything as long. Convert to type as per instruction
 
     // TODO : Keep in mind proposal for multiple memories:
     //  https://github.com/WebAssembly/multi-memory/blob/main/proposals/multi-memory/Overview.md
@@ -30,12 +32,13 @@ public class Machine {
        this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx, MachineVisitors.instructionCountVisitor());
     }
 
-    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments, Map<String, Object> exportMap, long startIdx, MachineVisitor machineVisitor) {
+    public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments,
+                   Map<String, Object> exportMap, long startIdx, MachineVisitor machineVisitor) {
         if (memories == null || memories.length == 0) {
             // Create a 1 page memory if null or zero-length memory is passed
             memories = new Memory[]{new Memory(1)};
         }
-        this.stack = new ArrayDeque<>(8192);
+        this.stack = new MachineStack();
         this.memories = memories;
         this.functions = functions;
         this.tables = tables;
@@ -48,6 +51,8 @@ public class Machine {
         this.exportMap = exportMap;
         this.startIdx = startIdx;
         this.machineVisitor = machineVisitor;
+        this.start();
+        this.machineVisitor.start(this);
     }
 
     public Memory getMainMemory() {
@@ -55,6 +60,10 @@ public class Machine {
     }
 
     public Map<String, Object> exports(){ return this.exportMap;}
+
+    public Variable[] globals() { return this.globals;}
+
+    public Function[] functions() { return this.functions;}
 
     public long pop() {
         return stack.pop();
@@ -88,12 +97,12 @@ public class Machine {
         stack.push(doubleToLong(val));
     }
 
-    public long[] inspectStack() {
-        return stack.reversed().stream().mapToLong(l -> l).toArray();
+    public boolean isStackEmpty() {
+        return stack.isEmpty();
     }
 
-    public void printStack() {
-        System.out.println(" Stack: " + Arrays.toString(inspectStack()));
+    public String inspectStack() {
+        return stack.inspect();
     }
 
     private boolean isAligned(int align, int offset, int addr) {
@@ -106,7 +115,8 @@ public class Machine {
         return effectiveAddr%(1<<align) == 0;
     }
 
-    public Variable[] call(Function fun) {
+    private void call(Function fun) {
+        if (machineVisitor.hasPreFunctionVisitor) {machineVisitor.visitPreFunction(fun);}
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
         // LIFO for function params as params are pushed to stack and must be popped in reverse order
@@ -117,19 +127,15 @@ public class Machine {
             locals[i] = Variable.newMutableVariable(fun.locals()[i - fun.numParams()], 0);
         }
         // Set labels of machine to function labels and reset to original labels once execution is completed
-        execute(fun.code(), locals, -1);
+        execute(fun.code(), locals, FUNC_LEVEL);
         if (fun.isVoidReturn()) {
-            return null;
+            return;
         }
         int n = fun.type().returnTypes().length;
-        Variable[] returns = new Variable[n];
-        for (int i = 0; i < n; i++) {
-            returns[i] = Variable.newMutableVariable(fun.type().returnTypes()[i], pop());
-        }
-        return returns;
+        if (machineVisitor.hasPostFunctionVisitor) {machineVisitor.visitPostFunction(fun);}
     }
 
-    public void start() {
+    private void start() {
         if (startIdx < 0 || startIdx >= functions.length) {
             return;
         }
@@ -138,14 +144,12 @@ public class Machine {
         if (!startFun.isVoidReturn() && startFun.numParams() > 0) {
             return;
         }
-        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, -1);
+        execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, FUNC_LEVEL);
     }
 
-    public int execute(Instruction[] instructions, Variable[] locals, int level) {
+    private int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
             machineVisitor.visitPreInstruction(ins);
-            System.out.println("Instruction: " + ins.opCode());
-            printStack();
             switch (ins) {
                 case ConstInstruction.DoubleConst c -> pushDouble(c.val());
                 case ConstInstruction.FloatConst c -> pushFloat(c.val());
@@ -226,6 +230,7 @@ public class Machine {
                 case IntBinaryInstruction b -> {
                     int r = popInt();
                     int l = popInt();
+                    // System.out.printf("Ins: %s l : %d r : %d\n", b, l ,r);
                     switch (b) {
                         case I32_ADD -> pushInt(l+r);
                         case I32_SUB -> pushInt(l-r);
@@ -372,10 +377,10 @@ public class Machine {
                     int addr = popInt();
                     int effectiveAddr = addr + s.offset();
                     if (isAligned(s.align(), s.offset(), effectiveAddr)) {
-                        System.out.println("Aligned write for " + s.align() + " " + s.opCode());
+                        // System.out.println("Aligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(effectiveAddr, data);
                     } else {
-                        System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
+                        // System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(addr, data);
                     }
                 }
@@ -403,16 +408,7 @@ public class Machine {
                 }
                 case FunctionInstruction f -> {
                     switch (f) {
-                        case FunctionInstruction.Call l -> {
-                            Function fun = functions[l.val()];
-                            Variable[] res = call(fun);
-                            if (!fun.isVoidReturn()) {
-                                // Push in reverse order
-                                for (int i = res.length -1; i >= 0; i--) {
-                                    pushVariable(res[i]);
-                                }
-                            }
-                        }
+                        case FunctionInstruction.Call l -> call(functions[l.val()]);
                         case FunctionInstruction.CallIndirect l -> {
                             int tblOffset = popInt();
                             int tblIdx = l.idx();
@@ -423,13 +419,7 @@ public class Machine {
                             if (fun == null) {
                                 throw new RuntimeException("Function Type mismatch in indirect call");
                             }
-                            Variable[] res = call(fun);
-                            if (!fun.isVoidReturn()) {
-                                // Push in reverse order
-                                for (int i = res.length -1; i >= 0; i--) {
-                                    pushVariable(res[i]);
-                                }
-                            }
+                            call(fun);
                         }
                         case FunctionInstruction.CallJava(FunctionType type, MethodHandle function) -> {
                             try {
@@ -476,13 +466,12 @@ public class Machine {
                                 }
                             } catch (Throwable e) {
                                 System.err.println(e.getMessage());
-                                e.printStackTrace();
                                 throw new RuntimeException("InvokeError " + e.getMessage());
                             }
                         }
                         case FunctionInstruction.Return() -> {
                             machineVisitor.visitPostInstruction(ins);
-                            return -1;
+                            return RETURN_LEVEL;
                         }
                         case FunctionInstruction.LocalGet l -> {
                             Variable var = locals[l.val()];
@@ -509,7 +498,7 @@ public class Machine {
                         case GlobalInstruction.GlobalSet g -> {
                             Variable var = globals[g.val()];
                             var.setVal(pop());
-                            System.out.println(Variable.debug(globals[g.val()]));
+                            // System.out.println(Variable.debug(globals[g.val()]));
                         }
                     }
                 }
@@ -541,7 +530,6 @@ public class Machine {
                         }
                         case ControlFlowInstruction.BranchIf b -> {
                             int cmp = popInt();
-                            System.out.println("Branch If - " + (cmp == 1));
                             if (cmp == 1) {
                                 machineVisitor.visitPostInstruction(ins);
                                 return b.label();
@@ -654,17 +642,10 @@ public class Machine {
         if (type.numParams() != expr.length) {
             throw new RuntimeException(String.format("INVOKE: Incorrect number of params passed for %s. Expected: %d Got: %d", function, type.numParams(), expr.length));
         }
-        machineVisitor.start();
-        execute(expr, null, -1);
-        var res = call(f);
-        int n = res.length;
-        if (!f.isVoidReturn()) {
-            // Push in reverse order
-            for (int i = n -1; i >= 0; i--) {
-                pushVariable(res[i]);
-            }
-        }
-        machineVisitor.end();
+        // machineVisitor.start(this);
+        execute(expr, null, FUNC_LEVEL);
+        call(f);
+        machineVisitor.end(this);
     }
 
     public boolean compareStack(ConstInstruction... expected) {
@@ -680,7 +661,7 @@ public class Machine {
                 case ConstInstruction.IntConst cc -> IntBinaryInstruction.I32_EQ;
                 case ConstInstruction.LongConst cc -> LongBinaryInstruction.I64_EQ;
             };
-            var checkFun = new Function("c"+i, FunctionType.VOID, null, Instruction.of(c, eq));
+            var checkFun = new Function("__check_"+i, FunctionType.VOID, null, Instruction.of(c, eq));
             call(checkFun);
             if (popInt() != 1) {
                 return false;
@@ -691,8 +672,7 @@ public class Machine {
 
     public static Machine createAndStart(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
         Machine m = new Machine(functions, tables, globals, pages, dataSegments, elementSegments, startIdx);
-        m.start();
-        m.machineVisitor.end();
+        m.machineVisitor.end(m);
         return m;
     }
 }

@@ -124,11 +124,6 @@ go test -v
 - Imports
 - Run on simple wasm files
 
-## walrus - Rust WASM interpreter
-
-### TODO 
-- Write code!
-- Use enums and pattern matching
 
 ## Tools:
 ### [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools)

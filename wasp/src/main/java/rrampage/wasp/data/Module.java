@@ -233,8 +233,6 @@ public record Module(
         processDataSegments();
         processActiveElementSegments();
         var exportMap = processExports();
-        Machine m = new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), exportMap, startIdx(), visitor);
-        m.start();
-        return m;
+        return new Machine(functions(), tables(), globals(), memories(), dataSegments(), elementSegments(), exportMap, startIdx(), visitor);
     }
 }
