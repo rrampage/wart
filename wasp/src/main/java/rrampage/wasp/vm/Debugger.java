@@ -113,8 +113,9 @@ public class Debugger {
     private void preFunction(Function f) {
         this.instructionPointers.push(0);
         this.function = f;
+        System.out.println("In function: " + f.name());
         System.out.println(this.callStack);
-        this.callStack.add(f.name());
+        this.callStack.push(f.name());
     }
 
     private void postFunction(Function f) {
