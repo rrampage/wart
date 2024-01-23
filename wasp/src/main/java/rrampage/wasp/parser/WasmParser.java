@@ -364,8 +364,8 @@ public class WasmParser implements Parser {
         int i = 0;
         for (ImportMetadata im : imports) {
             if (im.importDescriptor() instanceof ImportDescriptor.FunctionDescriptor ifun) {
-                i++;
                 allFuncs[i] = Function.createStubFunction(im.module() + "__" + im.name(), types[ifun.idx()]);
+                i++;
             }
         }
         return allFuncs;

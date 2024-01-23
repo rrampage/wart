@@ -433,7 +433,7 @@ public class Machine {
                                         case Variable.I64Variable x -> x.getVal();
                                         case Variable.FuncrefVariable x -> x.getVal();
                                     };
-                                    System.out.println("Class for " + i + " is " + args[i].getClass());
+                                    // System.out.println("Class for " + i + " is " + args[i].getClass());
                                 }
                                 Object ret = function.invokeWithArguments(args);
                                 if (type.isVoidReturn()) {

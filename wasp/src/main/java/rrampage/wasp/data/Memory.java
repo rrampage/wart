@@ -2,6 +2,8 @@ package rrampage.wasp.data;
 
 import rrampage.wasp.parser.types.ImportDescriptor;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
@@ -14,10 +16,10 @@ public class Memory {
     private byte[] memory;
     private final int maxPages;
     private final boolean isShared; // For later work on WASM threads and atomics
+    private ByteBuffer buffer;
     public Memory(int pages) {
         this(pages, MAX_PAGES);
     }
-
     public Memory(int pages, int maxPages) {
         this(pages, maxPages, false);
     }
@@ -29,6 +31,7 @@ public class Memory {
         this.maxPages = maxPages;
         this.memory = new byte[pages * MEM_PAGE_SIZE];
         this.isShared = isShared;
+        this.buffer = ByteBuffer.wrap(memory).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public int getMemorySize() {
@@ -46,7 +49,8 @@ public class Memory {
         byte[] newMemory = new byte[(currPages+numPages)*MEM_PAGE_SIZE];
         System.arraycopy(memory, 0, newMemory, 0, memory.length);
         memory = newMemory;
-        return -1;
+        buffer = ByteBuffer.wrap(memory).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+        return numPages;
     }
 
     public byte[] load(int addr, int offset) {
@@ -76,6 +80,11 @@ public class Memory {
 
     public String toString() {
         return String.format("Memory: size %d pages, max size: %d pages, shared: %b", getMemorySize(), maxPages, isShared);
+    }
+
+    public ByteBuffer buffer() {
+        // TODO: Can we make this work even if memory is resized?
+        return buffer;
     }
 
     public boolean matchesDescriptor(ImportDescriptor.MemoryDescriptor m) {
