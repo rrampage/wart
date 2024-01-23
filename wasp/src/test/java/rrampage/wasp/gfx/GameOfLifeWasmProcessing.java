@@ -1,27 +1,25 @@
 package rrampage.wasp.gfx;
 
-import processing.core.PApplet;
-import rrampage.wasp.data.Module;
-import rrampage.wasp.vm.Machine;
+import rrampage.wasp.programs.GameOfLifeUtils;
 import rrampage.wasp.vm.MachineVisitor;
 import rrampage.wasp.vm.MachineVisitors;
 
-import static rrampage.wasp.TestUtils.parseModule;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
-public class GameOfLifeWasmProcessing extends PApplet {
-    final Module module;
-    final Machine machine;
-    int width = 800;
-    int height = 600;
-    int pixelSize = 2;
+public class GameOfLifeWasmProcessing extends ProcessingMachine {
+    int width = 17;
+    int height = 17;
+    int pixelSize = 17;
+    int interval = 100;
+    int lastRecordedTime = 0;
     int aliveColor = color(0, 200, 0);
     int deadColor = color(0);
     int iter = 0;
+    // Pause
+    boolean pause = false;
 
     GameOfLifeWasmProcessing(MachineVisitor visitor) {
-        module = parseModule("../wart/examples/game_of_life_unopt.wasm");
-        machine = module.instantiate(null, visitor);
+        super("../wart/examples/game_of_life_unopt.wasm", null, visitor);
     }
 
     public void settings() {
@@ -42,24 +40,27 @@ public class GameOfLifeWasmProcessing extends PApplet {
     public void draw() {
         long timeStart = System.nanoTime();
         iter++;
-        machine.invoke("tick");
-        var timeTakenMs = (System.nanoTime() - timeStart)/1_000_000;
-        System.out.printf("TICK_END iteration: %d timeTaken: %d\n", iter, timeTakenMs);
+        if (millis() - lastRecordedTime > interval) {
+            if (!pause) {
+                machine.invoke("tick");
+                var timeTakenMs = (System.nanoTime() - timeStart)/1_000_000;
+                System.out.printf("TICK_END iteration: %d timeTaken: %d\n", iter, timeTakenMs);
+                lastRecordedTime = millis();
+            }
+        }
         drawBoard();
-        timeTakenMs = (System.nanoTime() - timeStart)/1_000_000;
-        System.out.printf("DRAW_END iteration: %d timeTaken: %d\n", iter, timeTakenMs);
-    }
-
-    public void run() {
-        PApplet.runSketch(new String[]{this.getClass().getName()}, this);
     }
 
     void initialize(int width, int height) {
         machine.invoke("initializeBoard", constOf(width), constOf(height));
         System.out.println("Board INIT");
+        var pulsar = GameOfLifeUtils.pulsar();
+        height = pulsar.length;
+        width = pulsar[0].length;
         for (int row = 0; row < height; row++) {
             for (int column = 0; column < width; column++) {
-                var filled = Math.random() > .5 ? 1 : 0;
+                // var filled = Math.random() > .5 ? 1 : 0;
+                var filled = pulsar[row][column];
                 // System.out.printf("setValueAtPosition(%d, %d, %d)\n", row, column, filled);
                 machine.invoke("setValueAtPosition", constOf(row), constOf(column), constOf(filled));
             }
@@ -82,11 +83,9 @@ public class GameOfLifeWasmProcessing extends PApplet {
                 square(x, y, pixelSize);
             }
         }
-        // TODO : Debug no color
     }
 
     public static void main(String[] args) {
-        GameOfLifeWasmProcessing g = new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR);
-        g.run();
+        new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR).run();
     }
 }
