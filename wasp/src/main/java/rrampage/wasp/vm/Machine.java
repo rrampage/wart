@@ -513,7 +513,7 @@ public class Machine {
                     long t2 = pop();
                     long t1 = pop();
                     long val = (cmp == 0) ? t2 : t1;
-                    System.out.printf("T1 %d T2: %d cmp: %d val: %d\n", t1, t2, cmp, val);
+                    // System.out.printf("T1 %d T2: %d cmp: %d val: %d\n", t1, t2, cmp, val);
                     push(val);
                 }
                 case ControlFlowInstruction i -> {
