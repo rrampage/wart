@@ -1,29 +1,20 @@
 package rrampage.wasp.gfx;
 
-import processing.core.PApplet;
 import processing.event.KeyEvent;
-import rrampage.wasp.data.Function;
-import rrampage.wasp.data.FunctionType;
-import rrampage.wasp.data.Module;
-import rrampage.wasp.data.ValueType;
-import rrampage.wasp.vm.Machine;
-import rrampage.wasp.vm.MachineVisitor;
-import rrampage.wasp.vm.MachineVisitors;
+import rrampage.wasp.data.*;
+import rrampage.wasp.vm.*;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Map;
 
-import static rrampage.wasp.TestUtils.parseModule;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
-public class RocketWasmProcessing extends PApplet {
-    final Module module;
-    Machine machine;
+public class RocketWasmProcessing extends ProcessingMachine {
     long last;
     MachineVisitor visitor;
     RocketWasmProcessing(MachineVisitor visitor) {
-        module = parseModule("../wart/examples/rocket.wasm");
+        super("../wart/examples/rocket.wasm");
         this.visitor = visitor;
     }
 
@@ -66,18 +57,6 @@ public class RocketWasmProcessing extends PApplet {
     }
 
     private Map<String, Map<String,Object>> createImportMap() throws RuntimeException {
-        // TODO: Add non static methods
-        /*
-    (import "env" "Math_atan" (func (;0;) (type 5))) -> DONE
-   (import "env" "clear_screen" (func (;1;) (type 6))) -> void(void)
-  (import "env" "cos" (func (;2;) (type 5))) -> DONE
-  (import "env" "draw_bullet" (func (;3;) (type 7))) -> void(double, double) -> WIP
-  (import "env" "draw_enemy" (func (;4;) (type 7))) -> WIP
-  (import "env" "draw_particle" (func (;5;) (type 8))) -> void (double, double, double)
-  (import "env" "draw_player" (func (;6;) (type 8)))
-  (import "env" "draw_score" (func (;7;) (type 9))) -> void(double)
-  (import "env" "sin" (func (;8;) (type 5))) -> DONE
-         */
         try {
 
             FunctionType f64Unary = FunctionType.F64_UNARY;
@@ -112,10 +91,6 @@ public class RocketWasmProcessing extends PApplet {
             e.printStackTrace();
             throw new RuntimeException("OLIVE_INIT Method Handle lookup failed");
         }
-    }
-
-    public void run() {
-        PApplet.runSketch(new String[]{this.getClass().getName()}, this);
     }
 
     @Override

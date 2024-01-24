@@ -6,7 +6,7 @@ import rrampage.wasp.vm.MachineVisitors;
 
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
-public class GameOfLifeWasmProcessing extends ProcessingMachine {
+public class GameOfLifeWasmUnOptProcessing extends ProcessingMachine {
     int width = 17;
     int height = 17;
     int pixelSize = 17;
@@ -18,7 +18,7 @@ public class GameOfLifeWasmProcessing extends ProcessingMachine {
     // Pause
     boolean pause = false;
 
-    GameOfLifeWasmProcessing(MachineVisitor visitor) {
+    GameOfLifeWasmUnOptProcessing(MachineVisitor visitor) {
         super("../wart/examples/gol/game_of_life_unopt.wasm", null, visitor);
     }
 
@@ -86,6 +86,6 @@ public class GameOfLifeWasmProcessing extends ProcessingMachine {
     }
 
     public static void main(String[] args) {
-        new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR).run();
+        new GameOfLifeWasmUnOptProcessing(MachineVisitors.NULL_VISITOR).run();
     }
 }
