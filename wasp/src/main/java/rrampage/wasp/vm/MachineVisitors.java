@@ -2,6 +2,7 @@ package rrampage.wasp.vm;
 
 import rrampage.wasp.data.Function;
 import rrampage.wasp.instructions.Instruction;
+import rrampage.wasp.instructions.NullaryInstruction;
 
 import java.util.HashMap;
 import java.util.function.Consumer;
@@ -11,14 +12,28 @@ public class MachineVisitors {
 
     public static final class InstructionCounter {
         private final HashMap<String, Integer> instructionCounter = new HashMap<>();
-        public final Consumer<Instruction> preInstructionConsumer = (ins) -> instructionCounter.put(ins.opCode(), instructionCounter.getOrDefault(ins.opCode(), 0)+1);
-        public final Consumer<Machine> end = (m) -> System.out.println(instructionCounter);
+        private Instruction currentInstruction = NullaryInstruction.NOP;
+        private Instruction lastSuccessfulInstruction = NullaryInstruction.NOP;
+        public final Consumer<Instruction> preInstructionConsumer = (ins) -> {
+            currentInstruction = ins;
+            instructionCounter.merge(ins.opCode(), 1, (v1, _v2) -> v1+1);
+            // instructionCounter.put(ins.opCode(), instructionCounter.getOrDefault(ins.opCode(), 0)+1);
+        };
+        public final Consumer<Instruction> postInstructionConsumer = (ins) -> {
+            lastSuccessfulInstruction = ins;
+        };
+        public final Consumer<Machine> end = (m) -> {
+            System.out.println("Last successful instruction: " + lastSuccessfulInstruction.opCode());
+            System.out.println("Last executed instruction: " + currentInstruction.opCode());
+            System.out.println("Stack: " + m.stackView());
+            System.out.println(instructionCounter);
+        };
     }
 
     public static MachineVisitor instructionCountVisitor() {
         var ic = new InstructionCounter();
         return MachineVisitor.VisitorBuilder.of()
-                .preInstruction(ic.preInstructionConsumer).end(ic.end).build();
+                .preInstruction(ic.preInstructionConsumer).postInstruction(ic.postInstructionConsumer).end(ic.end).build();
     }
 
     public static MachineVisitor logVisitor() {
