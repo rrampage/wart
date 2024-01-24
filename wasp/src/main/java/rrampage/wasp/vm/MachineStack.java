@@ -22,5 +22,13 @@ public class MachineStack {
     }
 
     public boolean isEmpty() { return stackPointer == 0;}
-    public String inspect() { return Arrays.toString(array);}
+    public String inspect() {
+        if (stackPointer <= 0) { return "";}
+        StringBuilder sb = new StringBuilder(stackPointer*10);
+        for (int i = stackPointer-1; i > 0; i++) {
+            sb.append(array[i]).append(",");
+        }
+        sb.append(array[0]);
+        return sb.toString();
+    }
 }

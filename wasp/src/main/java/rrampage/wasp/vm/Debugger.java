@@ -107,7 +107,7 @@ public class Debugger {
     }
 
     private void end(Machine machine) {
-        System.out.println(machine.inspectStack());
+        System.out.println(machine.stackView());
     }
 
     private void preFunction(Function f) {
@@ -158,7 +158,7 @@ public class Debugger {
                     return;
                 }
                 case "pc" -> System.out.println("Call Stack: " + this.callStack);
-                case "ps" -> System.out.println("Machine Stack: " + this.machine.inspectStack());
+                case "ps" -> System.out.println("Machine Stack: " + this.machine.stackView());
                 case "pf" -> {
                     if (this.function == null) {
                         System.out.println("Not in a function....");

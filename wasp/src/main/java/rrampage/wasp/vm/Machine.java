@@ -101,7 +101,7 @@ public class Machine {
         return stack.isEmpty();
     }
 
-    public String inspectStack() {
+    public String stackView() {
         return stack.inspect();
     }
 
@@ -652,8 +652,11 @@ public class Machine {
         }
         // machineVisitor.start(this);
         execute(expr, null, FUNC_LEVEL);
-        call(f);
-        machineVisitor.end(this);
+        try {
+            call(f);
+        } finally {
+            machineVisitor.end(this);
+        }
     }
 
     public boolean compareStack(ConstInstruction... expected) {
