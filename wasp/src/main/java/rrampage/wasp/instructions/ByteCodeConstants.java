@@ -5,7 +5,7 @@ public class ByteCodeConstants {
     CF_BLOCK = 0x2, CF_LOOP = 0x3, CF_IF = 0x4, CF_ELSE = 0x5, CF_END = 0xb,
             CF_BR = 0xc, CF_BR_IF = 0xd, CF_BR_TABLE = 0xe, // Control flow
     FUNC_RETURN = 0xf, FUNC_CALL = 0x10, FUNC_CALL_INDIRECT = 0x11, // Call, call_indirect and return
-    UN_DROP = 0x1a, SELECT = 0x1b, // drop and select
+    UN_DROP = 0x1a, SELECT = 0x1b, SELECT_TYPED = 0x1c, // drop and select
     LOCAL_GET = 0x20, LOCAL_SET = 0x21, LOCAL_TEE = 0x22, GLOBAL_GET = 0x23, GLOBAL_SET = 0x24,
     TABLE_GET = 0x25, TABLE_SET = 0x26,
     LOAD_I32 = 0x28, LOAD_I64 = 0x29, LOAD_F32 = 0x2a, LOAD_F64 = 0x2b,

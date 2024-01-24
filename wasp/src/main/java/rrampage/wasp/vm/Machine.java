@@ -383,6 +383,10 @@ public class Machine {
                         // System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(addr, data);
                     }
+                    /*byte[] loadedData = getMainMemory().load(effectiveAddr, data.length);
+                    if (!Arrays.equals(data, loadedData)) {
+                        System.out.printf("Store: op %s data %s load %s\n", s.opCode(), Arrays.toString(data), Arrays.toString(loadedData));
+                    }*/
                 }
                 case LoadInstruction l -> {
                     int addr = popInt();
@@ -485,7 +489,8 @@ public class Machine {
                             long val = pop();
                             Variable var = locals[l.val()];
                             var.setVal(val);
-                            pushVariable(var);
+                            push(val);
+                            // pushVariable(var);
                         }
                     }
                 }
@@ -502,11 +507,14 @@ public class Machine {
                         }
                     }
                 }
-                case Select() -> {
+                case Select s -> {
+                    // TODO: Type check for typed select by using vector of value types
                     int cmp = popInt();
-                    long t1 = pop();
                     long t2 = pop();
-                    push((cmp == 0) ? t1 : t2);
+                    long t1 = pop();
+                    long val = (cmp == 0) ? t2 : t1;
+                    // System.out.printf("T1 %d T2: %d cmp: %d val: %d\n", t1, t2, cmp, val);
+                    push(val);
                 }
                 case ControlFlowInstruction i -> {
                     var currLevel = level;

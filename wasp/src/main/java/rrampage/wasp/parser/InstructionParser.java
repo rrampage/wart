@@ -47,7 +47,8 @@ public class InstructionParser {
                     LOAD16_I64_U, LOAD32_I64_S, LOAD32_I64_U -> parseLoadInstruction(b, in);
             case STORE_I32, STORE_I64, STORE_F32, STORE_F64, STORE8_I32, STORE16_I32,
                     STORE8_I64, STORE16_I64, STORE32_I64 -> parseStoreInstruction(b, in);
-            case SELECT -> new Select();
+            case SELECT -> new Select.SelectUntyped();
+            case SELECT_TYPED -> parseTypedSelect(in);
             case UN_DROP, UN_I32_EQZ, UN_I64_EQZ, UN_I32_CLZ, UN_I64_CLZ,
                     UN_I32_CTZ, UN_I64_CTZ, UN_I32_POPCNT, UN_I64_POPCNT,
                     UN_F32_ABS, UN_F32_NEG, UN_F32_CEIL, UN_F32_FLOOR, UN_F32_TRUNC, UN_F32_NEAREST, UN_F32_SQRT,
@@ -439,5 +440,14 @@ public class InstructionParser {
             case FC_ELEM_DROP -> new RefTypeInstruction.ElemDrop((int) Leb128.readUnsigned(in));
             default -> throw new RuntimeException("Unexpected bytecode for FC Prefix instruction: " + byteCode);
         };
+    }
+
+    private static Select.SelectTyped parseTypedSelect(ByteBuffer in) {
+        int n = (int) Leb128.readUnsigned(in);
+        ValueType[] types = new ValueType[n];
+        for (int i = 0; i < n; i++) {
+            types[i] = ValueType.from(in.get());
+        }
+        return new Select.SelectTyped(types);
     }
 }
