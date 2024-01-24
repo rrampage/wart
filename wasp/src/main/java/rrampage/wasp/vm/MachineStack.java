@@ -25,7 +25,7 @@ public class MachineStack {
     public String inspect() {
         if (stackPointer <= 0) { return "";}
         StringBuilder sb = new StringBuilder(stackPointer*10);
-        for (int i = stackPointer-1; i > 0; i++) {
+        for (int i = stackPointer-1; i > 0; i--) {
             sb.append(array[i]).append(",");
         }
         sb.append(array[0]);
