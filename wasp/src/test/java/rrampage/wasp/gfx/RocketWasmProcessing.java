@@ -124,6 +124,6 @@ public class RocketWasmProcessing extends ProcessingMachine {
     }
 
     public static void main(String[] args) {
-        new RocketWasmProcessing(MachineVisitors.debugVisitor()).run();
+        new RocketWasmProcessing(MachineVisitors.logVisitor()).run();
     }
 }

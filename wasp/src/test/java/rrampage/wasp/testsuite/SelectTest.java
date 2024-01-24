@@ -38,7 +38,7 @@ public class SelectTest {
     };
 
     Module module = parseModule("./testsuite/select.0.wasm");
-    Machine machine = module.instantiate(null, MachineVisitors.instructionCountVisitor());
+    Machine machine = module.instantiate(null, MachineVisitors.logVisitor());
 
     public void check(AssertReturn test) {
         assertTrue(invokeAndCheckStack(machine, test.function(), test.args(), test.expected()));

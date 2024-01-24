@@ -10,7 +10,7 @@ public class FunctionBoxProcessing extends ProcessingMachine {
     ArrayList<FunctionBox> functionBoxes = new ArrayList<>();
 
     public FunctionBoxProcessing() {
-        super("../wart/examples/testsuite/fac.0.wasm", null, MachineVisitors.instructionCountVisitor());
+        super("../wart/examples/testsuite/fac.0.wasm", null, MachineVisitors.logVisitor());
     }
 
     public void settings() {

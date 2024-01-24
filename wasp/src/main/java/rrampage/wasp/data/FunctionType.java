@@ -14,9 +14,9 @@ public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
         return paramTypes == null ? 0 : paramTypes.length;
     }
     public String toString() {
-        return String.format("Function type signature: params: %s, return: %s",
-                (numParams() == 0) ? 0 : Arrays.toString(paramTypes),
-                (isVoidReturn()) ? "void" : Arrays.toString(returnTypes)
+        return String.format("%s -> %s",
+                (numParams() == 0) ? "[]" : Arrays.toString(paramTypes),
+                (isVoidReturn()) ? "[]" : Arrays.toString(returnTypes)
         );
     }
 

@@ -23,7 +23,7 @@ public class FactorialTest {
             new AssertReturn("fac-ssa", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
     };
     Module module = parseModule("./testsuite/fac.0.wasm");
-    Machine machine = module.instantiate(null, MachineVisitors.instructionCountVisitor());
+    Machine machine = module.instantiate(null, MachineVisitors.logVisitor());
 
     public void check(AssertReturn test) {
         assertTrue(invokeAndCheckStack(machine, test.function(), test.args(), test.expected()));
