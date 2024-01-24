@@ -12,7 +12,7 @@ import static rrampage.wasp.TestUtils.*;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
 public class GameOfLifeUnOptTest {
-    Module module = parseModule("./game_of_life_unopt.wasm");
+    Module module = parseModule("./gol/game_of_life_unopt.wasm");
     Machine machine;
     byte[][] referenceArray;
     byte[][] machineArray;

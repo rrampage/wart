@@ -23,7 +23,7 @@ public class GameOfLifeUnoptStressTest {
     record GolTestCase(int width, int height, float prob, int iterations){
         public void check() {
             byte[][] board = new byte[height][width];
-            Module module = parseModule("./game_of_life_unopt.wasm");
+            Module module = parseModule("./gol/game_of_life_unopt.wasm");
             Machine machine = module.instantiate(null, MachineVisitors.NULL_VISITOR);
             machine.invoke("initializeBoard", constOf(width), constOf(height));
             for (int row = 0; row < height; row++) {

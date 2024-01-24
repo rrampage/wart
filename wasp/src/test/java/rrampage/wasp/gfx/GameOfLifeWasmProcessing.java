@@ -19,7 +19,7 @@ public class GameOfLifeWasmProcessing extends ProcessingMachine {
     boolean pause = false;
 
     GameOfLifeWasmProcessing(MachineVisitor visitor) {
-        super("../wart/examples/game_of_life_unopt.wasm", null, visitor);
+        super("../wart/examples/gol/game_of_life_unopt.wasm", null, visitor);
     }
 
     public void settings() {
