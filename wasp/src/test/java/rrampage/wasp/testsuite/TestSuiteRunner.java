@@ -3,9 +3,7 @@ package rrampage.wasp.testsuite;
 import org.junit.jupiter.api.DynamicTest;
 import rrampage.wasp.data.AssertReturn;
 import rrampage.wasp.data.Module;
-import rrampage.wasp.vm.Machine;
-import rrampage.wasp.vm.MachineVisitor;
-import rrampage.wasp.vm.MachineVisitors;
+import rrampage.wasp.vm.*;
 
 import java.util.Map;
 import java.util.stream.Stream;
