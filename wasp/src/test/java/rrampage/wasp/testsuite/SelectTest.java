@@ -3,16 +3,10 @@ package rrampage.wasp.testsuite;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import rrampage.wasp.data.AssertReturn;
-import rrampage.wasp.data.Module;
 import rrampage.wasp.instructions.ConstInstruction;
-import rrampage.wasp.vm.Machine;
-import rrampage.wasp.vm.MachineVisitors;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static rrampage.wasp.TestUtils.invokeAndCheckStack;
-import static rrampage.wasp.TestUtils.parseModule;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
 public class SelectTest {
@@ -37,15 +31,10 @@ public class SelectTest {
             new AssertReturn("select-i64-t", ConstInstruction.of(constOf(2L), constOf(1L), constOf(1)), ConstInstruction.of(constOf(2L))),
     };
 
-    Module module = parseModule("./testsuite/select.0.wasm");
-    Machine machine = module.instantiate(null, MachineVisitors.logVisitor());
-
-    public void check(AssertReturn test) {
-        assertTrue(invokeAndCheckStack(machine, test.function(), test.args(), test.expected()));
-    }
+    TestSuiteRunner runner = new TestSuiteRunner("./testsuite/select.0.wasm");
 
     @TestFactory
     public Stream<DynamicTest> test() {
-        return DynamicTest.stream(Stream.of(assertReturnTestCases), AssertReturn::toString, this::check);
+        return runner.test(assertReturnTestCases);
     }
 }
