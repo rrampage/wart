@@ -1,6 +1,10 @@
 package rrampage.wasp.instructions;
 
 public sealed interface ConstInstruction extends Instruction {
+    public static FloatConst NAN_ARITHMETIC_FLOAT = new FloatConst(Float.NaN);
+    public static FloatConst NAN_CANONICAL_FLOAT = new FloatConst(Float.intBitsToFloat(0x10000000));
+    public static DoubleConst NAN_ARITHMETIC_DOUBLE = new DoubleConst(Double.NaN);
+    public static DoubleConst NAN_CANONICAL_DOUBLE = new DoubleConst(Double.longBitsToDouble(0x1000000000000000L));
     record IntConst(int val) implements ConstInstruction, ConstExpression {
         public String opCode() {return "i32.const";}
         public String toString() {return view();}

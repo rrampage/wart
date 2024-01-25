@@ -38,6 +38,16 @@ public class TestSuiteRunner {
     }
 
     public Stream<DynamicTest> test(AssertReturn[] testCases) {
-        return DynamicTest.stream(Stream.of(testCases), AssertReturn::toString, this::check);
+        return test(Stream.of(testCases));
+    }
+
+    public Stream<DynamicTest> test(Stream<AssertReturn> testCaseStream) {
+        return DynamicTest.stream(testCaseStream, AssertReturn::toString, this::check);
+    }
+
+    public static Stream<DynamicTest> wastTest(String moduleName, String wastJsonFile) {
+        String testSuitePath = "./testsuite/";
+        TestSuiteRunner runner = new TestSuiteRunner(testSuitePath + moduleName);
+        return DynamicTest.stream(TestSuiteParser.parseTestCases(wastJsonFile), AssertReturn::toString, runner::check);
     }
 }
