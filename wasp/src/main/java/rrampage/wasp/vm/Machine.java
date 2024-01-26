@@ -542,10 +542,8 @@ public class Machine {
                             if (level == BLOCK_LEVEL) {
                                 continue;
                             }
-                            if (level != currLevel) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level;
-                            }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.Branch b -> {
                             // it has to jump to level pointed by the label
