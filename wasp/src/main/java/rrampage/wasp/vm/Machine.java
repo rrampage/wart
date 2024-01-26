@@ -2,6 +2,7 @@ package rrampage.wasp.vm;
 
 import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;
+import rrampage.wasp.utils.MathUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Array;
@@ -166,12 +167,12 @@ public class Machine {
                         case F64_MAX -> pushDouble(Double.max(l,r));
                         case F64_MIN -> pushDouble(Double.min(l,r));
                         case F64_COPY_SIGN -> pushDouble((l*r >= 0.0) ? l : -l);
-                        case F64_EQ -> pushInt(wrapBoolean(l == r));
-                        case F64_NE -> pushInt(wrapBoolean(l != r));
-                        case F64_GE -> pushInt(wrapBoolean(l >= r));
-                        case F64_GT -> pushInt(wrapBoolean(l > r));
-                        case F64_LE -> pushInt(wrapBoolean(l <= r));
-                        case F64_LT -> pushInt(wrapBoolean(l < r));
+                        case F64_EQ -> pushInt(wrapBoolean(Double.compare(l, r) == 0));
+                        case F64_NE -> pushInt(wrapBoolean(Double.compare(l, r) != 0));
+                        case F64_GE -> pushInt(wrapBoolean(Double.compare(l, r) >= 0));
+                        case F64_GT -> pushInt(wrapBoolean(Double.compare(l, r) > 0));
+                        case F64_LE -> pushInt(wrapBoolean(Double.compare(l, r) <= 0));
+                        case F64_LT -> pushInt(wrapBoolean(Double.compare(l, r) < 0));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -186,12 +187,12 @@ public class Machine {
                         case F32_MAX -> pushFloat(Float.max(l,r));
                         case F32_MIN -> pushFloat(Float.min(l,r));
                         case F32_COPY_SIGN -> pushFloat((l*r >= 0.0f) ? l : -l);
-                        case F32_EQ -> pushInt(wrapBoolean(l == r));
-                        case F32_NE -> pushInt(wrapBoolean(l != r));
-                        case F32_GE -> pushInt(wrapBoolean(l >= r));
-                        case F32_GT -> pushInt(wrapBoolean(l > r));
-                        case F32_LE -> pushInt(wrapBoolean(l <= r));
-                        case F32_LT -> pushInt(wrapBoolean(l < r));
+                        case F32_EQ -> pushInt(wrapBoolean(Float.compare(l, r) == 0));
+                        case F32_NE -> pushInt(wrapBoolean(Float.compare(l, r) != 0));
+                        case F32_GE -> pushInt(wrapBoolean(Float.compare(l, r) >= 0));
+                        case F32_GT -> pushInt(wrapBoolean(Float.compare(l, r) > 0));
+                        case F32_LE -> pushInt(wrapBoolean(Float.compare(l, r) <= 0));
+                        case F32_LT -> pushInt(wrapBoolean(Float.compare(l, r) < 0));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -290,8 +291,8 @@ public class Machine {
                         }
                         case F32_DEMOTE_F64 -> pushFloat((float) popDouble());
                         case F64_PROMOTE_F32 -> pushDouble(popFloat());
-                        case F32_NEAREST -> pushFloat(Math.round(popFloat()));
-                        case F64_NEAREST -> pushDouble(Math.round(popDouble()));
+                        case F32_NEAREST -> pushFloat(MathUtils.nearest(popFloat()));
+                        case F64_NEAREST -> pushDouble(MathUtils.nearest(popDouble()));
                         case F32_SQRT -> pushFloat((float) Math.sqrt(popFloat()));
                         case F64_SQRT -> pushDouble(Math.sqrt(popDouble()));
                         // wrap and extend ops
