@@ -228,11 +228,11 @@ public class MachineTest {
                 new FunctionInstruction.LocalGet(0),
                 new ConstInstruction.IntConst(1),
                 IntBinaryInstruction.I32_ADD,
-                new FunctionInstruction.LocalSet(0),
-                new FunctionInstruction.LocalGet(0),
+                new FunctionInstruction.LocalTee(0),
                 new ConstInstruction.IntConst(10),
                 IntBinaryInstruction.I32_LT_S,
                 new ControlFlowInstruction.BranchIf(1),
+                new FunctionInstruction.LocalGet(0),
         };
         Instruction[] funIns = new Instruction[] {
                 new ControlFlowInstruction.Loop(1, null, loopIns),
@@ -245,6 +245,7 @@ public class MachineTest {
                 new FunctionInstruction.Call(0),
         };
         Machine m = Machine.createAndStart(new Function[]{f, Function.createStartFunction("shouldLoop", ins)}, null, null, MEM_PAGES, null, null, 1);
+        System.out.println(m.stackView());
         assertEquals(10, m.popInt());
     }
 

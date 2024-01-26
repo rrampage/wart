@@ -23,7 +23,7 @@ public sealed interface ValueType {
         private final byte val;
         NumType(byte val) {this.val = val;}
         public byte byteCode() {return val;}
-        public String toString() {return String.format("ValueType: %s Bytecode: 0x%x", this.name(), this.byteCode());}
+        public String toString() {return String.format("%s", this.name().toLowerCase());}
         private static final Map<Byte, NumType> numTypeMap = ConversionUtils.convertArrayToImmutableMap(NumType.values(), NumType::byteCode);
     }
 

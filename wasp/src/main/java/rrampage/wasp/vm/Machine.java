@@ -2,6 +2,7 @@ package rrampage.wasp.vm;
 
 import rrampage.wasp.data.*;
 import rrampage.wasp.instructions.*;
+import rrampage.wasp.utils.MathUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Array;
@@ -14,6 +15,7 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 public class Machine {
     private static final int FUNC_LEVEL = -1;
     private static final int RETURN_LEVEL = -2;
+    private static final int BLOCK_LEVEL = -3; // Signifies normal consumption of all instructions in code array
     private final MachineStack stack; // Store everything as long. Convert to type as per instruction
 
     // TODO : Keep in mind proposal for multiple memories:
@@ -29,7 +31,7 @@ public class Machine {
     private final MachineVisitor machineVisitor;
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
-       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx, MachineVisitors.instructionCountVisitor());
+       this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx, MachineVisitors.logVisitor());
     }
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, Memory[] memories, DataSegment[] dataSegments, ElementSegment[] elementSegments,
@@ -101,7 +103,7 @@ public class Machine {
         return stack.isEmpty();
     }
 
-    public String inspectStack() {
+    public String stackView() {
         return stack.inspect();
     }
 
@@ -166,12 +168,12 @@ public class Machine {
                         case F64_MAX -> pushDouble(Double.max(l,r));
                         case F64_MIN -> pushDouble(Double.min(l,r));
                         case F64_COPY_SIGN -> pushDouble((l*r >= 0.0) ? l : -l);
-                        case F64_EQ -> pushInt(wrapBoolean(l == r));
-                        case F64_NE -> pushInt(wrapBoolean(l != r));
-                        case F64_GE -> pushInt(wrapBoolean(l >= r));
-                        case F64_GT -> pushInt(wrapBoolean(l > r));
-                        case F64_LE -> pushInt(wrapBoolean(l <= r));
-                        case F64_LT -> pushInt(wrapBoolean(l < r));
+                        case F64_EQ -> pushInt(wrapBoolean(Double.compare(l, r) == 0));
+                        case F64_NE -> pushInt(wrapBoolean(Double.compare(l, r) != 0));
+                        case F64_GE -> pushInt(wrapBoolean(Double.compare(l, r) >= 0));
+                        case F64_GT -> pushInt(wrapBoolean(Double.compare(l, r) > 0));
+                        case F64_LE -> pushInt(wrapBoolean(Double.compare(l, r) <= 0));
+                        case F64_LT -> pushInt(wrapBoolean(Double.compare(l, r) < 0));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -186,12 +188,12 @@ public class Machine {
                         case F32_MAX -> pushFloat(Float.max(l,r));
                         case F32_MIN -> pushFloat(Float.min(l,r));
                         case F32_COPY_SIGN -> pushFloat((l*r >= 0.0f) ? l : -l);
-                        case F32_EQ -> pushInt(wrapBoolean(l == r));
-                        case F32_NE -> pushInt(wrapBoolean(l != r));
-                        case F32_GE -> pushInt(wrapBoolean(l >= r));
-                        case F32_GT -> pushInt(wrapBoolean(l > r));
-                        case F32_LE -> pushInt(wrapBoolean(l <= r));
-                        case F32_LT -> pushInt(wrapBoolean(l < r));
+                        case F32_EQ -> pushInt(wrapBoolean(Float.compare(l, r) == 0));
+                        case F32_NE -> pushInt(wrapBoolean(Float.compare(l, r) != 0));
+                        case F32_GE -> pushInt(wrapBoolean(Float.compare(l, r) >= 0));
+                        case F32_GT -> pushInt(wrapBoolean(Float.compare(l, r) > 0));
+                        case F32_LE -> pushInt(wrapBoolean(Float.compare(l, r) <= 0));
+                        case F32_LT -> pushInt(wrapBoolean(Float.compare(l, r) < 0));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -290,8 +292,8 @@ public class Machine {
                         }
                         case F32_DEMOTE_F64 -> pushFloat((float) popDouble());
                         case F64_PROMOTE_F32 -> pushDouble(popFloat());
-                        case F32_NEAREST -> pushFloat(Math.round(popFloat()));
-                        case F64_NEAREST -> pushDouble(Math.round(popDouble()));
+                        case F32_NEAREST -> pushFloat(MathUtils.nearest(popFloat()));
+                        case F64_NEAREST -> pushDouble(MathUtils.nearest(popDouble()));
                         case F32_SQRT -> pushFloat((float) Math.sqrt(popFloat()));
                         case F64_SQRT -> pushDouble(Math.sqrt(popDouble()));
                         // wrap and extend ops
@@ -521,15 +523,26 @@ public class Machine {
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
                             level = execute(b.code(), locals, b.label());
-                            if (level == b.label()) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level-1;
+                            if (level > b.label()) {
+                                throw new RuntimeException("CONTROL_FLOW_ERROR");
                             }
+                            // If loop body ends normally or level is same as label of block
+                            if (level == BLOCK_LEVEL || level == b.label()) {
+                                continue;
+                            }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.Loop b -> {
                             do {
                                 level = execute(b.code(), locals, b.label());
                             } while (level == b.label());
+                            // If loop body ends normally
+                            if (level == BLOCK_LEVEL) {
+                                continue;
+                            }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.Branch b -> {
                             // it has to jump to level pointed by the label
@@ -550,13 +563,16 @@ public class Machine {
                         }
                         case ControlFlowInstruction.If b -> {
                             int cmp = popInt();
-                            if (cmp == 1) {
-                                level = execute(b.ifBlock(), locals, b.label());
+                            if (cmp != 1) {
+                                continue;
                             }
-                            if (currLevel != level) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level;
+                            level = execute(b.ifBlock(), locals, b.label());
+                            // If loop body ends normally
+                            if (level == BLOCK_LEVEL) {
+                                continue;
                             }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.IfElse b -> {
                             int cmp = popInt();
@@ -565,10 +581,12 @@ public class Machine {
                             } else {
                                 level = execute(b.elseBlock(), locals, b.label());
                             }
-                            if (currLevel != level) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level;
+                            // If loop body ends normally
+                            if (level == BLOCK_LEVEL) {
+                                continue;
                             }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.Else _else -> {} // Do nothing
                         case ControlFlowInstruction.End _end -> {} // Do nothing
@@ -627,7 +645,7 @@ public class Machine {
             }
             machineVisitor.visitPostInstruction(ins);
         }
-        return level-1;
+        return BLOCK_LEVEL;
     }
 
     private void pushVariable(Variable var) {
@@ -652,8 +670,11 @@ public class Machine {
         }
         // machineVisitor.start(this);
         execute(expr, null, FUNC_LEVEL);
-        call(f);
-        machineVisitor.end(this);
+        try {
+            call(f);
+        } finally {
+            machineVisitor.end(this);
+        }
     }
 
     public boolean compareStack(ConstInstruction... expected) {

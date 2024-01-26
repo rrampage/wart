@@ -1,7 +1,8 @@
 package rrampage.wasp.programs;
 
-public class GameOfLifeUtils {
+import java.util.concurrent.ThreadLocalRandom;
 
+public class GameOfLifeUtils {
     private static int safeVal(byte[][] matrix, int i, int j) {
         return ( i < 0 || i >= matrix.length || j < 0 || j >= matrix[0].length ) ? 0 : matrix[i][j]%2;
     }
@@ -42,6 +43,20 @@ public class GameOfLifeUtils {
             sb.append('\n');
         }
         System.out.println(sb);
+    }
+
+    public static byte[][] generateRandomGrid(int height, int width, double probabilityIsAlive) {
+        var rng = ThreadLocalRandom.current();
+        byte[][] board = new byte[height][width];
+        double[] rands = rng.doubles().limit((long) height *width).toArray();
+        int i = 0;
+        for (int row = 0; row < height; row++) {
+            for (int column = 0; column < width; column++) {
+                board[row][column] = (byte) (rands[i] < probabilityIsAlive ? 1 : 0);
+                i++;
+            }
+        }
+        return board;
     }
 
     public static byte[][] pulsar() {

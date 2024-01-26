@@ -2,7 +2,9 @@ package rrampage.wasp.vm;
 
 import rrampage.wasp.data.Function;
 import rrampage.wasp.instructions.Instruction;
+import rrampage.wasp.instructions.NullaryInstruction;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
@@ -11,26 +13,55 @@ public class MachineVisitors {
 
     public static final class InstructionCounter {
         private final HashMap<String, Integer> instructionCounter = new HashMap<>();
-        public final Consumer<Instruction> preInstructionConsumer = (ins) -> instructionCounter.put(ins.opCode(), instructionCounter.getOrDefault(ins.opCode(), 0)+1);
-        public final Consumer<Machine> end = (m) -> System.out.println(instructionCounter);
-    }
-
-    public static MachineVisitor instructionCountVisitor() {
-        var ic = new InstructionCounter();
-        return MachineVisitor.VisitorBuilder.of()
-                .preInstruction(ic.preInstructionConsumer).end(ic.end).build();
+        private final ArrayDeque<String> callStack = new ArrayDeque<>();
+        private Instruction currentInstruction = NullaryInstruction.NOP;
+        private Instruction lastSuccessfulInstruction = NullaryInstruction.NOP;
+        private Machine machine;
+        public void start(Machine m) {
+            this.machine = m;
+        }
+        public void preInstructionConsumer(Instruction ins) {
+            currentInstruction = ins;
+            instructionCounter.merge(ins.opCode(), 1, (v1, _v2) -> v1+1);
+            if (machine != null) {
+                System.out.println("Stack view before Instruction: " + ins + ": " + machine.stackView());
+            }
+        }
+        public void postInstructionConsumer( Instruction ins) {
+            lastSuccessfulInstruction = ins;
+            if (machine != null) {
+                System.out.println("Stack view after Instruction: " + ins + ": " + machine.stackView());
+            }
+        }
+        public void preFunction(Function fun) {
+            System.out.println("FUNCTION_START: " + fun.name() + " " + fun.type());
+            System.out.println(this.callStack);
+            this.callStack.push(fun.name());
+        }
+        public void postFunction(Function fun) {
+            System.out.println("FUNCTION_END: " + fun.name() + " " + fun.type());
+            this.callStack.pop();
+            System.out.println(this.callStack);
+        }
+        public void end(Machine m) {
+            System.out.println("Last successful instruction: " + lastSuccessfulInstruction.opCode());
+            System.out.println("Last executed instruction: " + currentInstruction.opCode());
+            System.out.println("Stack: " + m.stackView());
+            System.out.println(instructionCounter);
+        };
     }
 
     public static MachineVisitor logVisitor() {
         var ic = new InstructionCounter();
         return MachineVisitor.VisitorBuilder.of()
-                .preInstruction(ic.preInstructionConsumer, insStartLogger)
-                .preFunction(functionStartLogger).postFunction(functionEndLogger)
-                .end(ic.end).build();
+                .start(ic::start)
+                .preInstruction(ic::preInstructionConsumer, insStartLogger)
+                .postInstruction(ic::postInstructionConsumer)
+                .preFunction(ic::preFunction).postFunction(ic::postFunction)
+                .end(ic::end).build();
     }
 
     public static MachineVisitor debugVisitor() {
-        var d = new Debugger();
         return Debugger.getMachineVisitor();
     }
 
