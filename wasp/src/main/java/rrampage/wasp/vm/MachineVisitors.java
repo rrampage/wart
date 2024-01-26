@@ -16,11 +16,23 @@ public class MachineVisitors {
         private final ArrayDeque<String> callStack = new ArrayDeque<>();
         private Instruction currentInstruction = NullaryInstruction.NOP;
         private Instruction lastSuccessfulInstruction = NullaryInstruction.NOP;
-        public final Consumer<Instruction> preInstructionConsumer = (ins) -> {
+        private Machine machine;
+        public void start(Machine m) {
+            this.machine = m;
+        }
+        public void preInstructionConsumer(Instruction ins) {
             currentInstruction = ins;
             instructionCounter.merge(ins.opCode(), 1, (v1, _v2) -> v1+1);
-        };
-        public final Consumer<Instruction> postInstructionConsumer = (ins) -> lastSuccessfulInstruction = ins;
+            if (machine != null) {
+                System.out.println("Stack view before Instruction: " + ins + ": " + machine.stackView());
+            }
+        }
+        public void postInstructionConsumer( Instruction ins) {
+            lastSuccessfulInstruction = ins;
+            if (machine != null) {
+                System.out.println("Stack view after Instruction: " + ins + ": " + machine.stackView());
+            }
+        }
         public void preFunction(Function fun) {
             System.out.println("FUNCTION_START: " + fun.name() + " " + fun.type());
             System.out.println(this.callStack);
@@ -42,8 +54,9 @@ public class MachineVisitors {
     public static MachineVisitor logVisitor() {
         var ic = new InstructionCounter();
         return MachineVisitor.VisitorBuilder.of()
-                .preInstruction(ic.preInstructionConsumer, insStartLogger)
-                .postInstruction(ic.postInstructionConsumer)
+                .start(ic::start)
+                .preInstruction(ic::preInstructionConsumer, insStartLogger)
+                .postInstruction(ic::postInstructionConsumer)
                 .preFunction(ic::preFunction).postFunction(ic::postFunction)
                 .end(ic::end).build();
     }

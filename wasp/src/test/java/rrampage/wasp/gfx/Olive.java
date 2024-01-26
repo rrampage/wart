@@ -21,8 +21,8 @@ public class Olive extends ProcessingMachine {
     record Rgba(int r, int g, int b, int a){}
 
     public Olive() throws RuntimeException {
-        super("../wart/examples/olive/sim-tri.wasm", createImportMap(), MachineVisitors.logVisitor());
-        //super("../wart/examples/olive/simple.wasm", createImportMap(), MachineVisitors.instructionCountVisitor());
+        super("../wart/examples/olive/sim-tri.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
+        //super("../wart/examples/olive/simple.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
         heapBase = (Variable.I32Variable) machine.exports().get("__heap_base");
         memory = (Memory) machine.exports().get("memory");
     }
