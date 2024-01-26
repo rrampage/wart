@@ -15,6 +15,7 @@ import static rrampage.wasp.utils.ConversionUtils.*;
 public class Machine {
     private static final int FUNC_LEVEL = -1;
     private static final int RETURN_LEVEL = -2;
+    private static final int BLOCK_LEVEL = -3; // Signifies normal consumption of all instructions in code array
     private final MachineStack stack; // Store everything as long. Convert to type as per instruction
 
     // TODO : Keep in mind proposal for multiple memories:
@@ -522,15 +523,29 @@ public class Machine {
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
                             level = execute(b.code(), locals, b.label());
-                            if (level == b.label()) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level-1;
+                            if (level > b.label()) {
+                                throw new RuntimeException("CONTROL_FLOW_ERROR");
                             }
+                            // If loop body ends normally or level is same as label of block
+                            if (level == BLOCK_LEVEL || level == b.label()) {
+                                continue;
+                            }
+                            System.out.printf("LEVEL!! curr: %d exec: %d label: %d\n", currLevel, level, b.label());
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.Loop b -> {
                             do {
                                 level = execute(b.code(), locals, b.label());
                             } while (level == b.label());
+                            // If loop body ends normally
+                            if (level == BLOCK_LEVEL) {
+                                continue;
+                            }
+                            if (level != currLevel) {
+                                machineVisitor.visitPostInstruction(ins);
+                                return level;
+                            }
                         }
                         case ControlFlowInstruction.Branch b -> {
                             // it has to jump to level pointed by the label
@@ -554,7 +569,11 @@ public class Machine {
                             if (cmp == 1) {
                                 level = execute(b.ifBlock(), locals, b.label());
                             }
-                            if (currLevel != level) {
+                            // If loop body ends normally
+                            if (level == BLOCK_LEVEL) {
+                                continue;
+                            }
+                            if (currLevel != level-1) {
                                 machineVisitor.visitPostInstruction(ins);
                                 return level;
                             }
@@ -565,6 +584,10 @@ public class Machine {
                                 level = execute(b.ifBlock(), locals, b.label());
                             } else {
                                 level = execute(b.elseBlock(), locals, b.label());
+                            }
+                            // If loop body ends normally
+                            if (level == BLOCK_LEVEL) {
+                                continue;
                             }
                             if (currLevel != level) {
                                 machineVisitor.visitPostInstruction(ins);
@@ -628,7 +651,7 @@ public class Machine {
             }
             machineVisitor.visitPostInstruction(ins);
         }
-        return level-1;
+        return BLOCK_LEVEL;
     }
 
     private void pushVariable(Variable var) {
