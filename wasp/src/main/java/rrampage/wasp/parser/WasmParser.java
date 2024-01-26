@@ -294,7 +294,7 @@ public class WasmParser implements Parser {
             if (isExpression) {
                 expressionVector[i] = parseConstantExpression();
             } else {
-                funcIdxVector[i] = (int) Leb128.readSigned(bb);
+                funcIdxVector[i] = (int) Leb128.readUnsigned(bb);
             }
         }
         if (isActive) {
