@@ -86,7 +86,7 @@ public class GameOfLifeWasmProcessing extends ProcessingMachine {
     }
 
     public static void main(String[] args) {
-        // new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR, GameOfLifeUtils.pulsar(), 17, true).run();
-        new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR, GameOfLifeUtils.generateRandomGrid(600, 800, 0.4), 2, true).run();
+        new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR, GameOfLifeUtils.pulsar(), 17, true).run();
+        //new GameOfLifeWasmProcessing(MachineVisitors.NULL_VISITOR, GameOfLifeUtils.generateRandomGrid(600, 800, 0.4), 2, true).run();
     }
 }

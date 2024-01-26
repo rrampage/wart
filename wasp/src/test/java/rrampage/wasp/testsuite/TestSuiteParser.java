@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import rrampage.wasp.data.AssertReturn;
 import rrampage.wasp.data.WastCommand;
 import rrampage.wasp.data.WastJson;
-import rrampage.wasp.data.WastReturn;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +28,7 @@ public class TestSuiteParser {
     }
 
     public static Stream<AssertReturn> getTestCases(WastCommand[] commands) {
-        return Arrays.stream(commands).filter(c -> c instanceof WastReturn).map(w -> ((WastReturn) w).toAssert());
+        return Arrays.stream(commands).filter(c -> c instanceof WastCommand.WastReturn).map(w -> ((WastCommand.WastReturn) w).toAssert());
     }
 
     public static Stream<AssertReturn> parseTestCases(String filename) {

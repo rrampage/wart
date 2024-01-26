@@ -17,7 +17,7 @@ public class TestSuiteRunner {
     private final Module module;
 
     public TestSuiteRunner(String modulePath) {
-        this(modulePath, null, MachineVisitors.logVisitor());
+        this(modulePath, null, MachineVisitors.NULL_VISITOR);
     }
 
     public TestSuiteRunner(String modulePath, Map<String, Map<String, Object>> importMap, MachineVisitor visitor) {

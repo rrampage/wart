@@ -12,12 +12,12 @@ import static rrampage.wasp.utils.ConversionUtils.constOf;
 
 public class FactorialTest {
     private static final AssertReturn[] assertReturnTestCases = new AssertReturn[] {
-            new AssertReturn("fac-iter", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
-            new AssertReturn("fac-iter-named", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
-            new AssertReturn("fac-rec", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
-            new AssertReturn("fac-rec-named", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
-            new AssertReturn("fac-opt", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
-            new AssertReturn("fac-ssa", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
+            new AssertReturn("fac-iter", "1", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
+            new AssertReturn("fac-iter-named", "1", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
+            new AssertReturn("fac-rec", "1",ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
+            new AssertReturn("fac-rec-named","1", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
+            new AssertReturn("fac-opt","1", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
+            new AssertReturn("fac-ssa","1", ConstInstruction.of(constOf(25L)), ConstInstruction.of(constOf(7034535277573963776L))),
     };
 
     TestSuiteRunner runner = new TestSuiteRunner("./testsuite/fac.0.wasm");
