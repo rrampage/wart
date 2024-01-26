@@ -186,7 +186,7 @@ public record Module(
                 }
             } else {
                 for (int i = 0; i < n; i++) {
-                    t.set(offset+i, functions()[i]);
+                    t.set(offset+i, functions()[aes.functionIndexVector()[i]]);
                 }
             }
             // m.store(offset, ads.data(), 0, ads.data().length);
