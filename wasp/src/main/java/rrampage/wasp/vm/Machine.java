@@ -530,7 +530,6 @@ public class Machine {
                             if (level == BLOCK_LEVEL || level == b.label()) {
                                 continue;
                             }
-                            System.out.printf("LEVEL!! curr: %d exec: %d label: %d\n", currLevel, level, b.label());
                             machineVisitor.visitPostInstruction(ins);
                             return level;
                         }
@@ -564,17 +563,16 @@ public class Machine {
                         }
                         case ControlFlowInstruction.If b -> {
                             int cmp = popInt();
-                            if (cmp == 1) {
-                                level = execute(b.ifBlock(), locals, b.label());
+                            if (cmp != 1) {
+                                continue;
                             }
+                            level = execute(b.ifBlock(), locals, b.label());
                             // If loop body ends normally
                             if (level == BLOCK_LEVEL) {
                                 continue;
                             }
-                            if (currLevel != level-1) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level;
-                            }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.IfElse b -> {
                             int cmp = popInt();
@@ -587,10 +585,8 @@ public class Machine {
                             if (level == BLOCK_LEVEL) {
                                 continue;
                             }
-                            if (currLevel != level) {
-                                machineVisitor.visitPostInstruction(ins);
-                                return level;
-                            }
+                            machineVisitor.visitPostInstruction(ins);
+                            return level;
                         }
                         case ControlFlowInstruction.Else _else -> {} // Do nothing
                         case ControlFlowInstruction.End _end -> {} // Do nothing
