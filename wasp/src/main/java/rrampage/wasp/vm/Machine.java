@@ -168,12 +168,12 @@ public class Machine {
                         case F64_MAX -> pushDouble(Double.max(l,r));
                         case F64_MIN -> pushDouble(Double.min(l,r));
                         case F64_COPY_SIGN -> pushDouble((l*r >= 0.0) ? l : -l);
-                        case F64_EQ -> pushInt(wrapBoolean(Double.compare(l, r) == 0));
-                        case F64_NE -> pushInt(wrapBoolean(Double.compare(l, r) != 0));
-                        case F64_GE -> pushInt(wrapBoolean(Double.compare(l, r) >= 0));
-                        case F64_GT -> pushInt(wrapBoolean(Double.compare(l, r) > 0));
-                        case F64_LE -> pushInt(wrapBoolean(Double.compare(l, r) <= 0));
-                        case F64_LT -> pushInt(wrapBoolean(Double.compare(l, r) < 0));
+                        case F64_EQ -> pushInt(wrapBoolean(l == r));
+                        case F64_NE -> pushInt(wrapBoolean(l != r));
+                        case F64_GE -> pushInt(wrapBoolean(l >= r));
+                        case F64_GT -> pushInt(wrapBoolean(l > r));
+                        case F64_LE -> pushInt(wrapBoolean(l <= r));
+                        case F64_LT -> pushInt(wrapBoolean(l < r));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -188,12 +188,12 @@ public class Machine {
                         case F32_MAX -> pushFloat(Float.max(l,r));
                         case F32_MIN -> pushFloat(Float.min(l,r));
                         case F32_COPY_SIGN -> pushFloat((l*r >= 0.0f) ? l : -l);
-                        case F32_EQ -> pushInt(wrapBoolean(Float.compare(l, r) == 0));
-                        case F32_NE -> pushInt(wrapBoolean(Float.compare(l, r) != 0));
-                        case F32_GE -> pushInt(wrapBoolean(Float.compare(l, r) >= 0));
-                        case F32_GT -> pushInt(wrapBoolean(Float.compare(l, r) > 0));
-                        case F32_LE -> pushInt(wrapBoolean(Float.compare(l, r) <= 0));
-                        case F32_LT -> pushInt(wrapBoolean(Float.compare(l, r) < 0));
+                        case F32_EQ -> pushInt(wrapBoolean(l == r));
+                        case F32_NE -> pushInt(wrapBoolean(l != r));
+                        case F32_GE -> pushInt(wrapBoolean(l >= r));
+                        case F32_GT -> pushInt(wrapBoolean(l > r));
+                        case F32_LE -> pushInt(wrapBoolean(l <= r));
+                        case F32_LT -> pushInt(wrapBoolean(l < r));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -684,16 +684,11 @@ public class Machine {
         int n = expected.length;
         for (int i =0; i < n; i++) {
             var c = expected[n-i-1];
-            Instruction eq = switch (c) {
-                case ConstInstruction.DoubleConst cc -> DoubleBinaryInstruction.F64_EQ;
-                case ConstInstruction.FloatConst cc -> FloatBinaryInstruction.F32_EQ;
-                case ConstInstruction.IntConst cc -> IntBinaryInstruction.I32_EQ;
-                case ConstInstruction.LongConst cc -> LongBinaryInstruction.I64_EQ;
-            };
-            var checkFun = new Function("__check_"+i, FunctionType.VOID, null, Instruction.of(c, eq));
-            call(checkFun);
-            if (popInt() != 1) {
-                return false;
+            switch (c) {
+                case ConstInstruction.DoubleConst cc -> {if (Double.compare(popDouble(), cc.val()) != 0) {return false;}}
+                case ConstInstruction.FloatConst cc -> {if (Float.compare(popFloat(), cc.val()) != 0) {return false;}}
+                case ConstInstruction.IntConst cc -> {if (popInt() != cc.val()) {return false;}}
+                case ConstInstruction.LongConst cc -> { if (pop() != cc.val()) {return false;}}
             }
         }
         return true;

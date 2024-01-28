@@ -68,7 +68,7 @@ public class ConversionUtils {
     }
 
     public static long floatToLong(float val) {
-        return Float.floatToIntBits(val);
+        return Float.floatToRawIntBits(val);
     }
 
     public static float longToFloat(long val) {
@@ -76,7 +76,7 @@ public class ConversionUtils {
     }
 
     public static long doubleToLong(double val) {
-        return Double.doubleToLongBits(val);
+        return Double.doubleToRawLongBits(val);
     }
 
     public static double longToDouble(long val) {
