@@ -62,7 +62,7 @@ public class Memory {
     }
 
     public void store(int addr, byte[] data, int srcOffset, int numBytes) {
-        if (addr >= memory.length || addr + numBytes > memory.length) {
+        if (addr + numBytes > memory.length) {
             throw new RuntimeException("Invalid address passed to memory: " + addr);
         }
         if (srcOffset + numBytes > data.length) {
