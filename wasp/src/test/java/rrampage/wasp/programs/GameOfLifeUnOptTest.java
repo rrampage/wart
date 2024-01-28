@@ -19,7 +19,6 @@ public class GameOfLifeUnOptTest {
 
     @BeforeEach
     public void setup() {
-        System.out.println("SETUP RUN!!");
         machine = module.instantiate(null, MachineVisitors.NULL_VISITOR);
         referenceArray = GameOfLifeUtils.pulsar();
         initializeMachineWithBoard(referenceArray);
@@ -53,11 +52,11 @@ public class GameOfLifeUnOptTest {
     @ParameterizedTest
     @MethodSource(value =  "javaPulsarIterations")
     public void shouldIterateGameOfLifeJavaNTimes(int n) {
+        long start = System.nanoTime();
         for (int i = 0; i < n; i++) {
-            long start = System.nanoTime();
             GameOfLifeUtils.calculateGameOfLife(referenceArray);
-            System.out.println("Time taken: " + (System.nanoTime() - start)/1000 + "us");
         }
+        System.out.println("Average Time taken: " + (System.nanoTime() - start)/1000/n + "us");
     }
 
     private void initializeMachineWithBoard(byte[][] board) {
