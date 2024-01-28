@@ -8,8 +8,7 @@ import rrampage.wasp.data.WastJson;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.*;
 
 
 public class TestSuiteParser {
@@ -27,11 +26,30 @@ public class TestSuiteParser {
         }
     }
 
-    public static Stream<AssertReturn> getTestCases(WastCommand[] commands) {
-        return Arrays.stream(commands).filter(c -> c instanceof WastCommand.WastReturn).map(w -> ((WastCommand.WastReturn) w).toAssert());
+    public static Map<String, List<AssertReturn>> getTestCases(WastCommand[] commands) {
+        Map<String, List<AssertReturn>> testMap = new HashMap<>();
+        List<AssertReturn> testList = new ArrayList<>();
+        String module = "";
+        for (var wc : commands) {
+            switch (wc) {
+                case WastCommand.WastModule mod -> {
+                    if (!module.isBlank() && !testList.isEmpty()) {
+                        testMap.put(module, testList);
+                    }
+                    testList = new ArrayList<>();
+                    module = mod.getFilename();
+                }
+                case WastCommand.WastReturn ret -> testList.add(ret.toAssert());
+                default -> {}
+            }
+        }
+        if (!module.isBlank() && !testList.isEmpty()) {
+            testMap.put(module, testList);
+        }
+        return testMap;
     }
 
-    public static Stream<AssertReturn> parseTestCases(String filename) {
+    public static Map<String, List<AssertReturn>> parseTestCases(String filename) {
         return getTestCases(parseWastJson(filename));
     }
 
@@ -41,6 +59,6 @@ public class TestSuiteParser {
         File file = new File(filePath);
         WastJson wastJson = om.readValue(file, WastJson.class);
         System.out.println(wastJson.getSourceFilename());
-        getTestCases(wastJson.getCommands()).forEach(a -> System.out.println(a.toString()));
+        getTestCases(wastJson.getCommands());
     }
 }
