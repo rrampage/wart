@@ -304,6 +304,15 @@ public class InstructionParser {
             case UN_I64_EXTEND8_S -> UnaryInstruction.I64_EXTEND8_S;
             case UN_I64_EXTEND16_S -> UnaryInstruction.I64_EXTEND16_S;
             case UN_I64_EXTEND32_S -> UnaryInstruction.I64_EXTEND32_S;
+            // bytes from FC_PREFIX
+            case FC_I32_TRUNC_SAT_F32_S -> UnaryInstruction.I32_TRUNC_SAT_F32_S;
+            case FC_I32_TRUNC_SAT_F32_U -> UnaryInstruction.I32_TRUNC_SAT_F32_U;
+            case FC_I32_TRUNC_SAT_F64_S -> UnaryInstruction.I32_TRUNC_SAT_F64_S;
+            case FC_I32_TRUNC_SAT_F64_U -> UnaryInstruction.I32_TRUNC_SAT_F64_U;
+            case FC_I64_TRUNC_SAT_F32_S -> UnaryInstruction.I64_TRUNC_SAT_F32_S;
+            case FC_I64_TRUNC_SAT_F32_U -> UnaryInstruction.I64_TRUNC_SAT_F32_U;
+            case FC_I64_TRUNC_SAT_F64_S -> UnaryInstruction.I64_TRUNC_SAT_F64_S;
+            case FC_I64_TRUNC_SAT_F64_U -> UnaryInstruction.I64_TRUNC_SAT_F64_U;
             default -> throw new RuntimeException("Unexpected bytecode for unary instruction: " + byteCode);
         };
     }
@@ -420,6 +429,8 @@ public class InstructionParser {
             case FC_MEM_COPY -> new SegmentInstruction.MemoryCopy((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
             case FC_MEM_FILL -> new SegmentInstruction.MemoryFill((int) Leb128.readUnsigned(in));
             case FC_TABLE_INIT, FC_ELEM_DROP, FC_TABLE_COPY, FC_TABLE_GROW, FC_TABLE_SIZE, FC_TABLE_FILL -> parseRefTypeInstruction(byteCode, in);
+            case FC_I32_TRUNC_SAT_F32_S, FC_I32_TRUNC_SAT_F32_U, FC_I32_TRUNC_SAT_F64_S, FC_I32_TRUNC_SAT_F64_U,
+                    FC_I64_TRUNC_SAT_F32_S, FC_I64_TRUNC_SAT_F32_U, FC_I64_TRUNC_SAT_F64_S, FC_I64_TRUNC_SAT_F64_U -> parseUnaryInstruction(byteCode, in);
             default -> throw new RuntimeException("Unexpected bytecode for FC Prefix instruction: " + byteCode);
         };
     }

@@ -8,6 +8,7 @@ import rrampage.wasp.instructions.ConstInstruction;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static rrampage.wasp.testsuite.TestSuiteRunner.wastTest;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
 public class FactorialTest {
@@ -28,8 +29,6 @@ public class FactorialTest {
         assertThrows(StackOverflowError.class, () -> runner.getMachine().invoke("fac-rec", ConstInstruction.of(constOf(1073741824))));
     }
 
-    @TestFactory
-    public Stream<DynamicTest> test() {
-        return runner.test(assertReturnTestCases);
-    }
+    @TestFactory public Stream<DynamicTest> test() { return runner.test(assertReturnTestCases);}
+    @TestFactory public Stream<DynamicTest> testStack() { return wastTest("stack.json");}
 }
