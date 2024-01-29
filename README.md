@@ -22,6 +22,7 @@ WASM opcode references:
 - Bitshift ops
 - Blocks, loops and conditionals
 - [Sign extension operations](https://github.com/WebAssembly/spec/blob/master/proposals/sign-extension-ops/Overview.md)
+- [Non-trapping Float to Int conversions](https://github.com/WebAssembly/spec/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md)
 - Start
 - Exports
 - Invoke exported functions
