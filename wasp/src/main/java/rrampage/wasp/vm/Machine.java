@@ -6,7 +6,6 @@ import rrampage.wasp.utils.MathUtils;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
 import java.util.*;
 
 import static rrampage.wasp.utils.ConversionUtils.*;
@@ -297,13 +296,13 @@ public class Machine {
                         case F32_SQRT -> pushFloat((float) Math.sqrt(popFloat()));
                         case F64_SQRT -> pushDouble(Math.sqrt(popDouble()));
                         // wrap and extend ops
-                        case I32_WRAP_I64 -> pushInt(longToInt(pop()%(Integer.MAX_VALUE+1L)));
+                        case I32_WRAP_I64 -> pushInt((int)pop());
                         case I64_EXTEND_I32_S -> push(intToLong(popInt()));
                         case I64_EXTEND_I32_U -> push(Integer.toUnsignedLong(popInt()));
                         // Reinterpret ops
-                        case I32_REINTERPRET_F32 -> pushInt(Float.floatToIntBits(popFloat()));
+                        case I32_REINTERPRET_F32 -> pushInt(Float.floatToRawIntBits(popFloat()));
                         case F32_REINTERPRET_I32 -> pushFloat(Float.intBitsToFloat(popInt()));
-                        case I64_REINTERPRET_F64 -> push(Double.doubleToLongBits(popDouble()));
+                        case I64_REINTERPRET_F64 -> push(Double.doubleToRawLongBits(popDouble()));
                         case F64_REINTERPRET_I64 -> pushDouble(Double.longBitsToDouble(pop()));
                         // convert i32/i64 signed/unsigned to f32/f64
                         case F32_CONVERT_I32_S -> pushFloat(popInt());
@@ -315,40 +314,15 @@ public class Machine {
                         case F64_CONVERT_I64_S -> pushDouble(pop());
                         case F64_CONVERT_I64_U -> pushDouble(Double.parseDouble(Long.toUnsignedString(pop())));
                         // convert f32/f64 to signed i32/i64
-                        case I32_TRUNC_F32_S -> pushInt((int) popFloat());
-                        case I32_TRUNC_F64_S -> pushInt((int) popDouble());
-                        case I64_TRUNC_F32_S -> push((long) popFloat());
-                        case I64_TRUNC_F64_S -> push((long) popDouble());
+                        case I32_TRUNC_F32_S, I32_TRUNC_SAT_F32_S -> pushInt((int) popFloat());
+                        case I32_TRUNC_F64_S, I32_TRUNC_SAT_F64_S -> pushInt((int) popDouble());
+                        case I64_TRUNC_F32_S, I64_TRUNC_SAT_F32_S -> push((long) popFloat());
+                        case I64_TRUNC_F64_S, I64_TRUNC_SAT_F64_S -> push((long) popDouble());
                         // convert f32/f64 to unsigned i32/i64
-                        case I32_TRUNC_F32_U -> {
-                            float f = popFloat();
-                            if (f < 0.0f || f > Integer.MAX_VALUE) {
-                                throw new RuntimeException("Integer overflow");
-                            }
-                            pushInt((int) f);
-                        }
-                        case I32_TRUNC_F64_U -> {
-                            double d = popDouble();
-                            long maxUnsignedInt = Integer.MAX_VALUE *2L+1;
-                            if (d < 0.0 || d > maxUnsignedInt) {
-                                throw new RuntimeException("Integer overflow");
-                            }
-                            pushInt( (int)((long) d));
-                        }
-                        case I64_TRUNC_F32_U -> {
-                            float f = popFloat();
-                            if (f < 0.0f || f > Long.MAX_VALUE) {
-                                throw new RuntimeException("Integer overflow");
-                            }
-                            push(BigDecimal.valueOf(f).toBigInteger().longValue());
-                        }
-                        case I64_TRUNC_F64_U -> {
-                            double d = popDouble();
-                            if (d < 0.0 || d > Long.MAX_VALUE*2.0+1) {
-                                throw new RuntimeException("Integer overflow");
-                            }
-                            push(BigDecimal.valueOf(d).toBigInteger().longValue());
-                        }
+                        case I32_TRUNC_F32_U, I32_TRUNC_SAT_F32_U -> pushInt(MathUtils.truncateFloatToUnsignedInt(popFloat()));
+                        case I32_TRUNC_F64_U, I32_TRUNC_SAT_F64_U -> pushInt(MathUtils.truncateDoubleToUnsignedInt(popDouble()));
+                        case I64_TRUNC_F32_U, I64_TRUNC_SAT_F32_U -> push(MathUtils.truncateFloatToUnsignedLong(popFloat()));
+                        case I64_TRUNC_F64_U, I64_TRUNC_SAT_F64_U -> push(MathUtils.truncateDoubleToUnsignedLong(popDouble()));
                         case I32_EXTEND8_S -> pushInt((byte) popInt());
                         case I32_EXTEND16_S -> pushInt((short) popInt());
                         case I64_EXTEND8_S -> push((byte) pop());
@@ -519,7 +493,6 @@ public class Machine {
                     push(val);
                 }
                 case ControlFlowInstruction i -> {
-                    var currLevel = level;
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
                             level = execute(b.code(), locals, b.label());

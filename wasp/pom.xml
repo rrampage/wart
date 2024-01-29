@@ -6,7 +6,7 @@
 
   <groupId>rrampage.wasp.wasm</groupId>
   <artifactId>wasp</artifactId>
-  <version>0.0.11</version>
+  <version>0.0.12</version>
 
   <name>wasp</name>
   <url>https://github.com/rrampage/wart/wasp</url>
@@ -75,11 +75,17 @@
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.0</version>
+          <version>3.10.1</version>
+          <configuration>
+            <enablePreview>true</enablePreview>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.2.2</version>
+          <configuration>
+            <argLine>--enable-preview</argLine>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
