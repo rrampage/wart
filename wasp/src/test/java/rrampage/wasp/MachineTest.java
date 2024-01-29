@@ -232,21 +232,23 @@ public class MachineTest {
                 new ConstInstruction.IntConst(10),
                 IntBinaryInstruction.I32_LT_S,
                 new ControlFlowInstruction.BranchIf(1),
-                new FunctionInstruction.LocalGet(0),
         };
         Instruction[] funIns = new Instruction[] {
+                new ConstInstruction.IntConst(0),
                 new ControlFlowInstruction.Loop(1, null, loopIns),
                 new FunctionInstruction.LocalGet(0),
+                new ConstInstruction.IntConst(10),
+                IntBinaryInstruction.I32_EQ,
+                new ControlFlowInstruction.IfElse(2, FunctionType.VOID, Instruction.of(UnaryInstruction.DROP), Instruction.of(NullaryInstruction.UNREACHABLE))
         };
         Function f = new Function("loop_check", new FunctionType(null, null),
                 new ValueType.NumType[]{ValueType.NumType.I32}, funIns);
         Instruction[] ins = new Instruction[] {
-                new ConstInstruction.IntConst(0),
                 new FunctionInstruction.Call(0),
         };
         Machine m = Machine.createAndStart(new Function[]{f, Function.createStartFunction("shouldLoop", ins)}, null, null, MEM_PAGES, null, null, 1);
         System.out.println(m.stackView());
-        assertEquals(10, m.popInt());
+        assertEquals("", m.stackView());
     }
 
     @Test
@@ -257,7 +259,6 @@ public class MachineTest {
         try {
             mh = MethodHandles.lookup().findStatic(Math.class, "pow", mt);
         } catch (Exception e) {
-            e.printStackTrace();
             Assertions.assertNull(e); // placeholder to fail
             return;
         }
@@ -275,7 +276,7 @@ public class MachineTest {
         try {
             mh = MethodHandles.lookup().findStatic(Math.class, "pow", mt);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             Assertions.assertNull(e); // placeholder to fail
             return;
         }

@@ -21,18 +21,18 @@ public class Olive extends ProcessingMachine {
     record Rgba(int r, int g, int b, int a){}
 
     public Olive() throws RuntimeException {
-        super("../wart/examples/olive/sim-tri.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
-        //super("../wart/examples/olive/simple.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
+        //super("../wart/examples/olive/sim-tri.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
+        super("../wart/examples/olive/simple.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
         heapBase = (Variable.I32Variable) machine.exports().get("__heap_base");
         memory = (Memory) machine.exports().get("memory");
     }
 
-    public void settings() { size(900, 720, P2D);}
+    public void settings() { size(900, 900, P2D);}
     public void setup() {
         machine.invoke("vc_render", constOf(heapBase.getVal()), constOf(0));
         var buffer = memory.buffer();
         readCanvasFromMemory(buffer, heapBase.getVal());
-        image = createImage(width, height, RGB);
+        image = createImage(width, 720, ARGB);
         updateImagePixels(buffer);
         ts = System.currentTimeMillis();
         iterations++;

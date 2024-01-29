@@ -18,10 +18,10 @@ public class RocketWasmProcessing extends ProcessingMachine {
         this.visitor = visitor;
     }
 
-    public void settings() {size(900, 900, P2D);}
+    public void settings() {size(800, 600, P2D);}
     public void setup() {
         machine = module.instantiate(createImportMap(), visitor);
-        machine.invoke("resize", constOf(width), constOf(height));
+        machine.invoke("resize", constOf(width + 0.0), constOf(height + 0.0));
         last = System.currentTimeMillis();
     }
 
