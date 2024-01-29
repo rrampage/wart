@@ -50,7 +50,7 @@ public class Memory {
         System.arraycopy(memory, 0, newMemory, 0, memory.length);
         memory = newMemory;
         buffer = ByteBuffer.wrap(memory).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
-        return numPages;
+        return currPages;
     }
 
     public byte[] load(int addr, int offset) {

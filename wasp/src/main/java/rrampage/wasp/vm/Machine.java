@@ -391,7 +391,8 @@ public class Machine {
                         case FunctionInstruction.Call l -> call(functions[l.val()]);
                         case FunctionInstruction.CallIndirect l -> {
                             int tblOffset = popInt();
-                            int tblIdx = l.idx();
+                            int tblIdx = l.tableIdx();
+                            int typeIdx = l.typeIdx(); // TODO: Expose Types for another level of validation
                             if (tblOffset < 0 || tblIdx < 0 || tblIdx >= tables.length || tblOffset >= tables[tblIdx].size()) {
                                 throw new RuntimeException("Array bounds mismatch in indirect call");
                             }
@@ -524,7 +525,7 @@ public class Machine {
                         }
                         case ControlFlowInstruction.BranchIf b -> {
                             int cmp = popInt();
-                            if (cmp == 1) {
+                            if (cmp != 0) {
                                 machineVisitor.visitPostInstruction(ins);
                                 return b.label();
                             }
@@ -536,7 +537,7 @@ public class Machine {
                         }
                         case ControlFlowInstruction.If b -> {
                             int cmp = popInt();
-                            if (cmp != 1) {
+                            if (cmp == 0) {
                                 continue;
                             }
                             level = execute(b.ifBlock(), locals, b.label());
@@ -549,7 +550,7 @@ public class Machine {
                         }
                         case ControlFlowInstruction.IfElse b -> {
                             int cmp = popInt();
-                            if (cmp == 1) {
+                            if (cmp != 0) {
                                 level = execute(b.ifBlock(), locals, b.label());
                             } else {
                                 level = execute(b.elseBlock(), locals, b.label());

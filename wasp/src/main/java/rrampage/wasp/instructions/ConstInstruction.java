@@ -11,15 +11,15 @@ public sealed interface ConstInstruction extends Instruction {
         public String opCode() {return "i32.const";}
         public String toString() {return view();}
     }
-    record LongConst(long val) implements ConstInstruction {
+    record LongConst(long val) implements ConstInstruction, ConstExpression {
         public String opCode() {return "i64.const";}
         public String toString() {return view();}
     }
-    record FloatConst(float val) implements ConstInstruction {
+    record FloatConst(float val) implements ConstInstruction, ConstExpression {
         public String opCode() {return "f32.const";}
         public String toString() {return view();}
     }
-    record DoubleConst(double val) implements ConstInstruction {
+    record DoubleConst(double val) implements ConstInstruction, ConstExpression {
         public String opCode() {return "f64.const";}
         public String toString() {return view();}
     }
