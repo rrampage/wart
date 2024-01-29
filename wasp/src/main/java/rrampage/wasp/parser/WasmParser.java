@@ -242,6 +242,9 @@ public class WasmParser implements Parser {
         // System.out.printf("Parsed Bytecode: 0x%x\n", b);
         ConstExpression ins = switch (b) {
             case ByteCodeConstants.CONST_INT -> new ConstInstruction.IntConst((int) Leb128.readSigned(bb));
+            case ByteCodeConstants.CONST_LONG -> new ConstInstruction.LongConst(Leb128.readSigned(bb));
+            case ByteCodeConstants.CONST_DOUBLE -> new ConstInstruction.DoubleConst(bb.getDouble());
+            case ByteCodeConstants.CONST_FLOAT -> new ConstInstruction.FloatConst(bb.getFloat());
             case ByteCodeConstants.REF_NULL -> new RefTypeInstruction.RefNull(ValueType.RefType.from(bb.get()));
             case ByteCodeConstants.REF_FUNC -> new RefTypeInstruction.RefFunc((int) Leb128.readUnsigned(bb));
             // TODO : Validation logic on type of global ??

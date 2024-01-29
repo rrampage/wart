@@ -128,7 +128,10 @@ public record Module(
         for (int  i =0; i < globals().length; i++) {
             var v = globals()[i];
             switch (v.expr()) {
-                case ConstInstruction.IntConst e -> globals()[i] = Variable.newVariable(v.type(), e.val(), v.isMutable());
+                case ConstInstruction.IntConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
+                case ConstInstruction.LongConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
+                case ConstInstruction.FloatConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
+                case ConstInstruction.DoubleConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
                 case GlobalInstruction.GlobalGet e -> {
                     var src = globals()[e.val()];
                     if (!src.type().equals(v.type())) {
@@ -155,6 +158,7 @@ public record Module(
             }
             case RefTypeInstruction.RefFunc e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
             case RefTypeInstruction.RefNull e -> throw new RuntimeException(String.format("INIT_ERROR: Type %s of offset Constant expression does not match expected i32", e));
+            default -> throw new IllegalStateException("Unexpected value: " + expr);
         };
     }
 
@@ -181,6 +185,12 @@ public record Module(
                         case RefTypeInstruction.RefFunc refFunc -> {
                         }
                         case RefTypeInstruction.RefNull refNull -> {
+                        }
+                        case ConstInstruction.DoubleConst doubleConst -> {
+                        }
+                        case ConstInstruction.FloatConst floatConst -> {
+                        }
+                        case ConstInstruction.LongConst longConst -> {
                         }
                     }
                 }

@@ -233,7 +233,7 @@ public class InstructionParser {
             case LOCAL_TEE -> new FunctionInstruction.LocalTee((int) Leb128.readUnsigned(in));
             case FUNC_RETURN -> new FunctionInstruction.Return();
             case FUNC_CALL -> new FunctionInstruction.Call((int) Leb128.readUnsigned(in));
-            case FUNC_CALL_INDIRECT -> new FunctionInstruction.CallIndirect((int) Leb128.readUnsigned(in), in.get());
+            case FUNC_CALL_INDIRECT -> new FunctionInstruction.CallIndirect((int) Leb128.readUnsigned(in), (int) Leb128.readUnsigned(in));
             default -> throw new RuntimeException("Unexpected bytecode for global instruction: " + byteCode);
         };
     }

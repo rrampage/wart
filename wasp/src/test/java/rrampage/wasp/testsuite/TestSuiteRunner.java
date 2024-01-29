@@ -5,6 +5,7 @@ import rrampage.wasp.data.AssertReturn;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.vm.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -62,8 +63,10 @@ public class TestSuiteRunner {
                 testMap.put(e.getKey(), DynamicTest.stream(e.getValue().stream(), AssertReturn::toString, runner::check));
             } catch (RuntimeException ex) {
                 System.out.println(ex.getMessage());
+                System.out.println(Arrays.toString(ex.getStackTrace()));
             }
         }
+        System.out.println(testMap);
         return testMap.entrySet().stream().flatMap(Map.Entry::getValue);
     }
 }
