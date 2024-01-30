@@ -17,6 +17,7 @@ public class RocketWasmProcessing extends ProcessingMachine {
         super("../wart/examples/rocket.wasm");
         this.visitor = visitor;
     }
+    double highScore = 0.0;
 
     public void settings() {size(800, 600, P2D);}
     public void setup() {
@@ -52,10 +53,13 @@ public class RocketWasmProcessing extends ProcessingMachine {
         circle((float) x, (float) y, 20);
     }
 
-    public void drawScore(double x) {
-        textSize(30);
+    public void drawScore(double score) {
+        highScore = Math.max(score, highScore);
         fill(color(0, 0, 0));
-        text(String.format("Score is %f", x), 10, 50);
+        textSize(20);
+        text(String.format("Score is %f", score), 10, 50);
+        textSize(10);
+        text(String.format("High Score: %f", highScore), 10, 80);
     }
 
     private Map<String, Map<String,Object>> createImportMap() throws RuntimeException {
