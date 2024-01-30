@@ -106,7 +106,7 @@ public sealed class WastCommand permits WastCommand.WastInvalid, WastCommand.Was
                     case "nan:arithmetic" -> ConstInstruction.NAN_ARITHMETIC_DOUBLE;
                     default -> new ConstInstruction.DoubleConst(Double.longBitsToDouble(Long.parseUnsignedLong(value)));
                 };
-                default -> throw new RuntimeException("Invalid type passed");
+                default -> throw new RuntimeException("Invalid type passed: " + type);
             };
         }
     }

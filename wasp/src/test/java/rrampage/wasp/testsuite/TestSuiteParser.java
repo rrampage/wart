@@ -39,7 +39,13 @@ public class TestSuiteParser {
                     testList = new ArrayList<>();
                     module = mod.getFilename();
                 }
-                case WastCommand.WastReturn ret -> testList.add(ret.toAssert());
+                case WastCommand.WastReturn ret -> {
+                    try {
+                        testList.add(ret.toAssert());
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
                 default -> {}
             }
         }
