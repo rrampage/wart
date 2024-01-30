@@ -43,17 +43,6 @@ public record Module(
                 dataSegments == null ? 0 : dataSegments.length);
     }
 
-    Map<String, Map<String, ImportDescriptor>> getImportMap() {
-        var map = new HashMap<String, Map<String, ImportDescriptor>>();
-        for (var i : imports()) {
-            if (!map.containsKey(i.module())) {
-                map.put(i.module(), new HashMap<>());
-            }
-            map.get(i.module()).put(i.name(), i.importDescriptor());
-        }
-        return map;
-    }
-
     private void processImports(Map<String, Map<String, Object>> importMap) {
         /*
         From JS API, import object looks like:
@@ -68,7 +57,6 @@ public record Module(
               },
             };
          */
-        var imap = getImportMap();
         var icount = imports() == null ? 0 : imports().length;
         if (importMap == null) {
             if (icount == 0) {
@@ -80,44 +68,41 @@ public record Module(
         var varIdx = 0;
         var memIdx = 0;
         var tblIdx = 0;
-        for (var moduleEntry : imap.entrySet()) {
-            if (!importMap.containsKey(moduleEntry.getKey())) {
-                throw new RuntimeException(String.format("INIT_ERROR: Unable to find module %s in supplied import", moduleEntry.getKey()));
+        for (var id : imports) {
+            if (!importMap.containsKey(id.module())) {
+                throw new RuntimeException(String.format("INIT_ERROR: Unable to find module %s in supplied import", id.module()));
             }
-            var map = importMap.get(moduleEntry.getKey());
-            for (var e : moduleEntry.getValue().entrySet()) {
-                if (!map.containsKey(e.getKey())) {
-                    throw new RuntimeException(String.format("INIT_ERROR: Unable to find import %s in module %s in supplied import", e.getKey(), moduleEntry.getKey()));
-                }
-                Object o =  map.get(e.getKey());
-                switch (e.getValue()) {
-                    case ImportDescriptor.FunctionDescriptor d -> functions()[funcIdx++] = switch (o) {
-                        case MethodHandle mh -> Function.createImportFunction(e.getKey(), types()[d.idx()], mh);
-                        case Function f -> f;
-                        default -> throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import",
-                                e.getKey(), d, moduleEntry.getKey()));
-                    };
-                    case ImportDescriptor.GlobalDescriptor d -> {
-                        if (!(o instanceof Variable v) || !v.matchesDescriptor(d)) {
-                            throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", e.getKey(), d, moduleEntry.getKey()));
-                        }
-                        globals()[varIdx++] = v;
-                    }
-                    case ImportDescriptor.MemoryDescriptor d -> {
-                        if (!(o instanceof Memory m) || !m.matchesDescriptor(d)) {
-                            throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", e.getKey(), d, moduleEntry.getKey()));
-                        }
-                        memories()[memIdx++] = m;
-                    }
-                    case ImportDescriptor.TableDescriptor d -> {
-                        if (!(o instanceof Table t) || !t.matchesDescriptor(d)) {
-                            throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", e.getKey(), d, moduleEntry.getKey()));
-                        }
-                        tables()[tblIdx++] = t;
-                    }
-                }
-                icount--;
+            var map = importMap.get(id.module());
+            if (!map.containsKey(id.name())) {
+                throw new RuntimeException(String.format("INIT_ERROR: Unable to find import %s in module %s in supplied import", id.name(), id.module()));
             }
+            Object o =  map.get(id.name());
+            switch (id.importDescriptor()) {
+                case ImportDescriptor.FunctionDescriptor d -> functions()[funcIdx++] = switch (o) {
+                    case MethodHandle mh -> Function.createImportFunction(id.name(), types()[d.idx()], mh);
+                    case Function f -> f;
+                    default -> throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", id.name(), d, id.module()));
+                };
+                case ImportDescriptor.GlobalDescriptor d -> {
+                    if (!(o instanceof Variable v) || !v.matchesDescriptor(d)) {
+                        throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", id.name(), d, id.module()));
+                    }
+                    globals()[varIdx++] = v;
+                }
+                case ImportDescriptor.MemoryDescriptor d -> {
+                    if (!(o instanceof Memory m) || !m.matchesDescriptor(d)) {
+                        throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", id.name(), d, id.module()));
+                    }
+                    memories()[memIdx++] = m;
+                }
+                case ImportDescriptor.TableDescriptor d -> {
+                    if (!(o instanceof Table t) || !t.matchesDescriptor(d)) {
+                        throw new RuntimeException(String.format("INIT_ERROR: Unable to find import name of %s of type %s in module %s in supplied import", id.name(), d, id.module()));
+                    }
+                    tables()[tblIdx++] = t;
+                }
+            }
+            icount--;
         }
         if (icount > 0) {
             throw new RuntimeException("INIT_ERROR: All imports not supplied. Missing " + icount + " imports");

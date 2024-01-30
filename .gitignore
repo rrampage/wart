@@ -1,6 +1,6 @@
 .idea
 *.iml
-examples
+examples/*
 !examples/testsuite
 out/
 .DS_Store
