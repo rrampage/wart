@@ -27,13 +27,14 @@ public class RocketWasmProcessing extends ProcessingMachine {
 
     public void draw() {
         var now = System.currentTimeMillis();
-        var dt = now - last;
+        var diff = now - last;
         last = now;
+        var dt = (diff > 5) ? diff * 0.001 : 0.01 * diff;
         machine.invoke("update", constOf(dt));
         machine.invoke("draw");
     }
 
-    public void clear() {super.clear();}
+    public void clear() { background(color(255, 255, 255));}
     public void drawBullet(double x, double y) {
         fill(color(255, 0, 0));
         circle((float) x, (float) y, 2);
@@ -48,8 +49,9 @@ public class RocketWasmProcessing extends ProcessingMachine {
     }
     public void drawPlayer(double x, double y, double z) {
         fill(color(0, 255, 255));
-        circle((float) x, (float) y, 10);
+        circle((float) x, (float) y, 20);
     }
+
     public void drawScore(double x) {
         textSize(30);
         fill(color(0, 0, 0));
@@ -58,7 +60,6 @@ public class RocketWasmProcessing extends ProcessingMachine {
 
     private Map<String, Map<String,Object>> createImportMap() throws RuntimeException {
         try {
-
             FunctionType f64Unary = FunctionType.F64_UNARY;
             FunctionType aVoid = FunctionType.VOID;
             FunctionType f64BiConsumer = new FunctionType(new ValueType.NumType[]{ValueType.NumType.F64, ValueType.NumType.F64}, new ValueType.NumType[]{});
@@ -124,6 +125,6 @@ public class RocketWasmProcessing extends ProcessingMachine {
     }
 
     public static void main(String[] args) {
-        new RocketWasmProcessing(MachineVisitors.logVisitor()).run();
+        new RocketWasmProcessing(MachineVisitors.NULL_VISITOR).run();
     }
 }
