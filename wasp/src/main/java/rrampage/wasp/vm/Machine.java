@@ -129,10 +129,6 @@ public class Machine {
         }
         // Set labels of machine to function labels and reset to original labels once execution is completed
         execute(fun.code(), locals, FUNC_LEVEL);
-        if (fun.isVoidReturn()) {
-            return;
-        }
-        int n = fun.type().returnTypes().length;
         if (machineVisitor.hasPostFunctionVisitor) {machineVisitor.visitPostFunction(fun);}
     }
 
@@ -609,7 +605,9 @@ public class Machine {
                         case RefTypeInstruction.TableCopy r -> {}
                         case RefTypeInstruction.TableFill r -> {}
                         case RefTypeInstruction.TableGet r -> {}
-                        case RefTypeInstruction.TableGrow r -> {}
+                        case RefTypeInstruction.TableGrow r -> {
+                            // TODO
+                        }
                         case RefTypeInstruction.TableInit r -> {}
                         case RefTypeInstruction.TableSet r -> {}
                         case RefTypeInstruction.TableSize r -> {}
