@@ -20,8 +20,7 @@ public class Runner {
         if (n == 1) return 1;
         long a = 0, b = 1;
         for (int i = 2; i <=n ; i++) {
-            long t = a;
-            t = b;
+            long t = b;
             b = a + b;
             a = t;
         }

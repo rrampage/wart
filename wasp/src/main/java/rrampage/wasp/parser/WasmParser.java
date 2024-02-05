@@ -467,6 +467,11 @@ public class WasmParser implements Parser {
                 case CODE -> allFuncs = parseCodeSection(types, imports, functions);
                 case DATA -> dataSegments = parseDataSection();
             }
+            if (memories.length == 0) {
+                // If there is only an imported memory and no main memory
+                int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.MemoryDescriptor).count();
+                memories = new Memory[numImports];
+            }
             // Check that section is fully consumed
             assertBufferPosition(sectionStart + sectionLength);
         }
