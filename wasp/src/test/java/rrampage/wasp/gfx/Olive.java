@@ -18,11 +18,9 @@ public class Olive extends ProcessingMachine {
     int pixels, width, height, stride, iterations;
     long ts = System.currentTimeMillis();
     PImage image;
-    record Rgba(int r, int g, int b, int a){}
 
     public Olive() throws RuntimeException {
-        super("../wart/examples/olive/triangle.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
-        // super("../wart/examples/olive/simple.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
+        super("../wart/examples/olive/cup3d.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
         heapBase = (Variable.I32Variable) machine.exports().get("__heap_base");
         memory = (Memory) machine.exports().get("memory");
     }
@@ -33,33 +31,10 @@ public class Olive extends ProcessingMachine {
         var buffer = memory.buffer();
         readCanvasFromMemory(buffer, heapBase.getVal());
         image = createImage(width, height, ARGB);
-        updateImagePixels(buffer);
+        updateImagePixels(image, buffer, pixels);
+        image(image, 0, 0);
         ts = System.currentTimeMillis();
         iterations++;
-    }
-
-    private void updateImagePixels(ByteBuffer buffer) {
-        HashMap<Rgba, Integer> colorSet = new HashMap<>();
-        buffer.position(pixels);
-        image.loadPixels();
-        for (int i = 0; i < image.pixels.length; i++) {
-            var r = Byte.toUnsignedInt(buffer.get());
-            var g = Byte.toUnsignedInt(buffer.get());
-            var b = Byte.toUnsignedInt(buffer.get());
-            var a = Byte.toUnsignedInt(buffer.get());
-            var rec = new Rgba(r,g,b,a);
-            if (a <= 10) {
-                a = 255;
-            }
-            //var c = color(r, g, b, a);
-            var c = color(r, g, b, a);
-            colorSet.put(rec, colorSet.compute(rec, (k, v) -> (v == null) ? 1 : v+1)) ;
-            image.pixels[i] = c;
-        }
-        System.out.println(colorSet);
-        // System.out.println("Bytes consumed: " + (buffer.position() - pixels) + " Pixel arr: " + image.pixels.length);
-        image.updatePixels();
-        image(image, 0, 0);
     }
 
     private void readCanvasFromMemory(ByteBuffer buffer, int canvasPtr) {
@@ -68,7 +43,6 @@ public class Olive extends ProcessingMachine {
         width = buffer.getInt();
         height = buffer.getInt();
         stride = buffer.getInt();
-        System.out.printf("Pixels %d Width %d Height %d Stride %d\n", pixels, width, height, stride);
         if (width != stride) {
             throw new RuntimeException("FAIL!! Canvas width not equal to stride");
         }
@@ -76,17 +50,19 @@ public class Olive extends ProcessingMachine {
 
     public void render(float dt) {
         System.out.println("dt: " + dt);
-        machine.invoke("vc_render", constOf(heapBase.getVal()), constOf(dt * 0.1f));
+        ts = System.currentTimeMillis();
+        var diff = (dt > 1000) ? 0.3f : 0.1f;
+        machine.invoke("vc_render", constOf(heapBase.getVal()), constOf(diff));
         var buffer = memory.buffer();
         readCanvasFromMemory(buffer, heapBase.getVal());
-        updateImagePixels(buffer);
+        updateImagePixels(image, buffer, pixels);
+        image(image, 0, 0);
         iterations++;
         System.out.println("Iterations: " + iterations);
     }
 
     public void draw() {
         render(System.currentTimeMillis() - ts);
-        ts = System.currentTimeMillis();
     }
 
     public void mouseEntered() { paused = false;}

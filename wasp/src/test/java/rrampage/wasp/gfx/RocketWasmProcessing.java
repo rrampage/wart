@@ -30,7 +30,7 @@ public class RocketWasmProcessing extends ProcessingMachine {
         var now = System.currentTimeMillis();
         var diff = now - last;
         last = now;
-        var dt = (diff > 5) ? diff * 0.001 : 0.01 * diff;
+        var dt = (diff > 2) ? diff * 0.001 : 0.05 * diff;
         machine.invoke("update", constOf(dt));
         machine.invoke("draw");
     }
