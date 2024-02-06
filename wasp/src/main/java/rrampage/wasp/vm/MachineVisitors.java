@@ -24,13 +24,13 @@ public class MachineVisitors {
             currentInstruction = ins;
             instructionCounter.merge(ins.opCode(), 1, (v1, _v2) -> v1+1);
             if (machine != null) {
-                System.out.println("Stack view before Instruction: " + ins + ": " + machine.stackView());
+                System.out.println(this.callStack.peek() + "\tStack view before Instruction: " + ins + ": " + machine.stackView());
             }
         }
         public void postInstructionConsumer( Instruction ins) {
             lastSuccessfulInstruction = ins;
             if (machine != null) {
-                System.out.println("Stack view after Instruction: " + ins + ": " + machine.stackView());
+                System.out.println(this.callStack.peek() + "\tStack view after Instruction: " + ins + ": " + machine.stackView());
             }
         }
         public void preFunction(Function fun) {
@@ -39,9 +39,9 @@ public class MachineVisitors {
             this.callStack.push(fun.name());
         }
         public void postFunction(Function fun) {
-            System.out.println("FUNCTION_END: " + fun.name() + " " + fun.type());
+            System.out.println(STR."FUNCTION_END: \{fun.name()} \{fun.type()}");
             this.callStack.pop();
-            System.out.println(this.callStack);
+            System.out.println(STR."FUNCTION_END_CALL_STACK: \{this.callStack}");
         }
         public void end(Machine m) {
             System.out.println("Last successful instruction: " + lastSuccessfulInstruction.opCode());

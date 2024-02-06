@@ -58,7 +58,6 @@ public class MachineVisitor {
     }
 
     public void start(Machine m) {
-        System.out.println("START_CALLED");
         if (!hasStartVisitor) {return;}
         startVisitor.accept(m);
     }

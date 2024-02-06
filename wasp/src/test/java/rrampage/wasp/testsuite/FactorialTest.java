@@ -29,6 +29,19 @@ public class FactorialTest {
         assertThrows(StackOverflowError.class, () -> runner.getMachine().invoke("fac-rec", ConstInstruction.of(constOf(1073741824))));
     }
 
+    @Test
+    @Tag("high-resource")
+    public void shouldComputeFactorial() {
+        for (int a = 0; a < 10; a++) {
+            var t = System.nanoTime();
+            var n = 2000;
+            for (int i = 0; i < n; i++) {
+                runner.getMachine().invoke("fac-rec", ConstInstruction.of(constOf(40)));
+            }
+            System.out.println("Time: " + (System.nanoTime() - t)/n/1000);
+        }
+    }
+
     @TestFactory public Stream<DynamicTest> test() { return runner.test(assertReturnTestCases);}
     @TestFactory public Stream<DynamicTest> testStack() { return wastTest("stack.json");}
 }
