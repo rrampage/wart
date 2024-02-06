@@ -89,6 +89,6 @@ public class Memory {
 
     public boolean matchesDescriptor(ImportDescriptor.MemoryDescriptor m) {
         // TODO : Add check for isShared here as well
-        return m.minPages() == getMemorySize() && m.maxPages() == maxPages;
+        return m.minPages() <= getMemorySize() && m.maxPages() == maxPages;
     }
 }

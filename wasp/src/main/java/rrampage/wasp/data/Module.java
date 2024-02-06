@@ -15,6 +15,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static rrampage.wasp.utils.ConversionUtils.doubleToLong;
+import static rrampage.wasp.utils.ConversionUtils.floatToLong;
+
 public record Module(
         int version,
         FunctionType[] types,
@@ -113,10 +116,10 @@ public record Module(
         for (int  i =0; i < globals().length; i++) {
             var v = globals()[i];
             switch (v.expr()) {
-                case ConstInstruction.IntConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
-                case ConstInstruction.LongConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
-                case ConstInstruction.FloatConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
-                case ConstInstruction.DoubleConst e -> globals()[i] = Variable.newVariable(v.type(), e, v.isMutable());
+                case ConstInstruction.IntConst e -> globals()[i] = Variable.newVariable(v.type(), e.val(), v.isMutable());
+                case ConstInstruction.LongConst e -> globals()[i] = Variable.newVariable(v.type(), e.val(), v.isMutable());
+                case ConstInstruction.FloatConst e -> globals()[i] = Variable.newVariable(v.type(), floatToLong(e.val()), v.isMutable());
+                case ConstInstruction.DoubleConst e -> globals()[i] = Variable.newVariable(v.type(), doubleToLong(e.val()), v.isMutable());
                 case GlobalInstruction.GlobalGet e -> {
                     var src = globals()[e.val()];
                     if (!src.type().equals(v.type())) {
