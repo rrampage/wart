@@ -6,7 +6,8 @@ import rrampage.wasp.parser.types.ImportDescriptor;
 import static rrampage.wasp.utils.ConversionUtils.*;
 
 public sealed interface Variable {
-    long REF_NULL = -1L;
+    int REF_NULL = -1;
+    Function NULL_FUNC = new Function("NULL_FUNC_WASP", FunctionType.VOID, null, null);
     default void setVal(long val) {
         if (!isMutable()) {
             throw new IllegalStateException("Can not set immutable variable");
