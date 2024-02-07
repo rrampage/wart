@@ -105,7 +105,7 @@ public class WasmParser implements Parser {
                 var refType = ValueType.RefType.from(bb.get());
                 byte fb = bb.get();
                 int min = (int) Leb128.readUnsigned(bb);
-                int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : min;
+                int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Table.MAX_TABLE_SIZE;
                 desc = new ImportDescriptor.TableDescriptor(refType, min, max);
             }
             case 2 -> {
@@ -205,7 +205,7 @@ public class WasmParser implements Parser {
         var refType = ValueType.RefType.from(bb.get());
         byte fb = bb.get();
         int min = (int) Leb128.readUnsigned(bb);
-        int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : min;
+        int max = (fb == 1) ? (int) Leb128.readUnsigned(bb) : Table.MAX_TABLE_SIZE;
         return new Table(min, max, refType);
     }
 
@@ -472,6 +472,11 @@ public class WasmParser implements Parser {
                 int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.MemoryDescriptor).count();
                 memories = new Memory[numImports];
             }
+            if (tables.length == 0) {
+                // If there is only an imported table and no other table
+                int numImports = (int) Arrays.stream(imports).filter(i -> i.importDescriptor() instanceof ImportDescriptor.TableDescriptor).count();
+                tables = new Table[numImports];
+            }
             // Check that section is fully consumed
             assertBufferPosition(sectionStart + sectionLength);
         }
@@ -491,7 +496,7 @@ public class WasmParser implements Parser {
         String f4 = "./examples/fizzbuzz_manual.wasm";
         String f5 = "./examples/rocket.wasm";
         String f6 = "./examples/elem_syntax.wasm";
-        String f7 = "./examples/waforth.wasm";
+        String f7 = "./examples/waforth/waforth.wasm";
         String f8 = "./examples/ruffle.wasm"; // Needs v128 support
         String f9 = "./examples/ruby.wasm";
         String f10 = "./examples/sqlite3.wasm";

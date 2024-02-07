@@ -599,18 +599,26 @@ public class Machine {
                             // TODO : Should we create a zero-byte elem segment here and preserve reftype info ?
                             this.elementSegments[elemIdx] = null;
                         }
-                        case RefTypeInstruction.RefFunc r -> {}
-                        case RefTypeInstruction.RefIsNull r -> {}
-                        case RefTypeInstruction.RefNull r -> {}
+                        case RefTypeInstruction.RefFunc r -> {
+                            // TODO
+                            pushInt(r.functionIndex());
+                        }
+                        case RefTypeInstruction.RefIsNull _ -> pushInt(wrapBoolean(popInt() == Variable.REF_NULL));
+                        case RefTypeInstruction.RefNull _ -> pushInt(Variable.REF_NULL);
                         case RefTypeInstruction.TableCopy r -> {}
                         case RefTypeInstruction.TableFill r -> {}
                         case RefTypeInstruction.TableGet r -> {}
                         case RefTypeInstruction.TableGrow r -> {
-                            // TODO
+                            int delta = popInt();
+                            int funcIdx = popInt();
+                            // throw new RuntimeException("TABLE_GROW unimplemented!!");
+                            int ret = tables[r.tableIndex()].grow(delta, funcIdx);
+                            System.out.println(STR."TABLE_GROW \{delta} \{funcIdx} \{ret}");
+                            pushInt(ret);
                         }
                         case RefTypeInstruction.TableInit r -> {}
                         case RefTypeInstruction.TableSet r -> {}
-                        case RefTypeInstruction.TableSize r -> {}
+                        case RefTypeInstruction.TableSize r -> pushInt(tables[r.tableIndex()].size());
                     }
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());

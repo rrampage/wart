@@ -2,6 +2,11 @@ package rrampage.wasp.data;
 
 import rrampage.wasp.parser.types.ImportDescriptor;
 
+import java.util.Arrays;
+
+import static rrampage.wasp.data.Variable.NULL_FUNC;
+import static rrampage.wasp.data.Variable.REF_NULL;
+
 /**
  * Tables currently can store
  * - function references
@@ -10,6 +15,7 @@ import rrampage.wasp.parser.types.ImportDescriptor;
  * For now, only implementing function references
  */
 public class Table {
+    public static final int MAX_TABLE_SIZE = 8192;
     private int size;
     private final int max;
     private Function[] data;
@@ -25,7 +31,7 @@ public class Table {
     }
 
     public Table(int size) {
-        this(size, size, ValueType.RefType.FUNCREF);
+        this(size, MAX_TABLE_SIZE, ValueType.RefType.FUNCREF);
     }
 
     public int size() {
@@ -50,8 +56,20 @@ public class Table {
         this.data[i] = f;
     }
 
+    public int grow(int delta, int funcIdx) {
+        if (delta < 0 || size + delta > max) { return -1;}
+        if (delta == 0) { return size;}
+        Function[] newData = new Function[size+delta];
+        System.arraycopy(data, 0, newData, 0, data.length);
+        Function f = (funcIdx == REF_NULL) ? NULL_FUNC : newData[funcIdx];
+        Arrays.fill(newData, size, size+delta, f);
+        int oldSize = size;
+        size = size + delta;
+        return oldSize;
+    }
+
     public boolean matchesDescriptor(ImportDescriptor.TableDescriptor d) {
-        return this.size == d.min() && this.max == d.max() && this.type.equals(d.refType());
+        return this.size >= d.min() && this.max <= d.max() && this.type.equals(d.refType());
     }
 
     public String toString() {return String.format("Table Type: %s Size: %d Max Size: %d", type.name(), size, max);}
