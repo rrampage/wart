@@ -144,6 +144,29 @@ public class Machine {
         execute(new Instruction[]{new FunctionInstruction.Call((int) startIdx)}, null, FUNC_LEVEL);
     }
 
+    private void handleStack(int oldStackPtr, FunctionType type) {
+        /*
+            Handle correct stack pointer level. Drop extra args
+            oldStackPtr = newStackPtr - numReturns
+            if newStackPtr < oldStackPtr, CRASH
+            if newStackPtr > oldStackPtr + numReturns
+                drop all elements below delta while preserving top numReturn elems
+         */
+        int sp = stack.stackPointer();
+        if (sp < oldStackPtr) {
+            return;
+            // throw new RuntimeException(STR."HANDLE_STACK_ERROR newSP \{sp} < oldSP \{oldStackPtr}");
+        }
+        // TODO: Check for sp < oldStackPtr + numReturn ??
+        int keep = (type ==null) ? 0 : type.numReturns();
+        int drop = sp - oldStackPtr - keep;
+        if (drop <= 0 || keep == 0) {
+            return;
+        }
+        System.out.println(STR."HANDLE_STACK newSP \{sp} oldSP \{oldStackPtr} drop \{drop} keep \{keep}");
+        stack.dropKeep(drop, keep);
+    }
+
     private int execute(Instruction[] instructions, Variable[] locals, int level) {
         for (Instruction ins : instructions) {
             machineVisitor.visitPreInstruction(ins);
@@ -490,12 +513,14 @@ public class Machine {
                     push(val);
                 }
                 case ControlFlowInstruction i -> {
+                    int sp = stack.stackPointer();
                     switch (i) {
                         case ControlFlowInstruction.Block b -> {
                             level = execute(b.code(), locals, b.label());
                             if (level > b.label()) {
                                 throw new RuntimeException("CONTROL_FLOW_ERROR");
                             }
+                            handleStack(sp, b.type());
                             // If loop body ends normally or level is same as label of block
                             if (level == BLOCK_LEVEL || level == b.label()) {
                                 continue;
@@ -507,6 +532,7 @@ public class Machine {
                             do {
                                 level = execute(b.code(), locals, b.label());
                             } while (level == b.label());
+                            handleStack(sp, b.type());
                             // If loop body ends normally
                             if (level == BLOCK_LEVEL) {
                                 continue;
@@ -537,8 +563,9 @@ public class Machine {
                                 continue;
                             }
                             level = execute(b.ifBlock(), locals, b.label());
+                            handleStack(sp, b.type());
                             // If loop body ends normally
-                            if (level == BLOCK_LEVEL) {
+                            if (level == BLOCK_LEVEL || level == b.label()) {
                                 continue;
                             }
                             machineVisitor.visitPostInstruction(ins);
@@ -551,8 +578,9 @@ public class Machine {
                             } else {
                                 level = execute(b.elseBlock(), locals, b.label());
                             }
+                            handleStack(sp, b.type());
                             // If loop body ends normally
-                            if (level == BLOCK_LEVEL) {
+                            if (level == BLOCK_LEVEL || level == b.label()) {
                                 continue;
                             }
                             machineVisitor.visitPostInstruction(ins);
