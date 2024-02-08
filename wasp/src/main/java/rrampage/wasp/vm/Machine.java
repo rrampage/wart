@@ -611,9 +611,7 @@ public class Machine {
                         case RefTypeInstruction.TableGrow r -> {
                             int delta = popInt();
                             int funcIdx = popInt();
-                            // throw new RuntimeException("TABLE_GROW unimplemented!!");
                             int ret = tables[r.tableIndex()].grow(delta, funcIdx);
-                            System.out.println(STR."TABLE_GROW \{delta} \{funcIdx} \{ret}");
                             pushInt(ret);
                         }
                         case RefTypeInstruction.TableInit r -> {}

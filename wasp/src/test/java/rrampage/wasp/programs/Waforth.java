@@ -255,19 +255,7 @@ public class Waforth {
   1 SWAP 2 DO I prime? IF DROP I THEN LOOP .
 ;
                 """;
-        // forth.interpret("3 4 + .", true);
         forth.interpret(s, true);
-        // TODO: load prompt module
-        /*Module promptMod = parseModule("../wart/examples/waforth_prompt.wasm");
-        Machine newMachine = promptMod.instantiate(runner.createImportMapForForthWord(), MachineVisitors.NULL_VISITOR);*/
-        /*
-            0. Watch the talk - DONE
-            2. Implement funcref as a proper value type
-            1. Implement table.grow
-            3. Shell -> waforth.ts
-         */
-        // forth.run(true);
-        // forth.key();
         Scanner scanner = new Scanner(System.in);
         forth.bind("prompt", (stack) -> {
             var message = stack.popString();
@@ -276,18 +264,14 @@ public class Waforth {
             try {
                 System.out.println("Bind");
                 stack.push(Integer.parseInt(result));
-            } catch (Exception e) {
-                // TODO
-            }
+            } catch (Exception _) {}
         });
         // forth.interpret("ASK-NUMBER", true);
         var result = "";
-        System.out.println("Enter q or quit to exit REPL");
+        System.out.println("Welcome to Waforth running on Wasp!");
+        System.out.println("Press q or quit to exit REPL");
         for (int i = 0; i < 100; i++) {
             result = scanner.nextLine();
-            if (result.equalsIgnoreCase("help")) {
-                System.out.println("Enter q or quit to exit REPL");
-            }
             if (result.equalsIgnoreCase("Q") || result.equalsIgnoreCase("quit")) {
                 forth.interpret(".S", true);
                 break;
