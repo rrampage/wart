@@ -20,7 +20,7 @@ public class Olive extends ProcessingMachine {
     PImage image;
 
     public Olive() throws RuntimeException {
-        super("../wart/examples/olive/cup3d.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
+        super("../wart/examples/olive/teapot3d.wasm", createImportMap(), MachineVisitors.NULL_VISITOR);
         heapBase = (Variable.I32Variable) machine.exports().get("__heap_base");
         memory = (Memory) machine.exports().get("memory");
     }
