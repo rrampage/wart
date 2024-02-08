@@ -7,12 +7,9 @@ import static rrampage.wasp.data.ValueType.*;
 import static rrampage.wasp.data.ValueType.NumType.*;
 
 public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
-    public boolean isVoidReturn() {
-        return returnTypes == null || returnTypes.length == 0;
-    }
-    public int numParams() {
-        return paramTypes == null ? 0 : paramTypes.length;
-    }
+    public boolean isVoidReturn() {return returnTypes == null || returnTypes.length == 0;}
+    public int numParams() {return paramTypes == null ? 0 : paramTypes.length;}
+    public int numReturns() {return returnTypes == null ? 0 : returnTypes.length;}
     public String toString() {
         return String.format("%s -> %s",
                 (numParams() == 0) ? "[]" : Arrays.toString(paramTypes),
