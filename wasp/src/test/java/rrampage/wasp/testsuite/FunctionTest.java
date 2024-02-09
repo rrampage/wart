@@ -10,4 +10,6 @@ import static rrampage.wasp.testsuite.TestSuiteRunner.wastTest;
 public class FunctionTest {
     @TestFactory public Stream<DynamicTest> testCall() {return wastTest("call.json");}
     @TestFactory public Stream<DynamicTest> testCallIndirect() {return wastTest("call_indirect.json");}
+    @TestFactory public Stream<DynamicTest> testUnwind() {return wastTest("unwind.json");}
+    @TestFactory public Stream<DynamicTest> testReturn() {return wastTest("return.json");}
 }
