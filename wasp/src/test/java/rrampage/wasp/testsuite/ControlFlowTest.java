@@ -18,6 +18,7 @@ public class ControlFlowTest {
     public Stream<DynamicTest> testBrTable() {return wastTest("br_table.json");}
     @TestFactory public Stream<DynamicTest> testLabels() {return wastTest("labels.json");}
     @TestFactory public Stream<DynamicTest> testStoreCFI() {return wastTest("store.json");}
+    @TestFactory public Stream<DynamicTest> testLoadCFI() {return wastTest("load.json");}
     @TestFactory public Stream<DynamicTest> testNop() {return wastTest("nop.json");}
 
     @Test
