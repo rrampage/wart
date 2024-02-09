@@ -17,12 +17,13 @@ import java.util.Arrays;
         @JsonSubTypes.Type(value = WastCommand.WastTrap.class, name = "assert_trap"),
         @JsonSubTypes.Type(value = WastCommand.WastTrap.class, name = "assert_exhaustion"),
         @JsonSubTypes.Type(value = WastCommand.WastModule.class, name = "module"),
+        @JsonSubTypes.Type(value = WastCommand.WastAction.class, name = "action"),
         @JsonSubTypes.Type(value = WastCommand.WastInvalid.class, name = "assert_invalid"),
         @JsonSubTypes.Type(value = WastCommand.WastInvalid.class, name = "assert_malformed"),
         @JsonSubTypes.Type(value = WastCommand.WastInvalid.class, name = "assert_uninstantiable"),
         @JsonSubTypes.Type(value = WastCommand.WastInvalid.class, name = "assert_unlinkable"),
 })
-public sealed class WastCommand permits WastCommand.WastInvalid, WastCommand.WastModule, WastCommand.WastReturn, WastCommand.WastTrap {
+public sealed class WastCommand {
     private String line;
     private String type;
 
@@ -70,21 +71,35 @@ public sealed class WastCommand permits WastCommand.WastInvalid, WastCommand.Was
     }
 
     public static final class WastTrap extends WastCommand {
-        private WastAction action;
+        private Action action;
         private WastValue[] expected;
         private String text;
         public WastTrap() {}
-        public WastAction getAction() {return action;}
+        public Action getAction() {return action;}
         public WastValue[] getExpected() {return expected;}
         public void setExpected(WastValue[] expected) { this.expected = expected;}
-        public void setAction(WastAction action) {this.action = action;}
+        public void setAction(Action action) {this.action = action;}
         public String getText() {
             return text;
         }
         public void setText(String text) { this.text = text;}
     }
 
-    public static record WastAction(String type, String field, WastValue[] args) {}
+    public static final class WastAction extends WastCommand {
+        private Action action;
+        private WastValue[] expected;
+        public Action getAction() {return action;}
+        public WastValue[] getExpected() {return expected;}
+        public void setExpected(WastValue[] expected) { this.expected = expected;}
+        public void setAction(Action action) {this.action = action;}
+        public AssertReturn toAssert() {
+            ConstInstruction[] args = Arrays.stream(action.args()).map(WastValue::toConst).toArray(ConstInstruction[]::new);
+            ConstInstruction[] expected = Arrays.stream(getExpected()).map(WastValue::toConst).toArray(ConstInstruction[]::new);
+            return new AssertReturn(action.field(), getLine(), args, expected);
+        }
+    }
+
+    public static record Action(String type, String field, WastValue[] args) {}
 
     public static record WastValue(String type, String value) {
         public ConstInstruction toConst() {
@@ -112,13 +127,13 @@ public sealed class WastCommand permits WastCommand.WastInvalid, WastCommand.Was
     }
 
     public static final class WastReturn extends WastCommand {
-        private WastAction action;
+        private Action action;
         private WastValue[] expected;
         public WastReturn() {}
-        public WastAction getAction() {return action;}
+        public Action getAction() {return action;}
         public WastValue[] getExpected() {return expected;}
         public void setExpected(WastValue[] expected) { this.expected = expected;}
-        public void setAction(WastAction action) {this.action = action;}
+        public void setAction(Action action) {this.action = action;}
 
         public AssertReturn toAssert() {
             ConstInstruction[] args = Arrays.stream(action.args()).map(WastValue::toConst).toArray(ConstInstruction[]::new);

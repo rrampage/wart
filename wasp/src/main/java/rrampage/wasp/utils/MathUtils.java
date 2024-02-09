@@ -1,6 +1,5 @@
 package rrampage.wasp.utils;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class MathUtils {
@@ -15,21 +14,71 @@ public class MathUtils {
     public static final double MAX_UNSIGNED_LONG_DOUBLE_VAL = MAX_UNSIGNED_LONG.doubleValue();
     public static final float MAX_UNSIGNED_LONG_FLOAT_VAL = MAX_UNSIGNED_LONG.floatValue();
     public static long MAX_UNSIGNED_INT = Integer.MAX_VALUE * 2L + 1L;
+    public static float MAX_ULP_FLOAT = 0x1.0p23f;
+    public static float MIN_ULP_FLOAT = -0x1.0p23f;
+    public static double MAX_ULP_DOUBLE = 0x1.0p52;
+    public static double MIN_ULP_DOUBLE = -0x1.0p52;
 
+    /**
+     * Generates nearest integral number<br>
+     * <a href="https://webassembly.github.io/spec/core/exec/numerics.html#op-fnearest">Spec</a><br>
+     * Helpful articles:<ul>
+     *     <li><a href="https://ciechanow.ski/exposing-floating-point/">Exposing floating point</a></li>
+     *     <li><a href="https://frama-c.com/2013/05/02/Harder-than-it-looks-rounding-float-to-nearest-integer-part-1.html">Harder than it looks: rounding float to nearest integer, part 1</a></li>
+     *     <li><a href="https://frama-c.com/2013/05/03/Rounding-float-to-nearest-integer-part-2.html">Rounding float to nearest integer, part 2</a></li>
+     *     <li><a href="https://frama-c.com/2013/05/04/Rounding-float-to-nearest-integer-part-3.html">Rounding float to nearest integer, part 3</a></li>
+     *     <li></li>
+     * </ul>
+     *
+     * @param a
+     * @return
+     */
     public static float nearest(float a) {
         if (isCanonicalNaN(a) || Float.isNaN(a) || Float.isInfinite(a) || a == 0.0f) {return a;}
         if (Float.MAX_VALUE == a || -Float.MAX_VALUE == a) {return a;}
         if (a > 0.0f && a <= 0.5f) {return 0.0f;}
         if (a < 0.0f && a >= -0.5f) {return -0.0f;}
-        return -Math.round(-a);
+        if (a < MIN_ULP_FLOAT || a > MAX_ULP_FLOAT) {
+            return a;
+        }
+        var b = (int) a;
+        var c = a - b;
+        if (c == 0.0f) {return a;}
+        // check if frac is 0.5f and return nearest even int
+        if (c == 0.5f) {
+            return (b%2 == 0) ? b : b+1;
+        }
+        if (c == -0.5f) {
+            return (b%2 == 0) ? b : b-1;
+        }
+        // return new BigDecimal(a).setScale(0, RoundingMode.HALF_EVEN).floatValue();
+        if (c < 0) {
+            return (c < -0.5f) ? b-1 : b;
+        }
+        return (c < 0.5f) ? b : b+1;
     }
 
     public static double nearest(double a) {
         if (isCanonicalNaN(a) || Double.isNaN(a) || Double.isInfinite(a) || a == 0.0) {return a;}
         if (Double.MAX_VALUE == a || -Double.MAX_VALUE == a) {return a;}
+        if (a < MIN_ULP_DOUBLE || a > MAX_ULP_DOUBLE) {return  a;}
         if (a > 0.0 && a <= 0.5) {return 0.0;}
         if (a < 0.0 && a >= -0.5) {return -0.0;}
-        return -Math.round(-a);
+        // return new BigDecimal(a).setScale(0, RoundingMode.HALF_EVEN).doubleValue();
+        var b = (long) a;
+        var c = a - b;
+        if (c == 0.0) {return a;}
+        // check if frac is 0.5 and return nearest even int
+        if (c == 0.5) {
+            return (b%2 == 0) ? b : b+1;
+        }
+        if (c == -0.5) {
+            return (b%2 == 0) ? b : b-1;
+        }
+        if (c < 0) {
+            return (c < -0.5) ? b-1 : b;
+        }
+        return (c < 0.5) ? b : b+1;
     }
 
     public static boolean isCanonicalNaN(float a) {
@@ -94,5 +143,9 @@ public class MathUtils {
             System.out.printf("Int: %x %d %s Float: %f\n", n, n, Integer.toUnsignedString(n), Float.intBitsToFloat(n));
             System.out.printf("Int: %x %d %s Float: %f\n", m, m, Integer.toUnsignedString(m), Float.intBitsToFloat(m));
         }
+        System.out.println(nearest(-4.2f));
+        System.out.println(nearest(-4.8f));
+        System.out.println(nearest(-5.8f));
+        System.out.println(nearest(-5.2f));
     }
 }
