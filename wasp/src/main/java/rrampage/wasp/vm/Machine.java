@@ -185,7 +185,7 @@ public class Machine {
                         case F64_DIV -> pushDouble(l/r);
                         case F64_MAX -> pushDouble(Double.max(l,r));
                         case F64_MIN -> pushDouble(Double.min(l,r));
-                        case F64_COPY_SIGN -> pushDouble((l*r >= 0.0) ? l : -l);
+                        case F64_COPY_SIGN -> pushDouble(Math.copySign(l,r));
                         case F64_EQ -> pushInt(wrapBoolean(l == r));
                         case F64_NE -> pushInt(wrapBoolean(l != r));
                         case F64_GE -> pushInt(wrapBoolean(l >= r));
@@ -205,7 +205,7 @@ public class Machine {
                         case F32_DIV -> pushFloat(l/r);
                         case F32_MAX -> pushFloat(Float.max(l,r));
                         case F32_MIN -> pushFloat(Float.min(l,r));
-                        case F32_COPY_SIGN -> pushFloat((l*r >= 0.0f) ? l : -l);
+                        case F32_COPY_SIGN -> pushFloat(Math.copySign(l,r));
                         case F32_EQ -> pushInt(wrapBoolean(l == r));
                         case F32_NE -> pushInt(wrapBoolean(l != r));
                         case F32_GE -> pushInt(wrapBoolean(l >= r));
@@ -283,7 +283,12 @@ public class Machine {
                 case UnaryInstruction u -> {
                     switch (u) {
                         case DROP -> pop();
-                        case MEMORY_GROW -> pushInt(getMainMemory().grow(popInt()));
+                        case MEMORY_GROW -> {
+                            int numPages = popInt();
+                            int ret = getMainMemory().grow(numPages);
+                            System.out.println(STR."GROW_MEM numPages: \{numPages} return: \{ret}");
+                            pushInt(ret);
+                        }
                         case I32_EQZ -> pushInt(wrapBoolean(popInt() == 0));
                         case I64_EQZ -> pushInt(wrapBoolean(pop() == 0));
                         case I32_POPCNT -> pushInt(Integer.bitCount(popInt()));
@@ -691,10 +696,33 @@ public class Machine {
         for (int i =0; i < n; i++) {
             var c = expected[n-i-1];
             switch (c) {
-                case ConstInstruction.DoubleConst cc -> {if (Double.compare(popDouble(), cc.val()) != 0) {return false;}}
-                case ConstInstruction.FloatConst cc -> {if (Float.compare(popFloat(), cc.val()) != 0) {return false;}}
-                case ConstInstruction.IntConst cc -> {if (popInt() != cc.val()) {return false;}}
-                case ConstInstruction.LongConst cc -> { if (pop() != cc.val()) {return false;}}
+                case ConstInstruction.DoubleConst cc -> {
+                    var v = popDouble();
+                    if (Double.compare(v, cc.val()) != 0) {
+                    System.out.println(STR."Expected: \{cc.val()} Found: \{v}");
+                    return false;
+                }}
+                case ConstInstruction.FloatConst cc -> {
+                    var v = popFloat();
+                    if (Float.compare(v, cc.val()) != 0) {
+                        System.out.println(STR."Expected: \{cc.val()} Found: \{v}");
+                        return false;
+                    }
+                }
+                case ConstInstruction.IntConst cc -> {
+                    var v = popInt();
+                    if (v != cc.val()) {
+                        System.out.println(STR."Expected: \{cc.val()} Found: \{v}");
+                        return false;
+                    }
+                }
+                case ConstInstruction.LongConst cc -> {
+                    var v = pop();
+                    if (v != cc.val()) {
+                        System.out.println(STR."Expected: \{cc.val()} Found: \{v}");
+                        return false;
+                    }
+                }
             }
         }
         return true;
