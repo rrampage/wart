@@ -286,7 +286,7 @@ public class Machine {
                         case MEMORY_GROW -> {
                             int numPages = popInt();
                             int ret = getMainMemory().grow(numPages);
-                            System.out.println(STR."GROW_MEM numPages: \{numPages} return: \{ret}");
+                            // System.out.println(STR."GROW_MEM numPages: \{numPages} return: \{ret}");
                             pushInt(ret);
                         }
                         case I32_EQZ -> pushInt(wrapBoolean(popInt() == 0));
