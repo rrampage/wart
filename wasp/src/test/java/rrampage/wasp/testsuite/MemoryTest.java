@@ -12,5 +12,6 @@ public class MemoryTest {
     @TestFactory public Stream<DynamicTest> testMemorySize() {return wastTest("memory_size.json");}
     @TestFactory public Stream<DynamicTest> testMemoryRedundancy() {return wastTest("memory_redundancy.json");}
     @TestFactory public Stream<DynamicTest> testEndianness() {return wastTest("endianness.json");}
+    @TestFactory public Stream<DynamicTest> testAddress() {return wastTest("address.json");}
     @TestFactory public Stream<DynamicTest> testAlign() {return wastTest("align.json");}
 }
