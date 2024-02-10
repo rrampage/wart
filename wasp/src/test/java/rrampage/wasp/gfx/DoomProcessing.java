@@ -1,6 +1,7 @@
 package rrampage.wasp.gfx;
 
 import processing.core.PImage;
+import processing.event.KeyEvent;
 import rrampage.wasp.data.Function;
 import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.data.Memory;
@@ -33,6 +34,37 @@ public class DoomProcessing extends ProcessingMachine {
     public void draw() {
         machine.invoke("doom_loop_step");
         numFrames++;
+    }
+
+    public void keyPressed(KeyEvent event) {
+        System.out.printf("KeyPress: char %c keyCode %d\n", event.getKey(), event.getKeyCode());
+        machine.invoke("add_browser_event", constOf(0), constOf(doomKeyCode(event.getKeyCode())));
+    }
+
+    public void keyReleased(KeyEvent event) {
+        machine.invoke("add_browser_event", constOf(1), constOf(doomKeyCode(event.getKeyCode())));
+    }
+
+    private int doomKeyCode(int keyCode) {
+        return switch (keyCode) {
+            case 8 -> 127; // KEY_BACKSPACE
+            case 10 -> 13; // ENter ??
+            case 17 -> 0x80+0x1d; // KEY_RCTRL
+            case 18 -> 0x80+0x38; // KEY_RALT
+            case 37 -> 0xac; // KEY_LEFTARROW
+            case 38 -> 0xad; // KEY_UPARROW
+            case 39 -> 0xae; // KEY_RIGHTARROW
+            case 40 -> 0xaf; // KEY_DOWNARROW
+            default -> {
+                if (keyCode >= 65 /*A*/ && keyCode <= 90 /*Z*/) {
+                    yield keyCode + 32; // ASCII to lower case
+                }
+                if (keyCode >= 112 /*F1*/ && keyCode <= 123 /*F12*/ ) {
+                    yield keyCode + 75; // KEY_F1
+                }
+                yield keyCode;
+            }
+        };
     }
 
     private Map<String, Map<String, Object>> createImportMap() {
