@@ -560,7 +560,7 @@ public class Machine {
                         case ControlFlowInstruction.BranchTable b -> {
                             int jmpIdx = popInt();
                             machineVisitor.visitPostInstruction(ins);
-                            return (jmpIdx < b.labels().length) ? b.labels()[jmpIdx] : b.defaultLabel();
+                            return (jmpIdx >= 0 && jmpIdx < b.labels().length) ? b.labels()[jmpIdx] : b.defaultLabel();
                         }
                         case ControlFlowInstruction.If b -> {
                             int cmp = popInt();

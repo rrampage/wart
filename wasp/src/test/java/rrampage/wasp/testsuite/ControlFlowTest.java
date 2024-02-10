@@ -15,11 +15,12 @@ public class ControlFlowTest {
     @TestFactory public Stream<DynamicTest> testIf() {return wastTest("if.json");}
     @TestFactory public Stream<DynamicTest> testBr() {return wastTest("br.json");}
     @TestFactory public Stream<DynamicTest> testBrIf() {return wastTest("br_if.json");}
-    public Stream<DynamicTest> testBrTable() {return wastTest("br_table.json");}
+    @TestFactory public Stream<DynamicTest> testBrTable() {return wastTest("br_table.json");}
     @TestFactory public Stream<DynamicTest> testLabels() {return wastTest("labels.json");}
     @TestFactory public Stream<DynamicTest> testStoreCFI() {return wastTest("store.json");}
     @TestFactory public Stream<DynamicTest> testLoadCFI() {return wastTest("load.json");}
     @TestFactory public Stream<DynamicTest> testNop() {return wastTest("nop.json");}
+    @TestFactory public Stream<DynamicTest> testSwitch() {return wastTest("switch.json");}
 
     @Test
     public void shouldRun() {
