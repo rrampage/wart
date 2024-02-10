@@ -163,7 +163,7 @@ public class Machine {
         if (drop <= 0 || keep == 0) {
             return;
         }
-        System.out.println(STR."HANDLE_STACK newSP \{sp} oldSP \{oldStackPtr} drop \{drop} keep \{keep}");
+        // System.out.println(STR."HANDLE_STACK newSP \{sp} oldSP \{oldStackPtr} drop \{drop} keep \{keep}");
         stack.dropKeep(drop, keep);
     }
 

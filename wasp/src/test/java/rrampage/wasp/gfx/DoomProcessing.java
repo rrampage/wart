@@ -18,26 +18,29 @@ public class DoomProcessing extends ProcessingMachine {
     Memory memory = new Memory(103);
     PImage image;
     int iterations, numFrames;
+    int doomWidth = 640;
+    int doomHeight = 400;
     public DoomProcessing() {
         super("../wart/examples/doom/doom.wasm");
         machine = module.instantiate(createImportMap(), MachineVisitors.NULL_VISITOR);
     }
 
-    public void settings() { size(640, 400, P2D);}
+    public void settings() { size(doomWidth, doomHeight, P2D);}
 
     public void setup() {
-        image = createImage(width, height, ARGB);
+        image = createImage(doomWidth, doomHeight, ARGB);
         image(image, 0, 0);
         machine.invoke("main", constOf(0), constOf(0));
     }
 
     public void draw() {
+        var ts = System.currentTimeMillis();
         machine.invoke("doom_loop_step");
         numFrames++;
+        System.out.println(STR."Time taken: \{System.currentTimeMillis() - ts} ms");
     }
 
     public void keyPressed(KeyEvent event) {
-        System.out.printf("KeyPress: char %c keyCode %d\n", event.getKey(), event.getKeyCode());
         machine.invoke("add_browser_event", constOf(0), constOf(doomKeyCode(event.getKeyCode())));
     }
 
