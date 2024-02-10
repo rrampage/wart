@@ -109,7 +109,7 @@ public class Machine {
     private boolean isAligned(int align, int offset, int addr) {
         // TODO: 64 bit instruction can only support alignment of 4
         // (baseAddr + memarg.offset) mod 2^memarg.align == 0
-        if (align > 4) {
+        if (align > 8) {
             return false;
         }
         int effectiveAddr = addr + offset;
@@ -163,7 +163,7 @@ public class Machine {
         if (drop <= 0 || keep == 0) {
             return;
         }
-        System.out.println(STR."HANDLE_STACK newSP \{sp} oldSP \{oldStackPtr} drop \{drop} keep \{keep}");
+        // System.out.println(STR."HANDLE_STACK newSP \{sp} oldSP \{oldStackPtr} drop \{drop} keep \{keep}");
         stack.dropKeep(drop, keep);
     }
 
@@ -376,13 +376,14 @@ public class Machine {
                     };
                     int addr = popInt();
                     int effectiveAddr = addr + s.offset();
-                    if (isAligned(s.align(), s.offset(), effectiveAddr)) {
+                    getMainMemory().store(effectiveAddr, data);
+                    /*if (isAligned(s.align(), s.offset(), effectiveAddr)) {
                         // System.out.println("Aligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(effectiveAddr, data);
                     } else {
                         // System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
                         getMainMemory().store(addr, data);
-                    }
+                    }*/
                     /*byte[] loadedData = getMainMemory().load(effectiveAddr, data.length);
                     if (!Arrays.equals(data, loadedData)) {
                         System.out.printf("Store: op %s data %s load %s\n", s.opCode(), Arrays.toString(data), Arrays.toString(loadedData));
@@ -391,22 +392,21 @@ public class Machine {
                 case LoadInstruction l -> {
                     int addr = popInt();
                     int effectiveAddr = addr + l.offset();
-                    int loadAddr = isAligned(l.align(), l.offset(), effectiveAddr) ? effectiveAddr : addr;
                     switch (l) {
-                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(getMainMemory().load(loadAddr, Integer.BYTES)));
-                        case LoadInstruction.I32Load8S i -> pushInt(getMainMemory().load(loadAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(getMainMemory().load(loadAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES)));
-                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load i -> push(bytesToLong(getMainMemory().load(loadAddr, Long.BYTES)));
-                        case LoadInstruction.I64Load8S i -> push(getMainMemory().load(loadAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(getMainMemory().load(loadAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I64Load16S i -> push(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES)));
-                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(getMainMemory().load(loadAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load32S i -> push(bytesToInt(getMainMemory().load(loadAddr, Integer.BYTES)));
-                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(getMainMemory().load(loadAddr, Integer.BYTES))));
-                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(getMainMemory().load(loadAddr, Float.BYTES)));
-                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(getMainMemory().load(loadAddr, Double.BYTES)));
+                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(getMainMemory().load(effectiveAddr, Integer.BYTES)));
+                        case LoadInstruction.I32Load8S i -> pushInt(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES)));
+                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load i -> push(bytesToLong(getMainMemory().load(effectiveAddr, Long.BYTES)));
+                        case LoadInstruction.I64Load8S i -> push(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]);
+                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]));
+                        case LoadInstruction.I64Load16S i -> push(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES)));
+                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES))));
+                        case LoadInstruction.I64Load32S i -> push(bytesToInt(getMainMemory().load(effectiveAddr, Integer.BYTES)));
+                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(getMainMemory().load(effectiveAddr, Integer.BYTES))));
+                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(getMainMemory().load(effectiveAddr, Float.BYTES)));
+                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(getMainMemory().load(effectiveAddr, Double.BYTES)));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
