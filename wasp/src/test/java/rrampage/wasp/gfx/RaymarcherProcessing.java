@@ -29,7 +29,7 @@ public class RaymarcherProcessing extends ProcessingMachine {
         int baseAddr = 64000;
         for (int i = 0; i < 256; i++) {
             int col = i + (i<<8) + (i<<16) + 0xff000000;
-            memory.store(baseAddr + i*4, intToBytes(col));
+            memory.store(baseAddr + i*4, col);
         }
     }
 

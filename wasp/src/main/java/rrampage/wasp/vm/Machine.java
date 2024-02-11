@@ -363,50 +363,39 @@ public class Machine {
                     }
                 }
                 case StoreInstruction s -> {
-                    byte[] data = switch (s) {
-                        case StoreInstruction.I32Store i -> intToBytes(popInt());
-                        case StoreInstruction.I32Store8 i -> new byte[]{(byte)popInt()};
-                        case StoreInstruction.I32Store16 i -> shortToBytes((short)popInt());
-                        case StoreInstruction.I64Store i -> longToBytes(pop());
-                        case StoreInstruction.I64Store8 i -> new byte[]{(byte)pop()};
-                        case StoreInstruction.I64Store16 i -> shortToBytes((short)pop());
-                        case StoreInstruction.I64Store32 i -> intToBytes((int) pop());
-                        case StoreInstruction.F32Store i -> floatToBytes(popFloat());
-                        case StoreInstruction.F64Store i -> doubleToBytes(popDouble());
-                    };
+                    long val = pop();
                     int addr = popInt();
                     int effectiveAddr = addr + s.offset();
-                    getMainMemory().store(effectiveAddr, data);
-                    /*if (isAligned(s.align(), s.offset(), effectiveAddr)) {
-                        // System.out.println("Aligned write for " + s.align() + " " + s.opCode());
-                        getMainMemory().store(effectiveAddr, data);
-                    } else {
-                        // System.out.println("Unaligned write for " + s.align() + " " + s.opCode());
-                        getMainMemory().store(addr, data);
-                    }*/
-                    /*byte[] loadedData = getMainMemory().load(effectiveAddr, data.length);
-                    if (!Arrays.equals(data, loadedData)) {
-                        System.out.printf("Store: op %s data %s load %s\n", s.opCode(), Arrays.toString(data), Arrays.toString(loadedData));
-                    }*/
+                    // System.out.println(STR."addr: \{addr} offset:\{s.offset()} effectiveAddr: \{effectiveAddr} align: \{s.align()}");
+                    switch (s) {
+                        case StoreInstruction.I32Store _ -> getMainMemory().store(effectiveAddr, (int) val);
+                        case StoreInstruction.I32Store8 _ -> getMainMemory().store(effectiveAddr,(byte)val);
+                        case StoreInstruction.I32Store16 _ -> getMainMemory().store(effectiveAddr,(short)val);
+                        case StoreInstruction.I64Store _ -> getMainMemory().store(effectiveAddr,val);
+                        case StoreInstruction.I64Store8 _ -> getMainMemory().store(effectiveAddr,(byte)val);
+                        case StoreInstruction.I64Store16 _ -> getMainMemory().store(effectiveAddr,(short)val);
+                        case StoreInstruction.I64Store32 _, StoreInstruction.F32Store _ -> getMainMemory().store(effectiveAddr,(int) val);
+                        case StoreInstruction.F64Store _ -> getMainMemory().store(effectiveAddr,val);
+                    }
                 }
                 case LoadInstruction l -> {
                     int addr = popInt();
                     int effectiveAddr = addr + l.offset();
                     switch (l) {
-                        case LoadInstruction.I32Load i -> pushInt(bytesToInt(getMainMemory().load(effectiveAddr, Integer.BYTES)));
-                        case LoadInstruction.I32Load8S i -> pushInt(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I32Load8U i -> pushInt(Byte.toUnsignedInt(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I32Load16S i -> pushInt(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES)));
-                        case LoadInstruction.I32Load16U i -> pushInt(Short.toUnsignedInt(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load i -> push(bytesToLong(getMainMemory().load(effectiveAddr, Long.BYTES)));
-                        case LoadInstruction.I64Load8S i -> push(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]);
-                        case LoadInstruction.I64Load8U i -> push(Byte.toUnsignedLong(getMainMemory().load(effectiveAddr, Byte.BYTES)[0]));
-                        case LoadInstruction.I64Load16S i -> push(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES)));
-                        case LoadInstruction.I64Load16U i -> push(Short.toUnsignedLong(bytesToShort(getMainMemory().load(effectiveAddr, Short.BYTES))));
-                        case LoadInstruction.I64Load32S i -> push(bytesToInt(getMainMemory().load(effectiveAddr, Integer.BYTES)));
-                        case LoadInstruction.I64Load32U i -> push(Integer.toUnsignedLong(bytesToInt(getMainMemory().load(effectiveAddr, Integer.BYTES))));
-                        case LoadInstruction.F32Load i -> pushFloat(bytesToFloat(getMainMemory().load(effectiveAddr, Float.BYTES)));
-                        case LoadInstruction.F64Load i -> pushDouble(bytesToDouble(getMainMemory().load(effectiveAddr, Double.BYTES)));
+                        case LoadInstruction.I32Load _ -> pushInt(getMainMemory().loadInt(effectiveAddr));
+                        case LoadInstruction.I32Load8S _ -> pushInt(getMainMemory().loadByte(effectiveAddr));
+                        case LoadInstruction.I32Load8U _ -> pushInt(Byte.toUnsignedInt(getMainMemory().loadByte(effectiveAddr)));
+                        case LoadInstruction.I32Load16S _ -> pushInt(getMainMemory().loadShort(effectiveAddr));
+                        case LoadInstruction.I32Load16U _ -> pushInt(Short.toUnsignedInt(getMainMemory().loadShort(effectiveAddr)));
+                        case LoadInstruction.I64Load _ -> push(getMainMemory().loadLong(effectiveAddr));
+                        case LoadInstruction.I64Load8S _ -> push(getMainMemory().loadByte(effectiveAddr));
+                        case LoadInstruction.I64Load8U _ -> push(Byte.toUnsignedLong(getMainMemory().loadByte(effectiveAddr)));
+                        case LoadInstruction.I64Load16S _ -> push(getMainMemory().loadShort(effectiveAddr));
+                        case LoadInstruction.I64Load16U _ -> push(Short.toUnsignedLong(getMainMemory().loadShort(effectiveAddr)));
+                        case LoadInstruction.I64Load32S _ -> push(getMainMemory().loadInt(effectiveAddr));
+                        case LoadInstruction.I64Load32U _ -> push(Integer.toUnsignedLong(getMainMemory().loadInt(effectiveAddr)));
+                        case LoadInstruction.F32Load _ -> pushInt(getMainMemory().loadInt(effectiveAddr));
+                        case LoadInstruction.F64Load _ -> push(getMainMemory().loadLong(effectiveAddr));
                         default -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                     }
                 }
@@ -478,14 +467,8 @@ public class Machine {
                             machineVisitor.visitPostInstruction(ins);
                             return RETURN_LEVEL;
                         }
-                        case FunctionInstruction.LocalGet l -> {
-                            Variable var = locals[l.val()];
-                            pushVariable(var);
-                        }
-                        case FunctionInstruction.LocalSet l -> {
-                            Variable var = locals[l.val()];
-                            var.setVal(pop());
-                        }
+                        case FunctionInstruction.LocalGet l -> push(locals[l.val()].getValAsLong());
+                        case FunctionInstruction.LocalSet l -> locals[l.val()].setVal(pop());
                         case FunctionInstruction.LocalTee l -> {
                             long val = pop();
                             Variable var = locals[l.val()];
@@ -497,15 +480,8 @@ public class Machine {
                 }
                 case GlobalInstruction i -> {
                     switch (i) {
-                        case GlobalInstruction.GlobalGet g -> {
-                            Variable var = globals[g.val()];
-                            pushVariable(var);
-                        }
-                        case GlobalInstruction.GlobalSet g -> {
-                            Variable var = globals[g.val()];
-                            var.setVal(pop());
-                            // System.out.println(Variable.debug(globals[g.val()]));
-                        }
+                        case GlobalInstruction.GlobalGet g -> push(globals[g.val()].getValAsLong());
+                        case GlobalInstruction.GlobalSet g -> globals[g.val()].setVal(pop());
                     }
                 }
                 case Select s -> {
@@ -660,13 +636,7 @@ public class Machine {
     }
 
     private void pushVariable(Variable var) {
-        switch (var) {
-            case Variable.F32Variable v -> pushFloat(v.getVal());
-            case Variable.F64Variable v -> pushDouble(v.getVal());
-            case Variable.I32Variable v -> pushInt(v.getVal());
-            case Variable.I64Variable v -> push(v.getVal());
-            case Variable.FuncrefVariable v -> push(v.getVal());
-        }
+        push(var.getValAsLong());
     }
 
     public void invoke(String function, ConstInstruction... expr) {

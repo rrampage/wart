@@ -15,9 +15,9 @@ public class MachineStack {
     }
 
     public long pop() {
-        if (stackPointer <= 0) {
+        /*if (stackPointer <= 0) {
             throw new RuntimeException("STACK_UNDERFLOW");
-        }
+        }*/
         return array[--stackPointer];
     }
 
