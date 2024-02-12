@@ -7,11 +7,19 @@ public class MachineStack {
     private int stackPointer = 0;
 
     public void push(long value) {
+        /*
         int l = array.length;
         if (l <= stackPointer) {
             array = Arrays.copyOf(array, (int) (l * 1.5));
         }
         array[stackPointer++] = value;
+        */
+        try {
+            array[stackPointer++] = value;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            array = Arrays.copyOf(array, (int) (array.length * 1.5));
+            array[stackPointer++] = value;
+        }
     }
 
     public long pop() {
@@ -51,11 +59,14 @@ public class MachineStack {
     }
 
     public static void main(String[] args) {
-        MachineStack ms = new MachineStack();
-        ms.push(1);
-        ms.push(11);
-        ms.push(111);
-        ms.dropKeep(1, 1);
-        System.out.println(ms.inspect());
+        for (int j = 0; j < 20; j++) {
+            MachineStack ms = new MachineStack();
+            var ts = System.nanoTime();
+            var n = 100_000_000;
+            for (int i = 0; i < n; i++) {
+                ms.push(111);
+            }
+            System.out.println(STR."Time: \{(System.nanoTime() - ts)/1_000_000}");
+        }
     }
 }
