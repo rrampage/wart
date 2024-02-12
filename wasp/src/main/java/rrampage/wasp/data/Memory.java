@@ -31,7 +31,7 @@ public class Memory {
         this.maxPages = maxPages;
         this.memory = new byte[pages * MEM_PAGE_SIZE];
         this.isShared = isShared;
-        this.buffer = ByteBuffer.wrap(memory).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+        this.buffer = ByteBuffer.wrap(memory).order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public int getMemorySize() {
@@ -49,16 +49,54 @@ public class Memory {
         byte[] newMemory = new byte[(currPages+numPages)*MEM_PAGE_SIZE];
         System.arraycopy(memory, 0, newMemory, 0, memory.length);
         memory = newMemory;
-        buffer = ByteBuffer.wrap(memory).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+        buffer = ByteBuffer.wrap(memory).order(ByteOrder.LITTLE_ENDIAN);
         return currPages;
+    }
+
+    public byte loadByte(int addr) {
+        return buffer.get(addr);
+    }
+    public short loadShort(int addr) {
+        return buffer.getShort(addr);
+    }
+    public int loadInt(int addr) {
+        return buffer.getInt(addr);
+    }
+    public long loadLong(int addr) {
+        return buffer.getLong(addr);
+    }
+    public float loadFloat(int addr) {
+        return buffer.getFloat(addr);
+    }
+    public double loadDouble(int addr) {
+        return buffer.getDouble(addr);
     }
 
     public byte[] load(int addr, int offset) {
         return Arrays.copyOfRange(memory, addr, addr + offset);
     }
 
+    public void store(int addr, long data) {
+        buffer.putLong(addr, data);
+    }
+    public void store(int addr, int data) {
+        buffer.putInt(addr, data);
+    }
+    public void store(int addr, float data) {
+        buffer.putFloat(addr, data);
+    }
+    public void store(int addr, double data) {
+        buffer.putDouble(addr, data);
+    }
+    public void store(int addr, byte data) {
+        buffer.put(addr, data);
+    }
+    public void store(int addr, short data) {
+        buffer.putShort(addr, data);
+    }
+
     public void store(int addr, byte[] data) {
-        store(addr, data, 0, data.length);
+        buffer.put(addr, data);
     }
 
     public void store(int addr, byte[] data, int srcOffset, int numBytes) {
@@ -68,7 +106,7 @@ public class Memory {
         if (srcOffset + numBytes > data.length) {
             throw new RuntimeException("Can not copy more than source byte array size");
         }
-        System.arraycopy(data, srcOffset, memory, addr, numBytes);
+        buffer.put(addr, data, srcOffset, numBytes);
     }
 
     public void fill(int addr, byte data, int numBytes) {
