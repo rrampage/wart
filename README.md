@@ -5,7 +5,10 @@ Inspired by [David Beazley's mindblowing talk](https://www.youtube.com/watch?v=r
 ## wasp - Java WASM interpreter
 - Runs Doom!
 
-https://github.com/rrampage/wart/blob/b169d4bc12cf68e4c8329cdbd435a2da80a69baa/examples/assets/doom-wasm.mp4
+
+https://github.com/rrampage/wart/assets/1277046/7582e10e-e63d-4d33-9b9d-ddb850635e9f
+
+
 
 ### Currently implemented
 #### Machine
