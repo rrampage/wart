@@ -104,4 +104,9 @@ public record FunctionType(ValueType[] paramTypes, ValueType[] returnTypes) {
     public static final FunctionType I64_UNARY = new FunctionType(new NumType[]{I64}, new NumType[]{I64});
     public static final FunctionType F32_UNARY = new FunctionType(new NumType[]{F32}, new NumType[]{F32});
     public static final FunctionType F64_UNARY = new FunctionType(new NumType[]{F64}, new NumType[]{F64});
+
+    public static final FunctionType I32_BINARY = new FunctionType(new NumType[]{I32, I32}, new NumType[]{I32});
+    public static final FunctionType I64_BINARY = new FunctionType(new NumType[]{I64, I64}, new NumType[]{I64});
+    public static final FunctionType F32_BINARY = new FunctionType(new NumType[]{F32, F32}, new NumType[]{F32});
+    public static final FunctionType F64_BINARY = new FunctionType(new NumType[]{F64, F64}, new NumType[]{F64});
 }

@@ -1,4 +1,4 @@
-package rrampage.wasp.programs;
+package rrampage.wasp.examples;
 
 import rrampage.wasp.data.Module;
 import rrampage.wasp.data.*;
@@ -7,14 +7,13 @@ import rrampage.wasp.utils.FileUtils;
 import rrampage.wasp.vm.Machine;
 import rrampage.wasp.vm.MachineVisitors;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
-import static rrampage.wasp.TestUtils.parseModule;
 import static rrampage.wasp.utils.ConversionUtils.constOf;
 
 public class Waforth {
@@ -29,8 +28,8 @@ public class Waforth {
     StringBuilder keyBuffer;
     boolean debug = false;
 
-    public Waforth() {
-        this.module = parseModule("../wart/examples/waforth/waforth.wasm");
+    public Waforth() throws IOException {
+        this.module = WasmParser.fromFile("../wart/examples/waforth/waforth.wasm").parseModule();
         this.machine = module.instantiate(createImportMap(), MachineVisitors.NULL_VISITOR);
         this.memory = (Memory) machine.exports().get("memory");
         this.table = (Table) machine.exports().get("table");
@@ -49,7 +48,7 @@ public class Waforth {
         var len = this.pop();
         var addr = this.pop();
         System.out.println(STR."ADDR: \{addr} LEN: \{len}");
-        return loadString(this.memory, addr, len);
+        return ProgramUtils.loadString(this.memory, addr, len);
     }
 
     private int here() {
@@ -63,7 +62,7 @@ public class Waforth {
 
     public int pushString(String s, int offset) {
         var addr = this.here() + PAD_OFFSET;
-        var len =  saveString(s, memory, addr);
+        var len =  ProgramUtils.saveString(s, memory, addr);
         this.push(addr);
         this.push(len);
         System.out.println(STR."ADDR: \{addr} LEN: \{len}");
@@ -98,7 +97,7 @@ public class Waforth {
     private void call() {
         var len = pop();
         var addr = pop();
-        var fname = loadString(memory, addr, len);
+        var fname = ProgramUtils.loadString(memory, addr, len);
         var fn = this.functions.get(fname);
         if (fn == null) {
             throw new RuntimeException("CALL_ERROR: Unbound SCALL " + fname);
@@ -136,7 +135,7 @@ public class Waforth {
         }
         // System.out.println(STR."READ_STR: \{input}");
         // System.out.println(STR."BUFFER: \{inpBuffer}");
-        return saveString(input, memory, addr);
+        return ProgramUtils.saveString(input, memory, addr);
     }
 
     private void load(int offset, int length) {
@@ -150,8 +149,8 @@ public class Waforth {
 
     private Map<String, Map<String,Object>> createImportMap() throws RuntimeException {
         try {
-            FunctionType intBiFunction = new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32, ValueType.NumType.I32}, new ValueType.NumType[]{ValueType.NumType.I32});
-            FunctionType intBiConsume = new FunctionType(new ValueType.NumType[]{ValueType.NumType.I32, ValueType.NumType.I32}, null);
+            FunctionType intBiFunction = FunctionType.I32_BINARY;
+            FunctionType intBiConsume = FunctionType.I32_BICONSUME;
             var callMh = Function.createImportFunction("call", FunctionType.VOID,
                     MethodHandles.lookup().findVirtual(this.getClass(), "call", FunctionType.getMethodTypeFromFunctionType(FunctionType.VOID)).bindTo(this));
             var emitMh = Function.createImportFunction("emit", FunctionType.I32_CONSUME,
@@ -172,18 +171,7 @@ public class Waforth {
         return Map.of("env", Map.of("table", table, "memory", memory));
     }
 
-    private static int saveString(String s, Memory memory, int addr) {
-        byte[] data = s.getBytes(StandardCharsets.UTF_8);
-        var len = data.length;
-        memory.store(addr, data);
-        return len;
-    }
-
-    private static String loadString(Memory memory, int addr, int len) {
-        return new String(memory.load(addr, len), StandardCharsets.UTF_8);
-    }
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         /*
               ;; Write a character to the output device
               (import "shell" "emit" (func $shell_emit (param i32)))

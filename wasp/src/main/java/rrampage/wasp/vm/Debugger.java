@@ -313,10 +313,7 @@ public class Debugger {
 
         @Override
         public String toString() {
-            return "BreakPoint{" +
-                    "funcIndex=" + funcIndex +
-                    ", instructionIndex=" + Arrays.toString(instructionIndex) +
-                    '}';
+            return STR."BreakPoint{funcIndex=\{funcIndex}, instructionIndex=\{Arrays.toString(instructionIndex)}\{'}'}";
         }
     }
 

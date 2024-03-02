@@ -207,7 +207,10 @@ public record Module(
         Map<String, Object> exportMap = new HashMap<>();
         for (var e : exports()) {
             switch (e.descriptor()) {
-                case ExportDescriptor.FunctionDescriptor(int idx) -> exportMap.put(e.name(), functions()[idx]);
+                case ExportDescriptor.FunctionDescriptor(int idx) -> {
+                    functions[idx] = Function.rename(e.name(), functions[idx]);
+                    exportMap.put(e.name(), functions[idx]);
+                }
                 case ExportDescriptor.GlobalDescriptor(int idx) -> exportMap.put(e.name(), globals()[idx]);
                 case ExportDescriptor.MemoryDescriptor(int idx) -> exportMap.put(e.name(), memories()[idx]);
                 case ExportDescriptor.TableDescriptor(int idx) -> exportMap.put(e.name(), tables()[idx]);

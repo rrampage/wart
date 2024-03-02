@@ -38,4 +38,8 @@ public record Function(String name, FunctionType type, ValueType[] locals, Instr
     public static Function createStartFunction(String name, Instruction[] code) {
         return new Function(name, new FunctionType(null, null), null, code);
     }
+
+    public static Function rename(String name, Function f) {
+        return new Function(name, f.type, f.locals, f.code);
+    }
 }
