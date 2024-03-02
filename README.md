@@ -9,6 +9,14 @@ Inspired by [David Beazley's mindblowing talk](https://www.youtube.com/watch?v=r
 https://github.com/rrampage/wart/assets/1277046/7582e10e-e63d-4d33-9b9d-ddb850635e9f
 
 
+- Runs [rocket.wasm](https://github.com/aochagavia/rocket_wasm)
+![image](./examples/assets/rocket_wasm.gif)
+- Can run a [Forth (Waforth)](https://github.com/remko/waforth) interpreter
+![image](./examples/assets/waforth-wasm.gif)
+- Renders olive.c examples
+![image](./examples/assets/teapot-olive-wasm.gif)
+- Game of Life pulsar
+![image](./examples/assets/wasm-pulsar.gif)
 
 ### Currently implemented
 #### Machine
