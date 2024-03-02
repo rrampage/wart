@@ -2,12 +2,10 @@
 
 Inspired by [David Beazley's mindblowing talk](https://www.youtube.com/watch?v=r-A78RgMhZU) on live-coding [a WASM interpreter](https://gist.github.com/dabeaz/7d8838b54dba5006c58a40fc28da9d5a)
 
-
-WASM opcode references:
-- [Opcode table](https://pengowray.github.io/wasm-ops/)
-- [MDN WASM Instruction reference](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference)
-
 ## wasp - Java WASM interpreter
+- Runs Doom!
+
+https://github.com/rrampage/wart/blob/b169d4bc12cf68e4c8329cdbd435a2da80a69baa/examples/assets/doom-wasm.mp4
 
 ### Currently implemented
 #### Machine
@@ -125,6 +123,10 @@ go test -v
 - Imports
 - Run on simple wasm files
 
+## References
+### WASM opcode references:
+- [Opcode table](https://pengowray.github.io/wasm-ops/)
+- [MDN WASM Instruction reference](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference)
 
 ## Tools:
 ### [`wasm-tools`](https://github.com/bytecodealliance/wasm-tools)
