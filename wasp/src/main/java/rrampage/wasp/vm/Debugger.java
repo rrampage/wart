@@ -245,6 +245,18 @@ public class Debugger {
     }
 
     private int getFunctionIndex(String funName) {
+        if (!funName.startsWith("Function_")) {
+            if (machine == null || machine.functions() == null) {
+                throw new RuntimeException(STR."Null machine, cannot find index of named function \{funName}");
+            }
+            var funs = machine.functions();
+            for (int i = 0; i < funs.length; i++) {
+                if (funs[i].name().equals(funName)) {
+                    return i;
+                }
+            }
+            throw new RuntimeException(STR."Cannot find index of named function \{funName}");
+        }
         var tokens = funName.split("Function_");
         if (tokens.length != 2) {
             throw new RuntimeException("Function index parsed incorrectly");

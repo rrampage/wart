@@ -28,6 +28,7 @@ public class Machine {
     private final Map<String, Object> exportMap;
     private final long startIdx;
     private final MachineVisitor machineVisitor;
+    private final ArrayDeque<String> callStack = new ArrayDeque<>();
 
     public Machine(Function[] functions, Table[] tables, Variable[] globals, int pages, DataSegment[] dataSegments, ElementSegment[] elementSegments, long startIdx) {
        this(functions, tables, globals, new Memory[]{new Memory(pages)}, dataSegments, elementSegments, null, startIdx, MachineVisitors.NULL_VISITOR);
@@ -117,6 +118,7 @@ public class Machine {
     }
 
     private void call(Function fun) {
+        callStack.push(fun.name());
         if (machineVisitor.hasPreFunctionVisitor) {machineVisitor.visitPreFunction(fun);}
         // Creating a "scratch space" of variables for function params as well as local vars to be used in function body
         Variable[] locals = new Variable[fun.numParams() + fun.numLocals()];
@@ -128,8 +130,15 @@ public class Machine {
             locals[i] = Variable.newMutableVariable(fun.locals()[i - fun.numParams()], 0);
         }
         // Set labels of machine to function labels and reset to original labels once execution is completed
-        execute(fun.code(), locals, FUNC_LEVEL);
+        // System.out.println(STR."FUNC: \{fun.name()} Type: \{fun.type()}");
+        try {
+            execute(fun.code(), locals, FUNC_LEVEL);
+        } catch (Exception e) {
+            System.out.println(STR."Exception at \{fun.name()}\nJava stack trace: \{e.getMessage()}\nWASM call stack trace: \{callStack}");
+            throw e;
+        }
         if (machineVisitor.hasPostFunctionVisitor) {machineVisitor.visitPostFunction(fun);}
+        callStack.pop();
     }
 
     private void start() {
@@ -610,21 +619,22 @@ public class Machine {
                         }
                         case RefTypeInstruction.RefFunc r -> {
                             // TODO
+                            System.out.println(STR."REF_FUNC \{r.functionIndex()}");
                             pushInt(r.functionIndex());
                         }
                         case RefTypeInstruction.RefIsNull _ -> pushInt(wrapBoolean(popInt() == Variable.REF_NULL));
                         case RefTypeInstruction.RefNull _ -> pushInt(Variable.REF_NULL);
-                        case RefTypeInstruction.TableCopy r -> {}
-                        case RefTypeInstruction.TableFill r -> {}
-                        case RefTypeInstruction.TableGet r -> {}
+                        case RefTypeInstruction.TableCopy r -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                        case RefTypeInstruction.TableFill r -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                        case RefTypeInstruction.TableGet r -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                         case RefTypeInstruction.TableGrow r -> {
                             int delta = popInt();
                             int funcIdx = popInt();
                             int ret = tables[r.tableIndex()].grow(delta, funcIdx);
                             pushInt(ret);
                         }
-                        case RefTypeInstruction.TableInit r -> {}
-                        case RefTypeInstruction.TableSet r -> {}
+                        case RefTypeInstruction.TableInit r -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
+                        case RefTypeInstruction.TableSet r -> throw new IllegalStateException("Unexpected value: " + ins.opCode());
                         case RefTypeInstruction.TableSize r -> pushInt(tables[r.tableIndex()].size());
                     }
                 }

@@ -12,7 +12,7 @@ import java.util.Arrays;
  */
 public class Memory {
     private static final int MEM_PAGE_SIZE = 65536;
-    public static final int MAX_PAGES = 4096;
+    public static final int MAX_PAGES = 8192;
     private byte[] memory;
     private final int maxPages;
     private final boolean isShared; // For later work on WASM threads and atomics
@@ -41,6 +41,7 @@ public class Memory {
     public int grow(int numPages) {
         int currPages = getMemorySize();
         if (numPages < 0 || currPages + numPages > maxPages) {
+            System.out.println(STR."MEM_GROW_LIMIT numPages \{numPages} currPages \{currPages} maxPages \{maxPages}");
             return -1;
         }
         if (numPages == 0) {
