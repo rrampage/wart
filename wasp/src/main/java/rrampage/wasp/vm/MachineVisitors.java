@@ -23,15 +23,9 @@ public class MachineVisitors {
         public void preInstructionConsumer(Instruction ins) {
             currentInstruction = ins;
             instructionCounter.merge(ins.opCode(), 1, (v1, _v2) -> v1+1);
-            if (machine != null) {
-                System.out.println(this.callStack.peek() + "\tStack view before Instruction: " + ins + ": " + machine.stackView());
-            }
         }
         public void postInstructionConsumer( Instruction ins) {
             lastSuccessfulInstruction = ins;
-            if (machine != null) {
-                System.out.println(this.callStack.peek() + "\tStack view after Instruction: " + ins + ": " + machine.stackView());
-            }
         }
         public void preFunction(Function fun) {
             System.out.println("FUNCTION_START: " + fun.name() + " " + fun.type());
@@ -55,7 +49,7 @@ public class MachineVisitors {
         var ic = new InstructionCounter();
         return MachineVisitor.VisitorBuilder.of()
                 .start(ic::start)
-                .preInstruction(ic::preInstructionConsumer, insStartLogger)
+                .preInstruction(ic::preInstructionConsumer)
                 .postInstruction(ic::postInstructionConsumer)
                 .preFunction(ic::preFunction).postFunction(ic::postFunction)
                 .end(ic::end).build();
