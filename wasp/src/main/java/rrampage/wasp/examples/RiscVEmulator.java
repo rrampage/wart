@@ -5,7 +5,6 @@ import rrampage.wasp.data.FunctionType;
 import rrampage.wasp.data.Memory;
 import rrampage.wasp.data.Module;
 import rrampage.wasp.parser.WasmParser;
-import rrampage.wasp.utils.FileUtils;
 import rrampage.wasp.vm.Machine;
 import rrampage.wasp.vm.MachineVisitors;
 
@@ -27,7 +26,10 @@ public class RiscVEmulator {
 
     public RiscVEmulator() {
         try {
-            module = WasmParser.fromFile("../wart/examples/wasm-bindgen/riscv-emu/riscv-emu.wasm").parseModule();
+            byte[] wasmModuleBytes = ProgramUtils.downloadAsBytes("https://raw.githubusercontent.com/rrampage/wart/master/examples/wasm-bindgen/riscv-emu/riscv-emu.wasm");
+            System.out.println(STR."Downloaded wasm module of length \{wasmModuleBytes.length} bytes");
+            module = new WasmParser(wasmModuleBytes).parseModule();
+            System.out.println(STR."Module: \{module.memories().length}");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
