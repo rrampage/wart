@@ -10,7 +10,8 @@ https://github.com/rrampage/wart/assets/1277046/7582e10e-e63d-4d33-9b9d-ddb85063
 
 
 
-
+- Runs Linux (very slowly!!) by running a RISC-V emulator compiled to WASM
+  - `java --enable-preview -cp path_to_jar.jar rrampage.wasp.examples.RiscVEmulator`
 ### Currently implemented
 #### Machine
 - Stack push/pop works for i32, i64, f32 and f64
