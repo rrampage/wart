@@ -26,10 +26,7 @@ public class RiscVEmulator {
 
     public RiscVEmulator() {
         try {
-            byte[] wasmModuleBytes = ProgramUtils.downloadAsBytes("https://raw.githubusercontent.com/rrampage/wart/master/examples/wasm-bindgen/riscv-emu/riscv-emu.wasm");
-            System.out.println(STR."Downloaded wasm module of length \{wasmModuleBytes.length} bytes");
-            module = new WasmParser(wasmModuleBytes).parseModule();
-            System.out.println(STR."Module: \{module.memories().length}");
+            module = new WasmParser(ProgramUtils.downloadAsBytes("https://raw.githubusercontent.com/rrampage/wart/master/examples/wasm-bindgen/riscv-emu/riscv-emu.wasm")).parseModule();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
